@@ -1,6 +1,9 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
+import 'package:invest_agent/utils/load_json_data.dart';
 import 'model/analysis_request.dart';
+import 'model/analysis_respond.dart';
 import 'model/etf_analytics_client.dart';
 
 class InvestDashboard extends StatefulWidget {
@@ -12,25 +15,42 @@ class InvestDashboard extends StatefulWidget {
 
 class _InvestDashboardState extends State<InvestDashboard> {
   final ETFAnalyticsClient client = ETFAnalyticsClient();
-  Map<String, dynamic>? analysisResult;
+  AnalysisRequest? analysisResult;
   bool isLoading = false;
   String? errorMessage;
+  late TransformationController _transformationController;
+  bool _isPanEnabled = true;
+  bool _isScaleEnabled = true;
 
+  @override
+  void initState() {
+    _transformationController = TransformationController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Investment Dashboard')),
-      body: Column(
+      body: Row(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           // SETTINGS PANEL
           Expanded(
-            flex: 2,
+            flex: 1,
             child: EtfSettingsPanel(
               onRunAnalysis: _handleRunAnalysis,
             ),
           ),
-          const Divider(height: 1),
+          const SizedBox(width: 10),
           // ANALYSIS PANEL
           Expanded(
             flex: 3,
@@ -64,30 +84,19 @@ class _InvestDashboardState extends State<InvestDashboard> {
   }
 
   // Handle the callback from the settings panel
-  Future<void> _handleRunAnalysis(Map<String, dynamic> payload) async {
+  Future<void> _handleRunAnalysis(AnalysisRequest request) async {
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
 
     try {
-      final request = AnalysisRequest(
-        symbolTicker: payload["symbol_ticker"],
-        datasetSource: payload["dataset_source"],
-        rollingWindows: List<int>.from(payload["rolling_windows"]),
-        strategy: StrategyParams(
-          type: payload["strategy"]["type"],
-          fast: payload["strategy"]["fast"],
-          slow: payload["strategy"]["slow"],
-        ),
-        factors: List<String>.from(payload["factors"]),
-        features: List<String>.from(payload["features"]),
-      );
-
       final result = await client.runAnalysis(request);
 
       setState(() {
-        analysisResult = result;
+        if (result["format"] == "gz") {
+          analysisResult = receiveCompressedAnalysisResult(result) as AnalysisRequest?;
+        }
       });
     } catch (e) {
       setState(() {
@@ -98,6 +107,13 @@ class _InvestDashboardState extends State<InvestDashboard> {
         isLoading = false;
       });
     }
+  }
+
+ AnalysisRespond? receiveCompressedAnalysisResult(Map<String, dynamic> result) {
+    final filePath = result["response_file"];
+    final data = loadFinancialDataFromGzip(filePath);
+    // return data.then((value) => value);
+   return null;
   }
 
   // Build the analysis panel UI
@@ -121,41 +137,21 @@ class _InvestDashboardState extends State<InvestDashboard> {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          "Analysis Results",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return AspectRatio(aspectRatio: 16 / 9,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 0.0, right: 8.0),
+        child: LineChart(
+          LineChartData(),
+          transformationConfig: FlTransformationConfig(
+            scaleAxis: FlScaleAxis.horizontal,
+            minScale: 1.0,
+            maxScale: 25.0,
+            panEnabled: _isPanEnabled,
+            scaleEnabled: _isScaleEnabled,
+            transformationController: _transformationController,
+          ),
         ),
-        const SizedBox(height: 16),
-
-        // Rolling windows
-        if (analysisResult!["rolling"] != null) ...[
-          const Text("Rolling Windows:", style: TextStyle(fontSize: 16)),
-          Text(analysisResult!["rolling"].toString()),
-          const SizedBox(height: 16),
-        ],
-
-        // Strategy
-        if (analysisResult!["strategy"] != null) ...[
-          const Text("Strategy Output:", style: TextStyle(fontSize: 16)),
-          Text(analysisResult!["strategy"].toString()),
-          const SizedBox(height: 16),
-        ],
-
-        // Factors
-        if (analysisResult!["factors"] != null) ...[
-          const Text("Factor Models:", style: TextStyle(fontSize: 16)),
-          Text(analysisResult!["factors"].toString()),
-        ],
-
-        // Features
-        if (analysisResult!["features"] != null) ...[
-          const Text("Features Models:", style: TextStyle(fontSize: 16)),
-          Text(analysisResult!["features"].toString()),
-        ],
-      ],
+      ),
     );
   }
 }

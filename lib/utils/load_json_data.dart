@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive.dart';
-import '../model/invest_data.dart';
+import '../model/analysis_respond.dart';
 import 'package:path/path.dart' as p;
 
 Future<Directory> getLocalDataDirectory() async {
@@ -15,7 +15,7 @@ Future<Directory> getLocalDataDirectory() async {
   return dataDir;
 }
 
-Future<List<FinancialEntry>> loadFinancialDataFromGzip(String filePath) async {
+Future<AnalysisRespond> loadFinancialDataFromGzip<T>(String filePath) async {
   final file = File(filePath);
   final compressedBytes = await file.readAsBytes();
 
@@ -30,17 +30,7 @@ Future<List<FinancialEntry>> loadFinancialDataFromGzip(String filePath) async {
 
   // Check if the decoded JSON is a Map and extract the list from it.
   if (decodedJson is Map<String, dynamic>) {
-    // The JSON is a Map where keys are dates and values are the entries.
-    // We need to iterate through the map and create a FinancialEntry for each.
-    return decodedJson.entries.map((mapEntry) {
-      // The key is the date string, and the value is the map of financial data.
-      final String date = mapEntry.key;
-      final Map<String, dynamic> financialData = mapEntry.value;
-
-      // Add the date to the financial data map before creating the object.
-      // This assumes your FinancialEntry.fromJson expects a 'date' field.
-      return FinancialEntry.fromJson(date, financialData);
-    }).toList();
+    return AnalysisRespond.fromJson(decodedJson);
   }
   else {
     // Throw a more informative error if the structure is unexpected

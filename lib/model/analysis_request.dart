@@ -19,29 +19,29 @@ class StrategyParams {
 class AnalysisRequest {
   final String symbolTicker;
   final String datasetSource;
-  final String? interval;
+  final String period;
+  final String interval;
   final List<int>? rollingWindows;
   final StrategyParams? strategy;
-  final List<String>? factors;
-  final List<String>? features;
+  final List<String>? techIndicators;
 
   AnalysisRequest({
     required this.symbolTicker,
     required this.datasetSource,
-    this.interval,
+    required this.period,
+    required this.interval,
     this.rollingWindows,
     this.strategy,
-    this.factors,
-    this.features
+    this.techIndicators
   });
 
   Map<String, dynamic> toJson() => {
     "symbol_ticker": symbolTicker,
     "dataset_source": datasetSource,
+    "period": period,
     "interval": interval,
     "rolling_windows": rollingWindows,
     "strategy": strategy?.toJson(),
-    "factors": factors,
-    "features": features,
+    "tech_indicators": techIndicators,
   };
 }

@@ -1,8 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:invest_agent/widgets/rolling_list.dart';
+import 'package:path/path.dart' as p;
+
+import '../model/analysis_request.dart';
 
 class EtfSettingsPanel extends StatefulWidget {
-  final void Function(Map<String, dynamic>) onRunAnalysis;
+  final void Function(AnalysisRequest) onRunAnalysis;
 
   const EtfSettingsPanel({
     super.key,
@@ -14,16 +18,40 @@ class EtfSettingsPanel extends StatefulWidget {
 }
 
 class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
-  // --- ETF selection ---
-  final List<String> etfSymbols = ["VOO", "SPY", "QQQ", "IWM", "EFA"];
-  String selectedSymbol = "VOO";
-
   // --- Dataset selection ---
-  late String? datasetSources = null;
-  String selectedDataset = "Choose dataset file";
+  String? datasetSource;
+  String? selectedSymbol;
 
   // --- Rolling windows ---
   List<int> rollingWindows = [20, 50, 100, 150, 200, 250];
+  List<String> analysisIndicators = [
+    "SMA",
+    "BB",
+    "MACD",
+    "RSI",
+    "EMA",
+    "golden_cross",
+    "death_cross",
+    "Volume"
+  ];
+
+  List<String> intervals = ["1d", "1w", "1y"];
+  String selectedInterval = "1d";
+
+  List<String> periods = [
+    "1d",
+    "5d",
+    "1w",
+    "1mo",
+    "3mo",
+    "6mo",
+    "1y",
+    "2y",
+    "3y",
+    "5y",
+    "max"
+  ];
+  String selectedPeriod = "1y";
 
   // --- Strategy parameters ---
   // TODO: Custom this
@@ -38,140 +66,152 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     "size",
     "low_vol"
   ];
-  final Set<String> selectedFactors = {
-    "SMA", "BB", "MACD", "RSI", "EMA", "golden_cross", "death_cross", "Volume"};
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionTitle("Raw Input File Path"),
-              ElevatedButton(
-                onPressed: _pickAndLoadFile,
-                child: const Text("Select historical dataset"),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionTitle("ETF Symbol"),
-              Text(datasetSources ?? "No file selected"),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          _sectionTitle("Rolling Windows"),
-          Wrap(
-            spacing: 8,
-            children: rollingWindows
-                .map((w) => Chip(
-              label: Text("$w"),
-              onDeleted: () {
-                setState(() => rollingWindows.remove(w));
-              },
-            ))
-                .toList(),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  decoration: const InputDecoration(
-                    labelText: "Add window",
-                  ),
-                  keyboardType: TextInputType.number,
-                  onSubmitted: (v) {
-                    final parsed = int.tryParse(v);
-                    if (parsed != null) {
-                      setState(() => rollingWindows.add(parsed));
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          _sectionTitle("Strategy Parameters (SMA)"),
-          Row(
-            children: [
-              Expanded(
-                child: _numberField(
-                  label: "Fast",
-                  value: smaFast,
-                  onChanged: (v) => setState(() => smaFast = v),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _numberField(
-                  label: "Slow",
-                  value: smaSlow,
-                  onChanged: (v) => setState(() => smaSlow = v),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          _sectionTitle("Factor Models"),
-          Wrap(
-            spacing: 8,
-            children: factorOptions.map((factor) {
-              final selected = selectedFactors.contains(factor);
-              return FilterChip(
-                label: Text(factor),
-                selected: selected,
-                onSelected: (v) {
-                  setState(() {
-                    if (v) {
-                      selectedFactors.add(factor);
-                    } else {
-                      selectedFactors.remove(factor);
-                    }
-                  });
-                },
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 30),
-          Center(
-            child: ElevatedButton(
-              onPressed: _runAnalysis,
-              child: const Text("Run Analysis"),
-            ),
-          ),
-        ],
-      ),
-    );
+        padding: const EdgeInsets.all(16),
+        child: _settingPanel());
   }
 
   void _runAnalysis() {
-    final payload = {
-      "symbol_ticker": selectedSymbol,
-      "dataset_source": selectedDataset,
-      "rolling_windows": rollingWindows,
-      "strategy": {
-        "type": "sma",
-        "fast": smaFast,
-        "slow": smaSlow,
-      },
-      "factors": selectedFactors.toList(),
-    };
+    if (selectedSymbol == null || datasetSource == null) {
+      return;
+    }
 
-    widget.onRunAnalysis(payload);
+    final request = AnalysisRequest(
+      symbolTicker: selectedSymbol!,
+      datasetSource: datasetSource!,
+      rollingWindows: rollingWindows,
+      interval: selectedInterval,
+      period: selectedPeriod,
+      strategy: StrategyParams(
+        type: "sma",
+        fast: smaFast,
+        slow: smaSlow,
+      ),
+      techIndicators: analysisIndicators,
+    );
+
+    widget.onRunAnalysis(request);
+  }
+
+  Widget _settingPanel() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionTitle("Raw Input File Path"),
+        ElevatedButton(
+          onPressed: _pickAndLoadFile,
+          child: const Text("Select historical dataset"),
+        ),
+        const SizedBox(height: 10),
+
+        _sectionTitle("ETF Symbol"),
+        Text(selectedSymbol ?? "No file selected"),
+        const SizedBox(height: 20),
+
+        _sectionTitle("Rolling Windows"),
+        Wrap(
+          spacing: 8,
+          children: rollingWindows
+              .map((w) =>
+              Chip(
+                label: Text("$w"),
+                onDeleted: () {
+                  setState(() => rollingWindows.remove(w));
+                },
+              ))
+              .toList(),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                decoration: const InputDecoration(
+                  labelText: "Add rolling window",
+                ),
+                keyboardType: TextInputType.number,
+                onSubmitted: (v) {
+                  final parsed = int.tryParse(v);
+                  if (parsed != null) {
+                    setState(() => rollingWindows.add(parsed));
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        _sectionTitle("Period"),
+        RollingList<String>(values: periods, initialValue: "1y",
+          onChanged: (String v) => setState(() => selectedPeriod = v)),
+        const SizedBox(height: 10),
+
+        _sectionTitle("Interval"),
+        RollingList<String>(values: intervals, initialValue: intervals.first,
+            onChanged: (String v) => setState(() => selectedInterval = v)),
+        const SizedBox(height: 10),
+
+        _sectionTitle("Analysis indicators"),
+        Wrap(spacing: 8,
+          children: analysisIndicators.map((w) =>
+              Chip(
+                label: Text(w),
+                onDeleted: () {
+                  setState(() => analysisIndicators.remove(w));
+                },
+              )).toList(),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                  decoration: const InputDecoration(labelText: "Add indicator"),
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (indicator) {
+                    if (indicator.isNotEmpty) {
+                      setState(() => analysisIndicators.add(indicator));
+                    }
+                  }),
+            ),
+          ],
+        ),
+        const SizedBox(height: 30),
+
+        Center(
+          child: ElevatedButton(
+            onPressed: _runAnalysis,
+            child: const Text("Run Analysis"),
+          ),
+        ),
+      ],
+    );
+
+    // TODO: add strategy parameters
+    // const SizedBox(height: 20),
+    // _sectionTitle("Strategy Parameters (SMA)"),
+    // Row(
+    //   children: [
+    //     Expanded(
+    //       child: _numberField(
+    //         label: "Fast",
+    //         value: smaFast,
+    //         onChanged: (v) => setState(() => smaFast = v),
+    //       ),
+    //     ),
+    //     const SizedBox(width: 16),
+    //     Expanded(
+    //       child: _numberField(
+    //         label: "Slow",
+    //         value: smaSlow,
+    //         onChanged: (v) => setState(() => smaSlow = v),
+    //       ),
+    //     ),
+    //   ],
+    // ),
   }
 
   Widget _sectionTitle(String text) {
@@ -200,7 +240,7 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     );
   }
 
-Future<void> _pickAndLoadFile() async {
+  Future<void> _pickAndLoadFile() async {
   try {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -208,11 +248,17 @@ Future<void> _pickAndLoadFile() async {
     );
 
     if (result == null || result.files.single.path == null) return;
+    // After the await, the widget might be gone.
+    if (!mounted) return;
 
+    datasetSource = result.files.single.path!;
     setState(() {
-      datasetSources = result.files.single.path!;
+      selectedSymbol = p.basenameWithoutExtension(result.files.single.path!);
     });
   } catch (e) {
+    // After the await (which might have thrown the error), check if the widget is still here.
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       // TODO: handle error better
       SnackBar(content: Text('Error loading file: $e')),
