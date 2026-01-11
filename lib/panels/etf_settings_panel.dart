@@ -224,21 +224,21 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     );
   }
 
-  Widget _numberField({
-    required String label,
-    required int value,
-    required void Function(int) onChanged,
-  }) {
-    return TextField(
-      decoration: InputDecoration(labelText: label),
-      keyboardType: TextInputType.number,
-      controller: TextEditingController(text: value.toString()),
-      onSubmitted: (v) {
-        final parsed = int.tryParse(v);
-        if (parsed != null) onChanged(parsed);
-      },
-    );
-  }
+  // Widget _numberField({
+  //   required String label,
+  //   required int value,
+  //   required void Function(int) onChanged,
+  // }) {
+  //   return TextField(
+  //     decoration: InputDecoration(labelText: label),
+  //     keyboardType: TextInputType.number,
+  //     controller: TextEditingController(text: value.toString()),
+  //     onSubmitted: (v) {
+  //       final parsed = int.tryParse(v);
+  //       if (parsed != null) onChanged(parsed);
+  //     },
+  //   );
+  // }
 
   Future<void> _pickAndLoadFile() async {
   try {

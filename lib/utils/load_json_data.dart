@@ -15,7 +15,7 @@ Future<Directory> getLocalDataDirectory() async {
   return dataDir;
 }
 
-Future<AnalysisRespond> loadFinancialDataFromGzip<T>(String filePath) async {
+Future<AnalysisRespond?> loadFinancialDataFromGzip<T>(String filePath) async {
   final file = File(filePath);
   final compressedBytes = await file.readAsBytes();
 

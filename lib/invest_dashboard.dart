@@ -19,8 +19,8 @@ class _InvestDashboardState extends State<InvestDashboard> {
   bool isLoading = false;
   String? errorMessage;
   late TransformationController _transformationController;
-  bool _isPanEnabled = true;
-  bool _isScaleEnabled = true;
+  final bool _isPanEnabled = true;
+  final bool _isScaleEnabled = true;
 
   @override
   void initState() {
@@ -109,11 +109,10 @@ class _InvestDashboardState extends State<InvestDashboard> {
     }
   }
 
- AnalysisRespond? receiveCompressedAnalysisResult(Map<String, dynamic> result) {
+ Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
     final filePath = result["response_file"];
     final data = loadFinancialDataFromGzip(filePath);
-    // return data.then((value) => value);
-   return null;
+    return data.then((value) => value);
   }
 
   // Build the analysis panel UI
