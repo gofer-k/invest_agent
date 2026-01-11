@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
@@ -15,7 +17,7 @@ class InvestDashboard extends StatefulWidget {
 
 class _InvestDashboardState extends State<InvestDashboard> {
   final ETFAnalyticsClient client = ETFAnalyticsClient();
-  AnalysisRequest? analysisResult;
+  AnalysisRespond? analysisResult;
   bool isLoading = false;
   String? errorMessage;
   late TransformationController _transformationController;
@@ -92,27 +94,30 @@ class _InvestDashboardState extends State<InvestDashboard> {
 
     try {
       final result = await client.runAnalysis(request);
+      AnalysisRespond? receivedData;
+      if (result["format"] == "gz") {
+        receivedData = await receiveCompressedAnalysisResult(result);
+      }
 
       setState(() {
         if (result["format"] == "gz") {
-          analysisResult = receiveCompressedAnalysisResult(result) as AnalysisRequest?;
+          analysisResult = receivedData;
+          isLoading = false;
         }
       });
     } catch (e) {
       setState(() {
         errorMessage = e.toString();
-      });
-    } finally {
-      setState(() {
+        log("ETF agent analysis: Error: $errorMessage");
         isLoading = false;
       });
     }
   }
 
- Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
+  Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
     final filePath = result["response_file"];
     final data = loadFinancialDataFromGzip(filePath);
-    return data.then((value) => value);
+    return data;
   }
 
   // Build the analysis panel UI
@@ -130,7 +135,8 @@ class _InvestDashboardState extends State<InvestDashboard> {
       );
     }
 
-    if (analysisResult == null) {
+    final AnalysisRespond? currentResult = analysisResult;
+    if (currentResult == null) {
       return const Center(
         child: Text("Run analysis to see results"),
       );
