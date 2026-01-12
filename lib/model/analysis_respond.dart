@@ -297,8 +297,57 @@ class AnalysisRespond {
   final List<PriceData> priceData;
   final List<Indicators> indicators;
   final List<CandleStickItem> candles;
+  double? priceRange;
+  double? maxPrice;
+  double? minPrice;
 
   AnalysisRespond(this.indicators, this.candles, this.priceData);
+
+  Future<double?> getPriceRange() async {
+    if (priceRange != null) {
+      return priceRange;
+    }
+    if (priceData.isEmpty) {
+      return null;
+    }
+    final double sum = priceData.fold(
+      0.0,
+      (previousValue, priceItem) => previousValue + priceItem.closePrice,
+    );
+    // priceRange = range / priceData.length;
+    priceRange = sum;
+    return priceRange;
+  }
+
+  Future<double?> getMaxPrice() async {
+    if (maxPrice != null) {
+      return maxPrice;
+    }
+    if (priceData.isEmpty) {
+      return null;
+    }
+    final maxPriceItem = priceData.reduce(
+      (currentItem, nextItem) =>
+      currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
+    );
+    maxPrice = maxPriceItem.closePrice;
+    return maxPrice;
+  }
+
+  Future<double?> getMinPrice() async {
+    if (minPrice != null) {
+      return minPrice;
+    }
+    if (priceData.isEmpty) {
+      return null;
+    }
+    final minPriceItem = priceData.reduce(
+          (currentItem, nextItem) =>
+      currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem,
+    );
+    minPrice = minPriceItem.closePrice;
+    return minPrice;
+  }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
     final indicators = <Indicators>[];
