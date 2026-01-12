@@ -136,8 +136,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
       );
     }
 
-    final usd = NumberFormat.simpleCurrency(locale: 'en_US', symbol: '\$', decimalDigits: 2);
-    getTitlesWidget: (value, meta) { return Text(usd.format(value)); }
+    final usd = NumberFormat.simpleCurrency(locale: 'en_US', decimalDigits: 2);
     return AspectRatio(aspectRatio: 16 / 9,
       child: Padding(
         padding: const EdgeInsets.only(top: 12.0, right: 12.0, left: 12.0),
@@ -238,19 +237,16 @@ class _InvestDashboardState extends State<InvestDashboard> {
                               TextSpan(
                                 text: '${date.year}/${date.month}/${date.day}',
                                 style: TextStyle(
-                                  // color: AppColors.contentColorGreen.darken(20),
+                                  color: Colors.lightGreen,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
                               ),
+                              TextSpan(text: '\n'),
                               TextSpan(
-                                text: '\n${AppUtils.getFormattedCurrency(
-                                  context,
-                                  price,
-                                  noDecimals: true,
-                                )}',
+                                text: usd.format(price),
                                 style: const TextStyle(
-                                  color: AppColors.contentColorYellow,
+                                  color: Colors.orange,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
