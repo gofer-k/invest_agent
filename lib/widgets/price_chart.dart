@@ -46,8 +46,10 @@ class _PriceChartState extends State<PriceChart> {
     );
 
     double horizontalTitleSpace = 48;
-    double verticalTitleSpace = 54;
+    double verticalTitleSpace = 58;
     double padding = 12;
+    final compact = NumberFormat.compact();
+
     return AspectRatio(aspectRatio: 16 / 9,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding),
@@ -137,7 +139,9 @@ class _PriceChartState extends State<PriceChart> {
                           getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                             return touchedBarSpots.map((barSpot) {
                               final price = barSpot.y;
-                              final date = widget.priceData[barSpot.x.toInt()].dateTime;
+                              final index = barSpot.x.toInt();
+                              final date = widget.priceData[index].dateTime;
+                              final volume = widget.priceData[index].volume;
                               return LineTooltipItem('',
                                 const TextStyle(
                                   // color: AppColors.contentColorBlack,
@@ -157,6 +161,15 @@ class _PriceChartState extends State<PriceChart> {
                                     text: usd.format(price),
                                     style: const TextStyle(
                                       color: Colors.orange,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  TextSpan(text: '\n'),
+                                  TextSpan(
+                                    text: compact.format(volume),
+                                    style: const TextStyle(
+                                      color: Colors.blueAccent,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
