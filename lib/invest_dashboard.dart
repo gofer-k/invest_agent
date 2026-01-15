@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';

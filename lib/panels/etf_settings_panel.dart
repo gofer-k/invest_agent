@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/rolling_list.dart';
+import 'package:invest_agent/widgets/shrinkable.dart';
 import 'package:path/path.dart' as p;
 
 import '../model/analysis_request.dart';
@@ -101,90 +102,97 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle("Raw Input File Path"),
-        ElevatedButton(
-          onPressed: _pickAndLoadFile,
-          child: const Text("Select historical dataset"),
-        ),
-        const SizedBox(height: 10),
-
-        _sectionTitle("ETF Symbol"),
-        Text(selectedSymbol ?? "No file selected"),
-        const SizedBox(height: 20),
-
-        _sectionTitle("Rolling Windows"),
-        Wrap(
-          spacing: 8,
-          children: rollingWindows
-              .map((w) =>
-              Chip(
-                label: Text("$w"),
-                onDeleted: () {
-                  setState(() => rollingWindows.remove(w));
-                },
-              ))
-              .toList(),
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                decoration: const InputDecoration(
-                  labelText: "Add rolling window",
-                ),
-                keyboardType: TextInputType.number,
-                onSubmitted: (v) {
-                  final parsed = int.tryParse(v);
-                  if (parsed != null) {
-                    setState(() => rollingWindows.add(parsed));
-                  }
-                },
+        Shrinkable(title: "Load ETF data",
+          body: Column(
+            children: [
+              ElevatedButton(
+                onPressed: _pickAndLoadFile,
+                child: const Text("Select historical dataset"),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              _sectionTitle("ETF Symbol"),
+              Text(selectedSymbol ?? "No file selected"),
+            ],
+          ),
         ),
-        const SizedBox(height: 20),
-
-        _sectionTitle("Period"),
-        RollingList<String>(values: periods, initialValue: "1y",
-          onChanged: (String v) => setState(() => selectedPeriod = v)),
-        const SizedBox(height: 10),
-
-        _sectionTitle("Interval"),
-        RollingList<String>(values: intervals, initialValue: intervals.first,
-            onChanged: (String v) => setState(() => selectedInterval = v)),
-        const SizedBox(height: 10),
-
-        _sectionTitle("Analysis indicators"),
-        Wrap(spacing: 8,
-          children: analysisIndicators.map((w) =>
-              Chip(
-                label: Text(w),
-                onDeleted: () {
-                  setState(() => analysisIndicators.remove(w));
-                },
-              )).toList(),
+        Shrinkable(title: "Period: ($selectedPeriod)",
+          body: RollingList<String>(values: periods, initialValue: "1y",
+           onChanged: (String v) => setState(() => selectedPeriod = v))
         ),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                  decoration: const InputDecoration(labelText: "Add indicator"),
-                  keyboardType: TextInputType.number,
-                  onSubmitted: (indicator) {
-                    if (indicator.isNotEmpty) {
-                      setState(() => analysisIndicators.add(indicator));
-                    }
-                  }),
-            ),
-          ],
+        Shrinkable(title: "Interval: ($selectedInterval)",
+          body: RollingList<String>(values: intervals, initialValue: intervals.first,
+            onChanged: (String v) => setState(() => selectedInterval = v))),
+        Shrinkable(title: "Rolling Windows",
+          body: Column(
+            children: [
+              Wrap(
+                spacing: 8,
+                children: rollingWindows
+                    .map((w) =>
+                    Chip(
+                      label: Text("$w"),
+                      onDeleted: () {
+                        setState(() => rollingWindows.remove(w));
+                      },
+                    ))
+                    .toList(),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        labelText: "Add rolling window",
+                      ),
+                      keyboardType: TextInputType.number,
+                      onSubmitted: (v) {
+                        final parsed = int.tryParse(v);
+                        if (parsed != null) {
+                          setState(() => rollingWindows.add(parsed));
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ]
+        )),
+        Shrinkable(title: "Technical Indicators",
+          body: Column(
+            children: [
+              Wrap(spacing: 8,
+                children: analysisIndicators.map((w) =>
+                    Chip(
+                      label: Text(w),
+                      onDeleted: () {
+                        setState(() => analysisIndicators.remove(w));
+                      },
+                    )).toList(),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                        decoration: const InputDecoration(labelText: "Add indicator"),
+                        keyboardType: TextInputType.number,
+                        onSubmitted: (indicator) {
+                          if (indicator.isNotEmpty) {
+                            setState(() => analysisIndicators.add(indicator));
+                          }
+                        }),
+                  ),
+                ],
+              ),
+            ],
+          )
         ),
         const SizedBox(height: 30),
-
         Center(
+          widthFactor: 4.0,
+          heightFactor: 2.0,
           child: ElevatedButton(
             onPressed: _runAnalysis,
-            child: const Text("Run Analysis"),
+            child: const Text("Run Analysis", style: TextStyle(fontSize: 20)),
           ),
         ),
       ],

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:invest_agent/widgets/volume_chart.dart';
 
 import '../model/analysis_respond.dart';
+import '../themes/app_themes.dart';
 
 class PriceChart extends  StatefulWidget {
   final String eftIndexName;
@@ -60,7 +61,7 @@ class _PriceChartState extends State<PriceChart> {
                 LineChartData(
                     lineBarsData: [
                       LineChartBarData(
-                          color: Colors.black26,
+                          color: AppTheme.of(context).priceBarColor?? Theme.of(context).primaryColor,
                           barWidth: 1.5,
                           isStrokeCapRound: true,
                           dotData: FlDotData(show: false),
@@ -151,7 +152,7 @@ class _PriceChartState extends State<PriceChart> {
                                   TextSpan(
                                     text: '${date.year}/${date.month}/${date.day}',
                                     style: TextStyle(
-                                      color: Colors.lightGreen,
+                                      color: AppTheme.of(context).tooltipDateColor?? Theme.of(context).tooltipTheme.textStyle?.color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -159,8 +160,8 @@ class _PriceChartState extends State<PriceChart> {
                                   TextSpan(text: '\n'),
                                   TextSpan(
                                     text: usd.format(price),
-                                    style: const TextStyle(
-                                      color: Colors.orange,
+                                    style: TextStyle(
+                                      color: AppTheme.of(context).tooltipPriceColor?? Theme.of(context).tooltipTheme.textStyle?.color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -168,8 +169,8 @@ class _PriceChartState extends State<PriceChart> {
                                   TextSpan(text: '\n'),
                                   TextSpan(
                                     text: compact.format(volume),
-                                    style: const TextStyle(
-                                      color: Colors.blueAccent,
+                                    style: TextStyle(
+                                      color: AppTheme.of(context).tooltipVolumeColor?? Theme.of(context).tooltipTheme.textStyle?.color,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -209,10 +210,10 @@ class _PriceChartState extends State<PriceChart> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppTheme.of(context).etfTitleColor?? Theme.of(context).textTheme.titleLarge?.color ?? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
                   shadows: [
                     Shadow(
-                      color: Colors.black54,
+                      color: AppTheme.of(context).etfTitleShadowColor?? Theme.of(context).shadowColor,
                       blurRadius: 4,
                     ),
                   ],

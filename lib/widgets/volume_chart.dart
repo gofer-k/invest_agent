@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
+import 'package:invest_agent/themes/app_themes.dart';
 
 class VolumeChart extends StatefulWidget {
   final List<PriceData> priceData;
@@ -35,6 +36,8 @@ class _VolumeChartState extends State<VolumeChart>{
           final scaled = scaledVolume(entry.volume);
           // double logVolume(double v) => log(v + 1);
           final isBull = entry.closePrice >= entry.openPrice;
+          final bullishColor = AppTheme.of(context).bullishBarColor?? Colors.green;
+          final bearishColor = AppTheme.of(context).bearishBarColor?? Colors.red;
 
           return BarChartGroupData(
             x: index,
@@ -42,7 +45,7 @@ class _VolumeChartState extends State<VolumeChart>{
               BarChartRodData(
                 toY: scaled,
                 width: 4,
-                color: isBull ? Colors.green : Colors.red,
+                color: isBull ? bullishColor : bearishColor,
                 borderRadius: BorderRadius.zero,
               ),
             ],
