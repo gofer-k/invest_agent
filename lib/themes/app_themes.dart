@@ -56,6 +56,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final Color? etfTitleColor;
   final Color? etfTitleShadowColor;
   final Color? indicatorSignalColor;
+  final Color? indicatorLowerBand;
+  final Color? indicatorUpperBand;
+  final Color? indicatorMiddleBand;
   final Color? indicatorRate;
   final EdgeInsets? paddingOverlayChart;
 
@@ -74,6 +77,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
     this.etfTitleColor,
     this.etfTitleShadowColor,
     this.indicatorSignalColor = Colors.orange,
+    this.indicatorLowerBand = Colors.redAccent,
+    this.indicatorUpperBand = Colors.greenAccent,
+    this.indicatorMiddleBand = Colors.orange,
     this.indicatorRate = Colors.blueAccent,
     this.paddingOverlayChart = const EdgeInsets.only(
       top: 12, left: 48 + 12, right: 48 + 12, bottom: 56),
@@ -91,6 +97,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
     Color? etfTitleShadowColor,
     Color? indicatorSignalColor,
     Color? indicatorRate,
+    Color? indicatorLowerBand,
+    Color? indicatorUpperBand,
+    Color? indicatorMiddleBand,
     EdgeInsets? paddingOverlayChart,
   }) {
     return AppTheme(
@@ -105,6 +114,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorSignalColor: indicatorSignalColor,
       indicatorRate: indicatorRate,
       paddingOverlayChart: paddingOverlayChart,
+      indicatorLowerBand: indicatorLowerBand,
+      indicatorUpperBand: indicatorUpperBand,
+      indicatorMiddleBand: indicatorMiddleBand,
     );
   }
 
@@ -125,6 +137,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorSignalColor: Color.lerp(indicatorSignalColor, other.indicatorSignalColor, t),
       indicatorRate: Color.lerp(indicatorRate, other.indicatorRate, t),
       paddingOverlayChart: EdgeInsets.lerp(paddingOverlayChart, other.paddingOverlayChart, t),
+      indicatorLowerBand: Color.lerp(indicatorLowerBand, other.indicatorLowerBand, t),
+      indicatorUpperBand: Color.lerp(indicatorUpperBand, other.indicatorUpperBand, t),
+      indicatorMiddleBand: Color.lerp(indicatorMiddleBand, other.indicatorMiddleBand, t),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:invest_agent/widgets/bollinger_chart.dart';
 import 'package:invest_agent/widgets/moving_average.dart';
 import 'package:invest_agent/widgets/volume_chart.dart';
 
@@ -55,8 +56,9 @@ class _PriceChartState extends State<PriceChart> {
     final compact = NumberFormat.compact();
     final enableVolume = widget.analysisSettings?.techIndicators?.contains("Volume") ?? false;
     final enableMovingAverage = widget.analysisSettings?.techIndicators?.contains("SMA") ?? false;
-    final enableBollingBands = widget.analysisSettings?.techIndicators?.contains("BB") ?? false;
+    final enableBollingerBands = widget.analysisSettings?.techIndicators?.contains("BB") ?? false;
     final currentRollingWindow = widget.analysisSettings?.rollingWindows?.first;
+
     return AspectRatio(aspectRatio: 16 / 9,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding),
@@ -220,9 +222,24 @@ class _PriceChartState extends State<PriceChart> {
                       bottom: verticalTitleSpace,
                     ),
                     child: MovingAverage(result: widget.results,
-                      enableBollingerBands: enableBollingBands,
-                      rolling_window:[currentRollingWindow],
+                      rollingWindow:[currentRollingWindow],
                       transformationConfig: transformationConfig)
+                  ),
+                ),
+              ),
+            if (enableBollingerBands && currentRollingWindow != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Padding(
+                      padding: AppTheme.of(context).paddingOverlayChart?? EdgeInsets.only(
+                        top: padding,
+                        left: verticalTitleSpace + padding,
+                        right: verticalTitleSpace + padding,
+                        bottom: verticalTitleSpace,
+                      ),
+                      child: BollingerBandsChart(result: widget.results,
+                          rollingWindow:[currentRollingWindow],
+                          transformationConfig: transformationConfig)
                   ),
                 ),
               ),

@@ -11,7 +11,7 @@ class BaseIndicatorValue {
 class SimpleMovingAverage extends BaseIndicatorValue {
   final double? rollingStd;
   final double? rollingMean;
-  final BellingersBands? bellingersBands;
+  final BellingerBands? bellingersBands;
   final int? rollingWindow;
 
   SimpleMovingAverage({required super.dateTime, this.rollingWindow, this.rollingStd, this.rollingMean, this.bellingersBands});
@@ -29,7 +29,7 @@ class SimpleMovingAverage extends BaseIndicatorValue {
       rollingWindow: rollingWindow?.toInt(),
       rollingMean: rollingMean,
       rollingStd: rollingStd,
-      bellingersBands: BellingersBands.fromJson(dateTime, jsonMap));
+      bellingersBands: BellingerBands.fromJson(dateTime, jsonMap));
   }
 }
 
@@ -37,21 +37,29 @@ class SimpleMovingAverage extends BaseIndicatorValue {
 // BB upper band:  Map<rollingWindow, List<BellingerBand>>
 // BB lower band:  Map<rollingWindow, List<BellingerBand>>
 // BB middle band:  Map<rollingWindow, List<BellingerBand>>
-class BellingersBand extends BaseIndicatorValue{
-  final double? band;
+class BellingerBandEntry extends BaseIndicatorValue{
+  final double? stdValue;
 
-  BellingersBand({required super.dateTime, this.band});
+  BellingerBandEntry({required super.dateTime, this.stdValue});
 }
 
-class BellingersBands extends BaseIndicatorValue{
+typedef BellingerBand = List<BellingerBandEntry>;
+
+enum BollingerBandType {
+  lowerBB,
+  upperBB,
+  middleBB,
+}
+
+class BellingerBands extends BaseIndicatorValue{
   final double? upperBB;
   final double? lowerBB;
   final double? widthBB;
   final double? percentBB;
-  BellingersBands({required super.dateTime, this.upperBB, this.lowerBB, this.widthBB, this.percentBB});
+  BellingerBands({required super.dateTime, this.upperBB, this.lowerBB, this.widthBB, this.percentBB});
 
-  static BellingersBands? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    return BellingersBands(
+  static BellingerBands? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+    return BellingerBands(
       dateTime: dateTime,
       lowerBB: parseNum(jsonMap['BB_lower']),
       upperBB: parseNum(jsonMap['BB_upper']),
@@ -356,6 +364,24 @@ class AnalysisRespond {
       }
     }
     return sma;
+  }
+  
+  Future<BellingerBand> getBollingerBand(BollingerBandType type, int rollingWindow) async {
+    final BellingerBand lowerBand = [];
+    for (var indicator in indicators) {
+      if (indicator.sma.containsKey(rollingWindow)) {
+        final sma = indicator.sma[rollingWindow]!;
+        if (sma.bellingersBands != null) {
+          final value = switch(type) {
+            BollingerBandType.lowerBB => sma.bellingersBands!.lowerBB,
+            BollingerBandType.upperBB => sma.bellingersBands!.upperBB,
+            BollingerBandType.middleBB => sma.rollingMean,
+          };
+          lowerBand.add(BellingerBandEntry(dateTime: sma.dateTime, stdValue: value));
+        }
+      }
+    }
+    return lowerBand;
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {

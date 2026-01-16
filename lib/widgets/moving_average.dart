@@ -6,11 +6,10 @@ import '../themes/app_themes.dart';
 
 class MovingAverage extends StatefulWidget {
   final AnalysisRespond? result;
-  final bool enableBollingerBands;
-  final List<int> rolling_window;
+  final List<int> rollingWindow;
   final FlTransformationConfig? transformationConfig;
 
-  const MovingAverage({super.key, required this.result, required this.rolling_window, this.enableBollingerBands = false, this.transformationConfig});
+  const MovingAverage({super.key, required this.result, required this.rollingWindow, this.transformationConfig});
 
   @override
   State<StatefulWidget> createState() => MovingAverageState();
@@ -26,8 +25,8 @@ class MovingAverageState extends State<MovingAverage> {
   @override
   void initState() {
     _transformationController = TransformationController();
-    if (widget.result != null && widget.rolling_window.isNotEmpty) {
-      _smaFuture = widget.result!.getSMA(widget.rolling_window.first);
+    if (widget.result != null && widget.rollingWindow.isNotEmpty) {
+      _smaFuture = widget.result!.getSMA(widget.rollingWindow.first);
     }
     else {
       _smaFuture = Future.value([]);

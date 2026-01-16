@@ -110,6 +110,7 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Shrinkable(title: "Load ETF data",
+          expanded: true,
           body: Column(
             children: [
               ElevatedButton(
