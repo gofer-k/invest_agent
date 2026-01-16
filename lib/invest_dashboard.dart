@@ -17,6 +17,7 @@ class InvestDashboard extends StatefulWidget {
 
 class _InvestDashboardState extends State<InvestDashboard> {
   final ETFAnalyticsClient client = ETFAnalyticsClient();
+  AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
   bool isLoading = false;
   String? errorMessage;
@@ -47,7 +48,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
           const SizedBox(width: 10),
           // ANALYSIS PANEL
           Expanded(
-            flex: 3,
+            flex: 4,
             child: _buildAnalysisPanel(),
           ),
         ],
@@ -74,6 +75,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
       chartTitle = p.basenameWithoutExtension(request.symbolTicker);
       setState(() {
         if (result["format"] == "gz") {
+          analysisRequest = request;
           analysisResult = receivedData;
           priceRange = (calculatedPriceRange != null) ? (calculatedPriceRange * 0.1) : 0.0;
           maxPrice = calculatedMaxPrice;
@@ -117,7 +119,28 @@ class _InvestDashboardState extends State<InvestDashboard> {
         child: Text("Run analysis to see results"),
       );
     }
-    return PriceChart(eftIndexName: chartTitle, priceData: currentResult.priceData);
+    final currentRequest = analysisRequest;
+    if (analysisRequest == null) {
+      return const Center(
+        child: Text("Run analysis to see settings"),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        // TODO: Price candlestick chart instead of price lina chart
+        Expanded(flex: 3,
+          child: PriceChart(eftIndexName: chartTitle, analysisSettings: currentRequest, results: currentResult)
+        ),
+        //TODO: add moving average with MACD
+        // TODO: add RSI indicator
+        // Expanded(flex: 1,
+        //   child: MovingAverage(result: currentResult, rolling_window: [50],),
+        // )
+      ]
+    );
   }
 }
 

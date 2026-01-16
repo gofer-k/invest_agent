@@ -14,7 +14,11 @@ class AppThemes {
         tooltipPriceColor: Colors.orange,
         tooltipVolumeColor: Colors.blueAccent,
         etfTitleColor: Colors.white,
-        etfTitleShadowColor: Colors.black54
+        etfTitleShadowColor: Colors.black54,
+        bullishBarColor: Colors.green,
+        bearishBarColor: Colors.red,
+        indicatorSignalColor: Colors.orange,
+        indicatorRate: Colors.blueAccent
       ),
     ],
   );
@@ -32,6 +36,10 @@ class AppThemes {
         tooltipVolumeColor: Colors.blueAccent,
         etfTitleColor: Colors.white54,
         etfTitleShadowColor: Colors.black12,
+        bullishBarColor: Colors.green,
+        bearishBarColor: Colors.red,
+        indicatorSignalColor: Colors.orange,
+        indicatorRate: Colors.blueAccent
       ),
     ],
   );
@@ -47,6 +55,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final Color? tooltipVolumeColor;
   final Color? etfTitleColor;
   final Color? etfTitleShadowColor;
+  final Color? indicatorSignalColor;
+  final Color? indicatorRate;
+  final EdgeInsets? paddingOverlayChart;
 
   // Optional: Add a static method to easily access the extension from context
   static AppTheme of(BuildContext context) {
@@ -62,6 +73,10 @@ class AppTheme extends ThemeExtension<AppTheme> {
     required this.tooltipVolumeColor,
     this.etfTitleColor,
     this.etfTitleShadowColor,
+    this.indicatorSignalColor = Colors.orange,
+    this.indicatorRate = Colors.blueAccent,
+    this.paddingOverlayChart = const EdgeInsets.only(
+      top: 12, left: 48 + 12, right: 48 + 12, bottom: 56),
   });
 
   @override
@@ -74,6 +89,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
     Color? tooltipVolumeColor,
     Color? etfTitleColor,
     Color? etfTitleShadowColor,
+    Color? indicatorSignalColor,
+    Color? indicatorRate,
+    EdgeInsets? paddingOverlayChart,
   }) {
     return AppTheme(
       bullishBarColor: bullishBarColor,
@@ -84,6 +102,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
       tooltipVolumeColor: tooltipVolumeColor,
       etfTitleColor: etfTitleColor,
       etfTitleShadowColor: etfTitleShadowColor,
+      indicatorSignalColor: indicatorSignalColor,
+      indicatorRate: indicatorRate,
+      paddingOverlayChart: paddingOverlayChart,
     );
   }
 
@@ -101,6 +122,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
       tooltipVolumeColor: Color.lerp(tooltipVolumeColor, other.tooltipVolumeColor, t),
       etfTitleColor: Color.lerp(etfTitleColor, other.etfTitleColor, t),
       etfTitleShadowColor: Color.lerp(etfTitleShadowColor, other.etfTitleShadowColor, t),
+      indicatorSignalColor: Color.lerp(indicatorSignalColor, other.indicatorSignalColor, t),
+      indicatorRate: Color.lerp(indicatorRate, other.indicatorRate, t),
+      paddingOverlayChart: EdgeInsets.lerp(paddingOverlayChart, other.paddingOverlayChart, t),
     );
   }
 }

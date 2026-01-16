@@ -35,6 +35,7 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     "death_cross",
     "Volume"
   ];
+  final _indicatorController = TextEditingController();
 
   List<String> intervals = ["1d", "1w", "1y"];
   String selectedInterval = "1d";
@@ -67,6 +68,12 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     "size",
     "low_vol"
   ];
+
+  @override
+  void dispose() {
+    _indicatorController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,12 +180,15 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
                 children: [
                   Expanded(
                     child: TextField(
+                        controller: _indicatorController,
                         decoration: const InputDecoration(labelText: "Add indicator"),
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.name,
                         onSubmitted: (indicator) {
                           if (indicator.isNotEmpty) {
                             setState(() => analysisIndicators.add(indicator));
+                            _indicatorController.clear();
                           }
+
                         }),
                   ),
                 ],

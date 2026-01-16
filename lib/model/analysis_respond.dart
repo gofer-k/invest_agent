@@ -17,11 +17,10 @@ class SimpleMovingAverage extends BaseIndicatorValue {
   SimpleMovingAverage({required super.dateTime, this.rollingWindow, this.rollingStd, this.rollingMean, this.bellingersBands});
 
   static SimpleMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    final value = parseNum(jsonMap['value']);
     final rollingMean = parseNum(jsonMap['rolling_mean']);
     final rollingStd = parseNum(jsonMap['rolling_std']);
     final rollingWindow = parseNum(jsonMap["window"]);
-    if (value == null && rollingMean == null && rollingStd == null && rollingWindow == null) {
+    if (rollingMean == null && rollingStd == null && rollingWindow == null) {
       return null;
     }
 
@@ -347,6 +346,16 @@ class AnalysisRespond {
     );
     minPrice = minPriceItem.closePrice;
     return minPrice;
+  }
+
+  Future<List<SimpleMovingAverage>> getSMA(int rollingWindow) async {
+    final sma = <SimpleMovingAverage>[];
+    for (var indicator in indicators) {
+      if (indicator.sma.containsKey(rollingWindow)) {
+        sma.add(indicator.sma[rollingWindow]!);
+      }
+    }
+    return sma;
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {

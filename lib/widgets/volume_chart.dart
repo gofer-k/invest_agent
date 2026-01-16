@@ -10,7 +10,7 @@ class VolumeChart extends StatefulWidget {
   final bool leftSideTitle;
   final bool rightSideTile;
   final bool bottomTitle;
-  final dynamic transformationConfig;
+  final FlTransformationConfig transformationConfig;
 
   const VolumeChart({super.key, required this.priceData, this.leftSideTitle = false, this.rightSideTile = false, this.bottomTitle = false, required this.transformationConfig});
 
@@ -23,7 +23,7 @@ class _VolumeChartState extends State<VolumeChart>{
   Widget build(BuildContext context) {
     final maxVolume = widget.priceData .map((c) => c.volume) .reduce((a, b) => a > b ? a : b);
     final maxPrice = widget.priceData.map((c) => max(c.openPrice, c.closePrice)).reduce(max);
-    double scaledVolume(double v) => (v / maxVolume) * 0.05 * maxPrice;
+    double scaledVolume(double v) => (v / maxVolume) * maxPrice;
 
     return BarChart(
       transformationConfig: widget.transformationConfig,
@@ -32,9 +32,7 @@ class _VolumeChartState extends State<VolumeChart>{
         // maxY: widget.priceData.length.toDouble() - 1,
         barGroups: widget.priceData.map((entry) {
           final index = widget.priceData.indexOf(entry);
-          // final normalized = entry.volume / maxVolume;
           final scaled = scaledVolume(entry.volume);
-          // double logVolume(double v) => log(v + 1);
           final isBull = entry.closePrice >= entry.openPrice;
           final bullishColor = AppTheme.of(context).bullishBarColor?? Colors.green;
           final bearishColor = AppTheme.of(context).bearishBarColor?? Colors.red;
@@ -43,6 +41,7 @@ class _VolumeChartState extends State<VolumeChart>{
             x: index,
             barRods: [
               BarChartRodData(
+                fromY: 0,
                 toY: scaled,
                 width: 4,
                 color: isBull ? bullishColor : bearishColor,

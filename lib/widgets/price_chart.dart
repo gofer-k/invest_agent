@@ -1,16 +1,19 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:invest_agent/widgets/moving_average.dart';
 import 'package:invest_agent/widgets/volume_chart.dart';
 
+import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import '../themes/app_themes.dart';
 
 class PriceChart extends  StatefulWidget {
   final String eftIndexName;
-  final List<PriceData> priceData;
+  final AnalysisRespond results;
+  final AnalysisRequest? analysisSettings;
 
-  const PriceChart({super.key, required this.eftIndexName, required this.priceData});
+  const PriceChart({super.key, required this.eftIndexName, required this.analysisSettings, required this.results});
 
   @override
   State<PriceChart> createState() => _PriceChartState();
@@ -50,7 +53,10 @@ class _PriceChartState extends State<PriceChart> {
     double verticalTitleSpace = 58;
     double padding = 12;
     final compact = NumberFormat.compact();
-
+    final enableVolume = widget.analysisSettings?.techIndicators?.contains("Volume") ?? false;
+    final enableMovingAverage = widget.analysisSettings?.techIndicators?.contains("SMA") ?? false;
+    final enableBollingBands = widget.analysisSettings?.techIndicators?.contains("BB") ?? false;
+    final currentRollingWindow = widget.analysisSettings?.rollingWindows?.first;
     return AspectRatio(aspectRatio: 16 / 9,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: padding, vertical: padding),
@@ -65,8 +71,8 @@ class _PriceChartState extends State<PriceChart> {
                           barWidth: 1.5,
                           isStrokeCapRound: true,
                           dotData: FlDotData(show: false),
-                          spots: widget.priceData.map((data) {
-                            return FlSpot(widget.priceData.indexOf(data).toDouble(), data.closePrice);
+                          spots: widget.results.priceData.map((data) {
+                            return FlSpot(widget.results.priceData.indexOf(data).toDouble(), data.closePrice);
                           }).toList()
                       )
                     ],
@@ -115,7 +121,7 @@ class _PriceChartState extends State<PriceChart> {
                           reservedSize: verticalTitleSpace, // dates
                           maxIncluded: false,
                           getTitlesWidget: (double value, TitleMeta meta) {
-                            final date = widget.priceData[value.toInt()].dateTime;
+                            final date = widget.results.priceData[value.toInt()].dateTime;
                             return SideTitleWidget(
                               meta: meta,
                               child: Transform.rotate(
@@ -141,8 +147,8 @@ class _PriceChartState extends State<PriceChart> {
                             return touchedBarSpots.map((barSpot) {
                               final price = barSpot.y;
                               final index = barSpot.x.toInt();
-                              final date = widget.priceData[index].dateTime;
-                              final volume = widget.priceData[index].volume;
+                              final date = widget.results.priceData[index].dateTime;
+                              final volume = widget.results.priceData[index].volume;
                               return LineTooltipItem('',
                                 const TextStyle(
                                   // color: AppColors.contentColorBlack,
@@ -185,24 +191,41 @@ class _PriceChartState extends State<PriceChart> {
                 transformationConfig: transformationConfig,
               ),
             ),
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Padding(
-                  // This padding have to is aligned the parent chart padding
-                  padding: EdgeInsets.only(
-                    top: padding,
-                    left: verticalTitleSpace + padding,
-                    right: verticalTitleSpace + padding,
-                    bottom: verticalTitleSpace,
-                  ),
-                  child: VolumeChart(
-                    priceData: widget.priceData,
-                    transformationConfig: transformationConfig,
+            if (enableVolume)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Padding(
+                    // This padding have to is aligned the parent chart padding
+                    padding: AppTheme.of(context).paddingOverlayChart?? EdgeInsets.only(
+                      top: padding,
+                      left: verticalTitleSpace + padding,
+                      right: verticalTitleSpace + padding,
+                      bottom: verticalTitleSpace,
+                    ),
+                    child: VolumeChart(
+                      priceData: widget.results.priceData,
+                      transformationConfig: transformationConfig,
+                    ),
                   ),
                 ),
               ),
-            ),
-            // VolumeChart(priceData: widget.priceData),
+            if (enableMovingAverage && currentRollingWindow != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Padding(
+                    padding: AppTheme.of(context).paddingOverlayChart?? EdgeInsets.only(
+                      top: padding,
+                      left: verticalTitleSpace + padding,
+                      right: verticalTitleSpace + padding,
+                      bottom: verticalTitleSpace,
+                    ),
+                    child: MovingAverage(result: widget.results,
+                      enableBollingerBands: enableBollingBands,
+                      rolling_window:[currentRollingWindow],
+                      transformationConfig: transformationConfig)
+                  ),
+                ),
+              ),
             Positioned(
               top: 8,
               left: 64,
