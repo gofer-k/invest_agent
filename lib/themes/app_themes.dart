@@ -18,7 +18,8 @@ class AppThemes {
         bullishBarColor: Colors.green,
         bearishBarColor: Colors.red,
         indicatorSignalColor: Colors.orange,
-        indicatorRate: Colors.blueAccent
+        indicatorRate: Colors.blueAccent,
+        buttonOutlineColor: Color.fromRGBO(216, 168, 247, 1.0),
       ),
     ],
   );
@@ -60,6 +61,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final Color? indicatorUpperBand;
   final Color? indicatorMiddleBand;
   final Color? indicatorRate;
+  final Color? buttonOutlineColor;
   final EdgeInsets? paddingOverlayChart;
 
   // Optional: Add a static method to easily access the extension from context
@@ -81,6 +83,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
     this.indicatorUpperBand = Colors.greenAccent,
     this.indicatorMiddleBand = Colors.orange,
     this.indicatorRate = Colors.blueAccent,
+    this.buttonOutlineColor = const Color.fromRGBO(216, 168, 247, 1.0), // Colors.deepPurpleAccent,
     this.paddingOverlayChart = const EdgeInsets.only(
       top: 12, left: 48 + 12, right: 48 + 12, bottom: 56),
   });
@@ -100,6 +103,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
     Color? indicatorLowerBand,
     Color? indicatorUpperBand,
     Color? indicatorMiddleBand,
+    Color? buttonOutlineColor,
     EdgeInsets? paddingOverlayChart,
   }) {
     return AppTheme(
@@ -116,6 +120,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
       paddingOverlayChart: paddingOverlayChart,
       indicatorLowerBand: indicatorLowerBand,
       indicatorUpperBand: indicatorUpperBand,
+      buttonOutlineColor: buttonOutlineColor,
       indicatorMiddleBand: indicatorMiddleBand,
     );
   }
@@ -140,6 +145,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorLowerBand: Color.lerp(indicatorLowerBand, other.indicatorLowerBand, t),
       indicatorUpperBand: Color.lerp(indicatorUpperBand, other.indicatorUpperBand, t),
       indicatorMiddleBand: Color.lerp(indicatorMiddleBand, other.indicatorMiddleBand, t),
+      buttonOutlineColor: Color.lerp(buttonOutlineColor, other.buttonOutlineColor, t),
     );
   }
 }

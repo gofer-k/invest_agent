@@ -5,6 +5,7 @@ import 'package:invest_agent/widgets/shrinkable.dart';
 import 'package:path/path.dart' as p;
 
 import '../model/analysis_request.dart';
+import '../themes/app_themes.dart';
 
 class EtfSettingsPanel extends StatefulWidget {
   final void Function(AnalysisRequest) onRunAnalysis;
@@ -114,6 +115,8 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
           body: Column(
             children: [
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  side: BorderSide(width: 1.0, color: AppTheme.of(context).buttonOutlineColor?? Colors.deepPurpleAccent)),
                 onPressed: _pickAndLoadFile,
                 child: const Text("Select historical dataset"),
               ),
@@ -202,6 +205,8 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
           widthFactor: 4.0,
           heightFactor: 2.0,
           child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                side: BorderSide(width: 1.0, color: AppTheme.of(context).buttonOutlineColor?? Colors.deepPurpleAccent)),
             onPressed: _runAnalysis,
             child: const Text("Run Analysis", style: TextStyle(fontSize: 20)),
           ),
