@@ -8,7 +8,8 @@ class BollingerBandsChart extends StatefulWidget {
   final AnalysisRespond? result;
   final List<int> rollingWindow;
   final FlTransformationConfig? transformationConfig;
-  const BollingerBandsChart({super.key, required this.result, required this.rollingWindow, this.transformationConfig});
+  final bool enableGridData;
+  const BollingerBandsChart({super.key, required this.result, required this.rollingWindow, this.transformationConfig, this.enableGridData = false});
 
   @override
   State<StatefulWidget> createState() => BollingerBandsChartState();
@@ -83,26 +84,27 @@ class BollingerBandsChartState extends State<BollingerBandsChart> {
         final bb = snapshot.data ?? [];
         return LineChart(
           LineChartData(
-              lineBarsData: [
-                LineChartBarData(
-                    color: colorBand ?? Theme
-                        .of(context)
-                        .canvasColor,
-                    barWidth: 1.0,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    spots: bb.map((data) {
-                      return FlSpot(bb.indexOf(data).toDouble(),
-                          data.stdValue ?? 0.0);
-                    }).toList()
-                )
-              ],
-              titlesData: FlTitlesData(show: false),
-              lineTouchData: LineTouchData(
-                  enabled: false,
-                  touchCallback: (event, respond) {},
-                  touchTooltipData: LineTouchTooltipData()
+            gridData: FlGridData(show: widget.enableGridData),
+            lineBarsData: [
+              LineChartBarData(
+                  color: colorBand ?? Theme
+                      .of(context)
+                      .canvasColor,
+                  barWidth: 1.0,
+                  isStrokeCapRound: true,
+                  dotData: const FlDotData(show: false),
+                  spots: bb.map((data) {
+                    return FlSpot(bb.indexOf(data).toDouble(),
+                        data.stdValue ?? 0.0);
+                  }).toList()
               )
+            ],
+            titlesData: FlTitlesData(show: false),
+            lineTouchData: LineTouchData(
+                enabled: false,
+                touchCallback: (event, respond) {},
+                touchTooltipData: LineTouchTooltipData()
+            )
           ),
           transformationConfig: transformationConfig,
         );

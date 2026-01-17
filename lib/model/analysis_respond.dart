@@ -296,8 +296,15 @@ class PriceData {
   final double highPrice;
   final double lowPrice;
   final double volume;
+  final double volumeZscore;
 
-  PriceData({required this.dateTime, required this.openPrice, required this.closePrice, required this.highPrice, required this.lowPrice, required this.volume});
+  PriceData({required this.dateTime,
+    required this.openPrice,
+    required this.closePrice,
+    required this.highPrice,
+    required this.lowPrice,
+    required this.volume,
+    required this.volumeZscore});
 }
 
 class AnalysisRespond {
@@ -358,7 +365,8 @@ class AnalysisRespond {
 
   Future<List<SimpleMovingAverage>> getSMA(int rollingWindow) async {
     final sma = <SimpleMovingAverage>[];
-    for (var indicator in indicators) {
+    final subIndicators = indicators.sublist(rollingWindow);
+    for (var indicator in subIndicators) {
       if (indicator.sma.containsKey(rollingWindow)) {
         sma.add(indicator.sma[rollingWindow]!);
       }
@@ -368,7 +376,8 @@ class AnalysisRespond {
   
   Future<BellingerBand> getBollingerBand(BollingerBandType type, int rollingWindow) async {
     final BellingerBand lowerBand = [];
-    for (var indicator in indicators) {
+    final subIndicators = indicators.sublist(rollingWindow);
+    for (var indicator in subIndicators) {
       if (indicator.sma.containsKey(rollingWindow)) {
         final sma = indicator.sma[rollingWindow]!;
         if (sma.bellingersBands != null) {
@@ -382,6 +391,10 @@ class AnalysisRespond {
       }
     }
     return lowerBand;
+  }
+
+  Future<List<PriceData>> getRollingVolume(int rollingWindow) async {
+    return priceData.sublist(rollingWindow);
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
@@ -399,13 +412,16 @@ class AnalysisRespond {
         final highPrice = parseNum(metaData["High"]);
         final lowPrice = parseNum(metaData["Low"]);
         final volume = parseNum(metaData["Volume"]);
+        final volZscore = parseNum(metaData["VolumeZscore"]);
         if (openPrice != null && closePrice != null && highPrice != null && lowPrice != null && volume != null) {
           priceData.add(PriceData(dateTime: dateTime,
             openPrice: openPrice,
             closePrice: closePrice,
             highPrice: highPrice,
             lowPrice: lowPrice,
-            volume: volume));
+            volume: volume,
+            volumeZscore: volZscore ?? 0.0
+          ));
         }
 
         final jsonCandle = value["candlestick"] as Map<String, dynamic>;

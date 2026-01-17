@@ -1,15 +1,21 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import '../themes/app_themes.dart';
 
 class MovingAverage extends StatefulWidget {
   final AnalysisRespond? result;
+  final AnalysisRequest? analysisSettings;
   final List<int> rollingWindow;
   final FlTransformationConfig? transformationConfig;
-
-  const MovingAverage({super.key, required this.result, required this.rollingWindow, this.transformationConfig});
+  final bool enableGridData;
+  const MovingAverage({super.key, required this.result,
+    required this.rollingWindow,
+    this.transformationConfig,
+    this.enableGridData = false,
+    this.analysisSettings});
 
   @override
   State<StatefulWidget> createState() => MovingAverageState();
@@ -67,6 +73,7 @@ class MovingAverageState extends State<MovingAverage> {
           final sma = snapshot.data ?? [];
           return LineChart(
             LineChartData(
+                gridData: FlGridData(show: widget.enableGridData),
                 lineBarsData: [
                   LineChartBarData(
                       color: AppTheme

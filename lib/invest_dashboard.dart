@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/price_chart.dart';
+import 'package:invest_agent/widgets/volume_chart.dart';
 import 'model/analysis_request.dart';
 import 'model/analysis_respond.dart';
 import 'model/etf_analytics_client.dart';
@@ -72,6 +73,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
       final calculatedPriceRange = await receivedData?.getPriceRange();
       final calculatedMaxPrice = await receivedData?.getMaxPrice();
       final calculatedMinPrice = await receivedData?.getMinPrice();
+
       chartTitle = p.basenameWithoutExtension(request.symbolTicker);
       setState(() {
         if (result["format"] == "gz") {
@@ -126,6 +128,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
       );
     }
 
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -134,6 +137,9 @@ class _InvestDashboardState extends State<InvestDashboard> {
         Expanded(flex: 3,
           child: PriceChart(eftIndexName: chartTitle, analysisSettings: currentRequest, results: currentResult)
         ),
+        Expanded(flex: 1,
+          child: VolumeChart(results : currentResult, analysisSettings: currentRequest,
+             rightSideTile: true, enableTitle: true))
         //TODO: add moving average with MACD
         // TODO: add RSI indicator
         // Expanded(flex: 1,

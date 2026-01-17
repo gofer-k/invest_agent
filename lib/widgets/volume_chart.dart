@@ -1,59 +1,265 @@
-import 'dart:math';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 
 class VolumeChart extends StatefulWidget {
-  final List<PriceData> priceData;
+  final AnalysisRequest? analysisSettings;
+  final AnalysisRespond results;
   final bool leftSideTitle;
   final bool rightSideTile;
   final bool bottomTitle;
-  final FlTransformationConfig transformationConfig;
+  final bool enableTitle;
+  final FlTransformationConfig? transformationConfig;
 
-  const VolumeChart({super.key, required this.priceData, this.leftSideTitle = false, this.rightSideTile = false, this.bottomTitle = false, required this.transformationConfig});
+  const VolumeChart({super.key,
+    required this.results,
+    required this.analysisSettings,
+    this.leftSideTitle = false,
+    this.rightSideTile = false,
+    this.bottomTitle = false,
+    this.transformationConfig,
+    this.enableTitle = false});
 
   @override
   State<StatefulWidget> createState() => _VolumeChartState();
 }
 
 class _VolumeChartState extends State<VolumeChart>{
+  late TransformationController _transformationController;
+  late Future<List<PriceData>> priceData;
+  @override
+  void initState() {
+    _transformationController = TransformationController();
+    if (widget.analysisSettings != null && widget.analysisSettings!.rollingWindows != null) {
+      priceData = widget.results.getRollingVolume(widget.analysisSettings!.rollingWindows!.first);
+    }
+    else {
+      priceData = Future.value([]);
+    }
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final maxVolume = widget.priceData .map((c) => c.volume) .reduce((a, b) => a > b ? a : b);
-    final maxPrice = widget.priceData.map((c) => max(c.openPrice, c.closePrice)).reduce(max);
-    double scaledVolume(double v) => (v / maxVolume) * maxPrice;
+    FlTransformationConfig transformationConfig = widget.transformationConfig ?? FlTransformationConfig(
+      scaleAxis: FlScaleAxis.horizontal,
+      minScale: 1.0,
+      maxScale: 25.0,
+      panEnabled: true,
+      scaleEnabled: true,
+      transformationController: _transformationController,
+    );
 
-    return BarChart(
-      transformationConfig: widget.transformationConfig,
-      BarChartData(
-        minY: 0,
-        // maxY: widget.priceData.length.toDouble() - 1,
-        barGroups: widget.priceData.map((entry) {
-          final index = widget.priceData.indexOf(entry);
-          final scaled = scaledVolume(entry.volume);
-          final isBull = entry.closePrice >= entry.openPrice;
-          final bullishColor = AppTheme.of(context).bullishBarColor?? Colors.green;
-          final bearishColor = AppTheme.of(context).bearishBarColor?? Colors.red;
+    double horizontalTitleSpace = 48;
+    double verticalTitleSpace = 58;
+    double padding = 12;
+    final compact = NumberFormat.compact();
 
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                fromY: 0,
-                toY: scaled,
-                width: 4,
-                color: isBull ? bullishColor : bearishColor,
-                borderRadius: BorderRadius.zero,
-              ),
-            ],
-          );
-        }).toList(),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        titlesData: FlTitlesData(show: false),
-      ),
+    // TODO: decrease the chart vertical size
+    // TODO: fit left padding to the chart
+    return FutureBuilder<List<PriceData>>(
+       future: priceData,
+       builder: (context, snapshot) {
+         if (snapshot.connectionState == ConnectionState.waiting) {
+           return const Center(child: CircularProgressIndicator());
+         }
+         if (snapshot.hasError) {
+           return Center(child: Text('Error: ${snapshot.error}'));
+         }
+         if (!snapshot.hasData || snapshot.data!.isEmpty) {
+           return const Center(child: Text('No volume data available.'));
+         }
+         final priceData = snapshot.data!;
+         final maxVolumeZscore = priceData.map((c) => c.volumeZscore) .reduce((a, b) => a > b ? a : b);
+         final maxVolume = priceData.map((c) => c.volume) .reduce((a, b) => a > b ? a : b);
+         double scaledVolume(double v) => v / maxVolumeZscore;
+
+         return AspectRatio(aspectRatio: 16 / 9,
+           child: Stack(
+             children: [
+               BarChart(
+                 transformationConfig: transformationConfig,
+                 BarChartData(
+                   maxY: maxVolumeZscore,
+                   barGroups: priceData.map((entry) {
+                     final index = priceData.indexOf(entry);
+                     final scaled = scaledVolume(entry.volumeZscore);
+                     final bullishColor = AppTheme
+                         .of(context)
+                         .bullishBarColor ?? Colors.green;
+                     final bearishColor = AppTheme
+                         .of(context)
+                         .bearishBarColor ?? Colors.red;
+                     return BarChartGroupData(
+                       x: index,
+                       barRods: [
+                         BarChartRodData(
+                           toY: scaled,
+                           width: 4,
+                           // color: isBull ? bullishColor : bearishColor,
+                           color: entry.volumeZscore >= 0
+                               ? bullishColor
+                               : bearishColor,
+                           borderRadius: BorderRadius.zero,
+                         ),
+                       ],
+                     );
+                   }).toList(),
+                   gridData: FlGridData(show: false),
+                   borderData: FlBorderData(show: false),
+                   titlesData: FlTitlesData(
+                     show: (widget.leftSideTitle || widget.rightSideTile ||
+                         widget.bottomTitle),
+                     topTitles: const AxisTitles(
+                         sideTitles: SideTitles(showTitles: false)),
+                     leftTitles: AxisTitles(
+                       drawBelowEverything: true,
+                       sideTitles: SideTitles(
+                           showTitles: widget.leftSideTitle,
+                           reservedSize: horizontalTitleSpace,
+                           maxIncluded: false,
+                           minIncluded: false,
+                           getTitlesWidget: (double value, TitleMeta meta) {
+                             return SideTitleWidget(
+                               meta: meta,
+                               child: Text(widget.leftSideTitle
+                                   ? value.toStringAsFixed(2)
+                                   : "",
+                                 style: const TextStyle(fontSize: 12),
+                               ),
+                             );
+                           }
+                       ),
+                     ),
+                     rightTitles: AxisTitles(
+                       drawBelowEverything: true,
+                       sideTitles: SideTitles(
+                           showTitles: widget.rightSideTile,
+                           reservedSize: horizontalTitleSpace,
+                           maxIncluded: false,
+                           minIncluded: false,
+                           getTitlesWidget: (double value, TitleMeta meta) {
+                             return SideTitleWidget(
+                                 meta: meta,
+                                 child: LayoutBuilder(
+                                   builder: (BuildContext context,
+                                       BoxConstraints constraints) {
+                                     if ((value - maxVolumeZscore).abs() >
+                                         0.01) {
+                                       return Text(value.toStringAsFixed(2),
+                                           style: const TextStyle(
+                                               fontSize: 12));
+                                     }
+                                     return Container(
+                                       padding: const EdgeInsets.symmetric(
+                                           horizontal: 8, vertical: 4),
+                                       decoration: BoxDecoration(
+                                         color: Colors.green,
+                                         borderRadius: BorderRadius.circular(6),
+                                         border: Border.all(
+                                             color: Colors.green,
+                                             // outline color
+                                             width: 1.2),
+                                       ),
+                                       child: Text(compact.format(maxVolume),
+                                           style: TextStyle(
+                                               color: Colors.white70,
+                                               fontSize: 12,
+                                               fontWeight: FontWeight.bold)
+                                       ),
+                                     );
+                                   },
+                                 )
+                             );
+                           }
+                       ),
+                     ),
+                     bottomTitles: AxisTitles(
+                       sideTitles: SideTitles(
+                         showTitles: widget.bottomTitle,
+                         reservedSize: verticalTitleSpace, // dates
+                         maxIncluded: false,
+                         getTitlesWidget: (double value, TitleMeta meta) {
+                           final date = priceData[value.toInt()].dateTime;
+                           return SideTitleWidget(
+                             meta: meta,
+                             child: Transform.rotate(
+                               angle: -3.14 / 4.0, // -45 degrees
+                               child: Text(
+                                 '${date.month}/${date.day}/${date.year}',
+                                 style: const TextStyle(
+                                   fontSize: 12,
+                                   fontWeight: FontWeight.bold,
+                                 ),
+                               ),
+                             ),
+                           );
+                         },
+                       ),
+                     ),
+                   ),
+                   extraLinesData: ExtraLinesData(
+                     horizontalLines: [
+                       HorizontalLine(
+                         y: 1.0,
+                         color: Colors.white70,
+                         strokeWidth: 1.5,
+                         dashArray: [6, 4],
+                         // label: HorizontalLineLabel(
+                         //   show: widget.rightSideTile,
+                         //   alignment: Alignment.centerRight,
+                         //   padding: const EdgeInsets.only(right: 4),
+                         // ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+               if (widget.enableTitle)
+                 Positioned(
+                   top: 8,
+                   left: 64,
+                   child: Text("Volume rolling(20)",
+                     style: TextStyle(
+                       fontSize: 16,
+                       fontWeight: FontWeight.bold,
+                       color: AppTheme
+                           .of(context)
+                           .etfTitleColor ?? Theme
+                           .of(context)
+                           .textTheme
+                           .titleLarge
+                           ?.color ?? (Theme
+                           .of(context)
+                           .brightness == Brightness.dark
+                           ? Colors.white
+                           : Colors.black),
+                       shadows: [
+                         Shadow(
+                           color: AppTheme
+                               .of(context)
+                               .etfTitleShadowColor ?? Theme
+                               .of(context)
+                               .shadowColor,
+                           blurRadius: 4,
+                         ),
+                       ],
+                     ),
+                   ),
+                 ),
+             ],
+           ),
+         );
+       }
     );
   }
 }

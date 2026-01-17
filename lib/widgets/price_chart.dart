@@ -13,8 +13,9 @@ class PriceChart extends  StatefulWidget {
   final String eftIndexName;
   final AnalysisRespond results;
   final AnalysisRequest? analysisSettings;
+  final bool enableOverlayVolume;
 
-  const PriceChart({super.key, required this.eftIndexName, required this.analysisSettings, required this.results});
+  const PriceChart({super.key, required this.eftIndexName, required this.analysisSettings, required this.results, this.enableOverlayVolume = false});
 
   @override
   State<PriceChart> createState() => _PriceChartState();
@@ -44,7 +45,7 @@ class _PriceChartState extends State<PriceChart> {
     FlTransformationConfig transformationConfig = FlTransformationConfig(
       scaleAxis: FlScaleAxis.horizontal,
       minScale: 1.0,
-      maxScale: 25.0,
+      // maxScale: 2.5,
       panEnabled: _isPanEnabled,
       scaleEnabled: _isScaleEnabled,
       transformationController: _transformationController,
@@ -54,7 +55,7 @@ class _PriceChartState extends State<PriceChart> {
     double verticalTitleSpace = 58;
     double padding = 12;
     final compact = NumberFormat.compact();
-    final enableVolume = widget.analysisSettings?.techIndicators?.contains("Volume") ?? false;
+    final enableVolume = widget.enableOverlayVolume && (widget.analysisSettings?.techIndicators!.contains("Volume") ?? false);
     final enableMovingAverage = widget.analysisSettings?.techIndicators?.contains("SMA") ?? false;
     final enableBollingerBands = widget.analysisSettings?.techIndicators?.contains("BB") ?? false;
     final currentRollingWindow = widget.analysisSettings?.rollingWindows?.first;
@@ -67,7 +68,10 @@ class _PriceChartState extends State<PriceChart> {
             Positioned.fill(
               child: LineChart(
                 LineChartData(
-                    lineBarsData: [
+                  minX: 0,
+                  maxX: widget.results.priceData.length.toDouble(),
+                  gridData: FlGridData(show: false),
+                  lineBarsData: [
                       LineChartBarData(
                           color: AppTheme.of(context).priceBarColor?? Theme.of(context).primaryColor,
                           barWidth: 1.5,
@@ -204,8 +208,8 @@ class _PriceChartState extends State<PriceChart> {
                       right: verticalTitleSpace + padding,
                       bottom: verticalTitleSpace,
                     ),
-                    child: VolumeChart(
-                      priceData: widget.results.priceData,
+                    child: VolumeChart(results: widget.results,
+                      analysisSettings: widget.analysisSettings,
                       transformationConfig: transformationConfig,
                     ),
                   ),
@@ -222,6 +226,7 @@ class _PriceChartState extends State<PriceChart> {
                       bottom: verticalTitleSpace,
                     ),
                     child: MovingAverage(result: widget.results,
+                      analysisSettings: widget.analysisSettings,
                       rollingWindow:[currentRollingWindow],
                       transformationConfig: transformationConfig)
                   ),
