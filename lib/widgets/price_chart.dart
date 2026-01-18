@@ -1,20 +1,22 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:invest_agent/widgets/bollinger_chart.dart';
-import 'package:invest_agent/widgets/moving_average.dart';
-import 'package:invest_agent/widgets/volume_chart.dart';
-
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import '../themes/app_themes.dart';
+import 'chart_controller.dart';
 
 class PriceChart extends  StatefulWidget {
   final String eftIndexName;
   final AnalysisRespond results;
   final AnalysisRequest? analysisSettings;
+  final ChartInteractionController? controller;
 
-  const PriceChart({super.key, required this.eftIndexName, required this.analysisSettings, required this.results});
+  const PriceChart({super.key,
+    required this.eftIndexName,
+    required this.analysisSettings,
+    required this.results,
+    required this.controller});
 
   @override
   State<PriceChart> createState() => _PriceChartState();
@@ -23,16 +25,23 @@ class PriceChart extends  StatefulWidget {
 class _PriceChartState extends State<PriceChart> {
   final usd = NumberFormat.simpleCurrency(locale: 'en_US', decimalDigits: 2);
   late TransformationController _transformationController;
-  final bool _isPanEnabled = true;
-  final bool _isScaleEnabled = true;
-  final chartPricesKey = GlobalKey();
+
   late Future<List<PriceData>> priceData;
+  late BellingerBand _lowerBellingerBand;
+  late BellingerBand _upperBellingerBand;
+  late BellingerBand _middleBellingerBand;
+  late List<SimpleMovingAverage> _sma;
 
   @override
   void initState() {
     _transformationController = TransformationController();
     if (widget.analysisSettings != null && widget.analysisSettings!.rollingWindows != null) {
-      priceData = widget.results.getRollingVolume(widget.analysisSettings!.rollingWindows!.first);
+      final rollingWindow = widget.analysisSettings!.rollingWindows!.first;
+      priceData = widget.results.getRollingVolume(rollingWindow);
+      _lowerBellingerBand = widget.results.getBollingerBand(BollingerBandType.lowerBB, rollingWindow);
+      _upperBellingerBand = widget.results.getBollingerBand(BollingerBandType.upperBB, rollingWindow);
+      _middleBellingerBand = widget.results.getBollingerBand(BollingerBandType.middleBB, rollingWindow);
+      _sma = widget.results.getSMA(rollingWindow);
     }
     else {
       priceData = Future.value([]);
@@ -52,16 +61,12 @@ class _PriceChartState extends State<PriceChart> {
       scaleAxis: FlScaleAxis.horizontal,
       minScale: 1.0,
       // maxScale: 2.5,
-      panEnabled: _isPanEnabled,
-      scaleEnabled: _isScaleEnabled,
+      // panEnabled: _isPanEnabled,
+      // scaleEnabled: _isScaleEnabled,
       transformationController: _transformationController,
     );
 
-    double horizontalTitleSpace = 48;
-    double verticalTitleSpace = 58;
-    double padding = 12;
     final compact = NumberFormat.compact();
-    final enableVolume = widget.analysisSettings?.techIndicators!.contains("Volume") ?? false;
     final enableMovingAverage = widget.analysisSettings?.techIndicators?.contains("SMA") ?? false;
     final enableBollingerBands = widget.analysisSettings?.techIndicators?.contains("BB") ?? false;
     final currentRollingWindow = widget.analysisSettings?.rollingWindows?.first;
@@ -87,44 +92,93 @@ class _PriceChartState extends State<PriceChart> {
         final padding = range * 0.10;
         final minY = minPrice - padding;
         final maxY = maxPrice + padding;
-        // Layout constants (match your LineChart)
-        const double topPadding = 12;
-        const double leftTitles = 48;
-        const double rightTitles = 48;
-        const double sidePadding = 12;
-        const double bottomTitles = 50;
+        const double leftTitlesSize = 48;
+        const double rightTitlesSize = 48;
+        const double bottomTitlesSize = 58;
+
 
         /// TODO: Price data chart has to pan above
-        return AspectRatio(aspectRatio: 16 / 9,
-          child: Padding(
-            padding: EdgeInsets.only(left: leftTitles, right: rightTitles, top: topPadding),
-            child: Stack(
+        return Stack(
               children: [
                 Positioned.fill(
-                  child: LineChart(
+                  child:
+                  LineChart(
                     LineChartData(
-                        minX: 0,
-                        maxX: priceData.length.toDouble() - 1,
+                        minX: widget.controller?.minX ?? 0,
+                        maxX: widget.controller?.maxX ?? priceData.length.toDouble() - 1,
                         minY: minY,
                         maxY: maxY,
                         gridData: FlGridData(show: false),
                         lineBarsData: [
                           LineChartBarData(
-                              color: AppTheme
-                                  .of(context)
-                                  .priceBarColor ?? Theme
-                                  .of(context)
-                                  .primaryColor,
-                              barWidth: 1.5,
-                              isStrokeCapRound: true,
-                              dotData: FlDotData(show: false),
-                              spots: widget.results.priceData.map((data) {
-                                return FlSpot(
-                                    widget.results.priceData
-                                        .indexOf(data)
-                                        .toDouble(), data.closePrice);
-                              }).toList()
-                          )
+                            color: AppTheme
+                                .of(context)
+                                .priceBarColor ?? Theme
+                                .of(context)
+                                .primaryColor,
+                            barWidth: 1.5,
+                            isStrokeCapRound: true,
+                            dotData: FlDotData(show: false),
+                            spots: widget.results.priceData.map((data) {
+                              return FlSpot(
+                                  widget.results.priceData
+                                      .indexOf(data)
+                                      .toDouble(), data.closePrice);
+                            }).toList()
+                          ),
+                          if (enableBollingerBands && currentRollingWindow != null) ...[
+                            LineChartBarData(
+                                color: AppTheme.of(context).indicatorLowerBand ?? Theme
+                                    .of(context)
+                                    .canvasColor,
+                                barWidth: 1.0,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                spots: _lowerBellingerBand.map((data) {
+                                  return FlSpot(_lowerBellingerBand.indexOf(data).toDouble(),
+                                      data.stdValue ?? 0.0);
+                                }).toList()
+                            ),
+                            LineChartBarData(
+                                color: AppTheme.of(context).indicatorUpperBand ?? Theme
+                                    .of(context)
+                                    .canvasColor,
+                                barWidth: 1.0,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                spots: _upperBellingerBand.map((data) {
+                                  return FlSpot(_upperBellingerBand.indexOf(data).toDouble(),
+                                      data.stdValue ?? 0.0);
+                                }).toList()
+                            ),
+                            LineChartBarData(
+                                color: AppTheme.of(context).indicatorMiddleBand ?? Theme
+                                    .of(context)
+                                    .canvasColor,
+                                barWidth: 1.0,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                spots: _middleBellingerBand.map((data) {
+                                  return FlSpot(_middleBellingerBand.indexOf(data).toDouble(),
+                                      data.stdValue ?? 0.0);
+                                }).toList()
+                            ),
+                          ],
+                          if (enableMovingAverage && currentRollingWindow != null)
+                            LineChartBarData(
+                                color: AppTheme
+                                    .of(context)
+                                    .indicatorRate ?? Theme
+                                    .of(context)
+                                    .canvasColor,
+                                barWidth: 1.5,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                spots: _sma.map((data) {
+                                  return FlSpot(_sma.indexOf(data).toDouble(),
+                                      data.rollingMean ?? 0.0);
+                                }).toList()
+                            )
                         ],
                         titlesData: FlTitlesData(
                           show: true,
@@ -134,26 +188,26 @@ class _PriceChartState extends State<PriceChart> {
                           leftTitles: AxisTitles(
                             // drawBelowEverything: true,
                             sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: horizontalTitleSpace,
-                                maxIncluded: false,
-                                minIncluded: false,
-                                getTitlesWidget: (double value,
-                                    TitleMeta meta) {
-                                  return SideTitleWidget(
-                                    meta: meta,
-                                    child: Text(value.toStringAsFixed(2),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  );
-                                }
+                              showTitles: true,
+                              reservedSize: leftTitlesSize,
+                              maxIncluded: false,
+                              minIncluded: false,
+                              getTitlesWidget: (double value,
+                                  TitleMeta meta) {
+                                return SideTitleWidget(
+                                  meta: meta,
+                                  child: Text(value.toStringAsFixed(2),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                );
+                              }
                             ),
                           ),
                           rightTitles: AxisTitles(
                             drawBelowEverything: true,
                             sideTitles: SideTitles(
                                 showTitles: true,
-                                reservedSize: horizontalTitleSpace,
+                                reservedSize: rightTitlesSize,
                                 maxIncluded: false,
                                 minIncluded: false,
                                 getTitlesWidget: (double value,
@@ -170,11 +224,10 @@ class _PriceChartState extends State<PriceChart> {
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: verticalTitleSpace, // dates
+                              reservedSize: bottomTitlesSize, // dates
                               maxIncluded: false,
                               getTitlesWidget: (double value, TitleMeta meta) {
-                                final date = widget.results.priceData[value
-                                    .toInt()].dateTime;
+                                final date = priceData[value.toInt()].dateTime;
                                 return SideTitleWidget(
                                   meta: meta,
                                   child: Transform.rotate(
@@ -201,10 +254,8 @@ class _PriceChartState extends State<PriceChart> {
                                 return touchedBarSpots.map((barSpot) {
                                   final price = barSpot.y;
                                   final index = barSpot.x.toInt();
-                                  final date = widget.results.priceData[index]
-                                      .dateTime;
-                                  final volume = widget.results.priceData[index]
-                                      .volume;
+                                  final date = priceData[index].dateTime;
+                                  final volume = priceData[index].volume;
                                   return LineTooltipItem('',
                                     const TextStyle(
                                       // color: AppColors.contentColorBlack,
@@ -266,62 +317,6 @@ class _PriceChartState extends State<PriceChart> {
                     transformationConfig: transformationConfig,
                   ),
                 ),
-                if (enableVolume)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Padding(
-                        padding: AppTheme
-                            .of(context)
-                            .paddingOverlayChart ?? EdgeInsets.only(
-                          top: 0.0,
-                          left: horizontalTitleSpace,
-                          right: horizontalTitleSpace,
-                          bottom: verticalTitleSpace,
-                        ),
-                        child: VolumeChart(results: widget.results,
-                          analysisSettings: widget.analysisSettings,
-                          transformationConfig: transformationConfig,
-                        ),
-                      ),
-                    ),
-                  ),
-                if (enableMovingAverage && currentRollingWindow != null)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Padding(
-                          padding: AppTheme
-                              .of(context)
-                              .paddingOverlayChart ?? EdgeInsets.only(
-                            top: padding,
-                            left: horizontalTitleSpace + padding,
-                            right: horizontalTitleSpace + padding,
-                            bottom: verticalTitleSpace,
-                          ),
-                          child: MovingAverage(result: widget.results,
-                              analysisSettings: widget.analysisSettings,
-                              rollingWindow: [currentRollingWindow],
-                              transformationConfig: transformationConfig)
-                      ),
-                    ),
-                  ),
-                if (enableBollingerBands && currentRollingWindow != null)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: Padding(
-                          padding: AppTheme
-                              .of(context)
-                              .paddingOverlayChart ?? EdgeInsets.only(
-                            top: padding,
-                            left: horizontalTitleSpace + padding,
-                            right: horizontalTitleSpace + padding,
-                            bottom: verticalTitleSpace,
-                          ),
-                          child: BollingerBandsChart(result: widget.results,
-                              rollingWindow: [currentRollingWindow],
-                              transformationConfig: transformationConfig)
-                      ),
-                    ),
-                  ),
                 Positioned(
                   top: 8,
                   left: 64,
@@ -353,8 +348,6 @@ class _PriceChartState extends State<PriceChart> {
                   ),
                 ),
               ],
-            ),
-          ),
         );
       }
     );

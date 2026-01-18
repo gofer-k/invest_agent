@@ -363,7 +363,11 @@ class AnalysisRespond {
     return minPrice;
   }
 
-  Future<List<SimpleMovingAverage>> getSMA(int rollingWindow) async {
+  Future<List<SimpleMovingAverage>> getFutureSMA(int rollingWindow) async {
+    return getSMA(rollingWindow);
+  }
+
+  List<SimpleMovingAverage> getSMA(int rollingWindow) {
     final sma = <SimpleMovingAverage>[];
     final subIndicators = indicators.sublist(rollingWindow);
     for (var indicator in subIndicators) {
@@ -374,8 +378,12 @@ class AnalysisRespond {
     return sma;
   }
   
-  Future<BellingerBand> getBollingerBand(BollingerBandType type, int rollingWindow) async {
-    final BellingerBand lowerBand = [];
+  Future<BellingerBand> getFutureBollingerBand(BollingerBandType type, int rollingWindow) async {
+    return getBollingerBand(type, rollingWindow);
+  }
+
+  BellingerBand getBollingerBand(BollingerBandType type, int rollingWindow) {
+    final BellingerBand band = [];
     final subIndicators = indicators.sublist(rollingWindow);
     for (var indicator in subIndicators) {
       if (indicator.sma.containsKey(rollingWindow)) {
@@ -386,11 +394,11 @@ class AnalysisRespond {
             BollingerBandType.upperBB => sma.bellingersBands!.upperBB,
             BollingerBandType.middleBB => sma.rollingMean,
           };
-          lowerBand.add(BellingerBandEntry(dateTime: sma.dateTime, stdValue: value));
+          band.add(BellingerBandEntry(dateTime: sma.dateTime, stdValue: value));
         }
       }
     }
-    return lowerBand;
+    return band;
   }
 
   Future<List<PriceData>> getRollingVolume(int rollingWindow) async {

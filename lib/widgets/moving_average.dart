@@ -32,7 +32,7 @@ class MovingAverageState extends State<MovingAverage> {
   void initState() {
     _transformationController = TransformationController();
     if (widget.result != null && widget.rollingWindow.isNotEmpty) {
-      _smaFuture = widget.result!.getSMA(widget.rollingWindow.first);
+      _smaFuture = widget.result!.getFutureSMA(widget.rollingWindow.first);
     }
     else {
       _smaFuture = Future.value([]);

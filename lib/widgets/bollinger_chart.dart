@@ -26,9 +26,9 @@ class BollingerBandsChartState extends State<BollingerBandsChart> {
   void initState() {
     _transformationController = TransformationController();
     if (widget.result != null && widget.rollingWindow.isNotEmpty) {
-      _lowerBellingerBandFuture = widget.result!.getBollingerBand(BollingerBandType.lowerBB, widget.rollingWindow.first);
-      _upperBellingerBandFuture = widget.result!.getBollingerBand(BollingerBandType.upperBB, widget.rollingWindow.first);
-      _middleBellingerBandFuture = widget.result!.getBollingerBand(BollingerBandType.middleBB, widget.rollingWindow.first);
+      _lowerBellingerBandFuture = widget.result!.getFutureBollingerBand(BollingerBandType.lowerBB, widget.rollingWindow.first);
+      _upperBellingerBandFuture = widget.result!.getFutureBollingerBand(BollingerBandType.upperBB, widget.rollingWindow.first);
+      _middleBellingerBandFuture = widget.result!.getFutureBollingerBand(BollingerBandType.middleBB, widget.rollingWindow.first);
     }
     else {
       _lowerBellingerBandFuture = Future.value([]);
