@@ -137,9 +137,9 @@ class _InvestDashboardState extends State<InvestDashboard> {
         Expanded(flex: 3,
           child: PriceChart(eftIndexName: chartTitle, analysisSettings: currentRequest, results: currentResult)
         ),
-        Expanded(flex: 1,
-          child: VolumeChart(results : currentResult, analysisSettings: currentRequest,
-             rightSideTile: true, enableTitle: true))
+        // Expanded(flex: 1,
+        //   child: VolumeChart(results : currentResult, analysisSettings: currentRequest,
+        //      rightSideTile: true, enableTitle: true))
         //TODO: add moving average with MACD
         // TODO: add RSI indicator
         // Expanded(flex: 1,

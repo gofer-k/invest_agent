@@ -73,6 +73,8 @@ class MovingAverageState extends State<MovingAverage> {
           final sma = snapshot.data ?? [];
           return LineChart(
             LineChartData(
+                minX: 0,
+                maxX: sma.length.toDouble() - 1,
                 gridData: FlGridData(show: widget.enableGridData),
                 lineBarsData: [
                   LineChartBarData(

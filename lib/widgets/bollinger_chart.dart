@@ -84,6 +84,8 @@ class BollingerBandsChartState extends State<BollingerBandsChart> {
         final bb = snapshot.data ?? [];
         return LineChart(
           LineChartData(
+            minX: 0,
+            maxX: bb.length.toDouble() - 1,
             gridData: FlGridData(show: widget.enableGridData),
             lineBarsData: [
               LineChartBarData(

@@ -61,7 +61,6 @@ class _VolumeChartState extends State<VolumeChart>{
 
     double horizontalTitleSpace = 48;
     double verticalTitleSpace = 58;
-    double padding = 12;
     final compact = NumberFormat.compact();
 
     // TODO: decrease the chart vertical size
@@ -80,6 +79,7 @@ class _VolumeChartState extends State<VolumeChart>{
          }
          final priceData = snapshot.data!;
          final maxVolumeZscore = priceData.map((c) => c.volumeZscore) .reduce((a, b) => a > b ? a : b);
+         final miVolumeZscore = priceData.map((c) => c.volumeZscore) .reduce((a, b) => a < b ? a : b);
          final maxVolume = priceData.map((c) => c.volume) .reduce((a, b) => a > b ? a : b);
          double scaledVolume(double v) => v / maxVolumeZscore;
 
@@ -89,6 +89,7 @@ class _VolumeChartState extends State<VolumeChart>{
                BarChart(
                  transformationConfig: transformationConfig,
                  BarChartData(
+                   minY: miVolumeZscore,
                    maxY: maxVolumeZscore,
                    barGroups: priceData.map((entry) {
                      final index = priceData.indexOf(entry);
@@ -186,7 +187,7 @@ class _VolumeChartState extends State<VolumeChart>{
                      bottomTitles: AxisTitles(
                        sideTitles: SideTitles(
                          showTitles: widget.bottomTitle,
-                         reservedSize: verticalTitleSpace, // dates
+                         reservedSize: -verticalTitleSpace, // dates
                          maxIncluded: false,
                          getTitlesWidget: (double value, TitleMeta meta) {
                            final date = priceData[value.toInt()].dateTime;
