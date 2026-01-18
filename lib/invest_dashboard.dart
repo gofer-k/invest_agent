@@ -6,6 +6,7 @@ import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/chart_controller.dart';
 import 'package:invest_agent/widgets/price_chart.dart';
 import 'package:invest_agent/widgets/sync_chart.dart';
+import 'package:invest_agent/widgets/volume_chart.dart';
 import 'model/analysis_request.dart';
 import 'model/analysis_respond.dart';
 import 'model/etf_analytics_client.dart';
@@ -148,9 +149,13 @@ class _InvestDashboardState extends State<InvestDashboard> {
               controller: sharedController)
           )
         ),
-        // Expanded(flex: 1,
-        //   child: VolumeChart(results : currentResult, analysisSettings: currentRequest,
-        //      rightSideTile: true, enableTitle: true))
+        Expanded(flex: 1,
+          child: SyncChart(controller: sharedController,
+            body: VolumeChart(
+              results : currentResult, analysisSettings: currentRequest,
+              controller: sharedController,
+              rightSideTile: true, enableTitle: true, bottomTitle: true))
+        )
         //TODO: add moving average with MACD
         // TODO: add RSI indicator
         // Expanded(flex: 1,

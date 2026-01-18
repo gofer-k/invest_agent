@@ -11,12 +11,14 @@ class PriceChart extends  StatefulWidget {
   final AnalysisRespond results;
   final AnalysisRequest? analysisSettings;
   final ChartInteractionController? controller;
+  final enableBottomLabels;
 
   const PriceChart({super.key,
     required this.eftIndexName,
     required this.analysisSettings,
     required this.results,
-    required this.controller});
+    required this.controller,
+    this.enableBottomLabels = false});
 
   @override
   State<PriceChart> createState() => _PriceChartState();
@@ -95,7 +97,6 @@ class _PriceChartState extends State<PriceChart> {
         const double leftTitlesSize = 48;
         const double rightTitlesSize = 48;
         const double bottomTitlesSize = 58;
-
 
         /// TODO: Price data chart has to pan above
         return Stack(
@@ -223,7 +224,7 @@ class _PriceChartState extends State<PriceChart> {
                           ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
-                              showTitles: true,
+                              showTitles: widget.enableBottomLabels,
                               reservedSize: bottomTitlesSize, // dates
                               maxIncluded: false,
                               getTitlesWidget: (double value, TitleMeta meta) {

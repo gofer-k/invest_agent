@@ -5,22 +5,24 @@ import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 
+import 'chart_controller.dart';
+
 class VolumeChart extends StatefulWidget {
   final AnalysisRequest? analysisSettings;
   final AnalysisRespond results;
+  final ChartInteractionController? controller;
   final bool leftSideTitle;
   final bool rightSideTile;
   final bool bottomTitle;
   final bool enableTitle;
-  final FlTransformationConfig? transformationConfig;
 
   const VolumeChart({super.key,
     required this.results,
     required this.analysisSettings,
-    this.leftSideTitle = false,
+    required this.controller,
+    this.leftSideTitle = true,
     this.rightSideTile = false,
     this.bottomTitle = false,
-    this.transformationConfig,
     this.enableTitle = false});
 
   @override
@@ -50,21 +52,20 @@ class _VolumeChartState extends State<VolumeChart>{
 
   @override
   Widget build(BuildContext context) {
-    FlTransformationConfig transformationConfig = widget.transformationConfig ?? FlTransformationConfig(
+    FlTransformationConfig transformationConfig = FlTransformationConfig(
       scaleAxis: FlScaleAxis.horizontal,
       minScale: 1.0,
       maxScale: 25.0,
-      panEnabled: true,
-      scaleEnabled: true,
+      // panEnabled: true,
+      // scaleEnabled: true,
       transformationController: _transformationController,
     );
 
-    double horizontalTitleSpace = 48;
-    double verticalTitleSpace = 58;
+    // double horizontalTitleSpace = 48;
+    // double verticalTitleSpace = 58;
     final compact = NumberFormat.compact();
 
     // TODO: decrease the chart vertical size
-    // TODO: fit left padding to the chart
     return FutureBuilder<List<PriceData>>(
        future: priceData,
        builder: (context, snapshot) {
@@ -81,7 +82,10 @@ class _VolumeChartState extends State<VolumeChart>{
          final maxVolumeZscore = priceData.map((c) => c.volumeZscore) .reduce((a, b) => a > b ? a : b);
          final miVolumeZscore = priceData.map((c) => c.volumeZscore) .reduce((a, b) => a < b ? a : b);
          final maxVolume = priceData.map((c) => c.volume) .reduce((a, b) => a > b ? a : b);
-         double scaledVolume(double v) => v / maxVolumeZscore;
+         double scaledVolume(double v) => 10.0 * v / maxVolumeZscore;
+         const double leftTitlesSize = 48;
+         const double rightTitlesSize = 48;
+         const double bottomTitlesSize = 58;
 
          return AspectRatio(aspectRatio: 16 / 9,
            child: Stack(
@@ -89,8 +93,8 @@ class _VolumeChartState extends State<VolumeChart>{
                BarChart(
                  transformationConfig: transformationConfig,
                  BarChartData(
-                   minY: miVolumeZscore,
-                   maxY: maxVolumeZscore,
+                   minY: miVolumeZscore * 10.0,
+                   maxY: maxVolumeZscore * 10.0,
                    barGroups: priceData.map((entry) {
                      final index = priceData.indexOf(entry);
                      final scaled = scaledVolume(entry.volumeZscore);
@@ -123,10 +127,10 @@ class _VolumeChartState extends State<VolumeChart>{
                      topTitles: const AxisTitles(
                          sideTitles: SideTitles(showTitles: false)),
                      leftTitles: AxisTitles(
-                       drawBelowEverything: true,
+                       // drawBelowEverything: true,
                        sideTitles: SideTitles(
                            showTitles: widget.leftSideTitle,
-                           reservedSize: horizontalTitleSpace,
+                           reservedSize: leftTitlesSize,
                            maxIncluded: false,
                            minIncluded: false,
                            getTitlesWidget: (double value, TitleMeta meta) {
@@ -145,7 +149,7 @@ class _VolumeChartState extends State<VolumeChart>{
                        drawBelowEverything: true,
                        sideTitles: SideTitles(
                            showTitles: widget.rightSideTile,
-                           reservedSize: horizontalTitleSpace,
+                           reservedSize: rightTitlesSize,
                            maxIncluded: false,
                            minIncluded: false,
                            getTitlesWidget: (double value, TitleMeta meta) {
@@ -187,7 +191,7 @@ class _VolumeChartState extends State<VolumeChart>{
                      bottomTitles: AxisTitles(
                        sideTitles: SideTitles(
                          showTitles: widget.bottomTitle,
-                         reservedSize: -verticalTitleSpace, // dates
+                         reservedSize: bottomTitlesSize, // dates
                          maxIncluded: false,
                          getTitlesWidget: (double value, TitleMeta meta) {
                            final date = priceData[value.toInt()].dateTime;
