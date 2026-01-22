@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
+import 'package:invest_agent/widgets/chart_overlay_ma.dart';
 import 'package:invest_agent/widgets/chart_painter.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 import '../model/analysis_respond.dart';
@@ -46,9 +47,7 @@ class _SyncChartState extends State<SyncChart> {
               }
             },
             child: GestureDetector(
-              onScaleStart: (details) {
-                ///TODO: implement this
-              },
+              onScaleStart: (_) {},
               onScaleUpdate: (details) {
                 if ((details.scale - 1.0).abs() > 0.02) {
                   final localPos = details.focalPoint;
@@ -62,16 +61,23 @@ class _SyncChartState extends State<SyncChart> {
                   widget.controller.pan(Duration(days: (-local.dx * daysPerPixel).round()));
                 }
               },
-              // onTapDown: widget.crosshairController == null ? null : (details) {
-              //   final local = box.globalToLocal(details.globalPosition);
-              //   final currData = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
-              //   widget.crosshairController?.update(currData, null);
-              // },
-              // onTapUp: (_) => widget.crosshairController?.clear(),
+              onTapDown: widget.crosshairController == null ? null : (details) {
+                final local = box.globalToLocal(details.globalPosition);
+                final currData = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
+                widget.crosshairController?.update(currData, null);
+              },
+              onTapUp: (_) => widget.crosshairController?.clear(),
               child: CustomPaint(
                 size: Size(width, constraints.maxHeight),
-                painter: CHartPainter(controller: widget.controller, crosshairController: widget.crosshairController,
-                    analysisRequest: widget.analysisRequest, results: widget.results),
+                painter: CHartPainter(
+                  controller: widget.controller,
+                  crosshairController: widget.crosshairController,
+                  analysisRequest: widget.analysisRequest,
+                  results: widget.results,
+                  overlays: [
+                    ChartOverlayMA(data: widget.results.getSMA(20)),
+                  ]
+                ),
               )
             )
           );

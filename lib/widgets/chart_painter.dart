@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:invest_agent/widgets/chart_overlay.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 
 import '../model/analysis_request.dart';
@@ -10,8 +11,9 @@ class CHartPainter extends CustomPainter {
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
+  final List<ChartOverlay> overlays;
 
-  CHartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results});
+  CHartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
 
   double _dateToPos(DateTime date, Size size) {
     final spanDays = controller.visibleEnd.difference(controller.visibleStart).inDays;
@@ -19,8 +21,8 @@ class CHartPainter extends CustomPainter {
     return ratio * size.width;
   }
 
-  double _priceToPos(PriceData price, Size size) {
-    final ratio = (price.closePrice - results.getMinPrice()) / results.getPriceRange();
+  double _valueToPos(double value, Size size) {
+    final ratio = (value - results.getMinPrice()) / results.getPriceRange();
     return size.height * (1 - ratio);
   }
 
@@ -44,8 +46,8 @@ class CHartPainter extends CustomPainter {
 
   void _pricePriceLine(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 1.5;
+      ..color = Colors.white54
+      ..strokeWidth = 1.2;
 
     // TODO: pass prefixWindow from a user
     final priceData = results.getPriceData(20);
@@ -65,22 +67,16 @@ class CHartPainter extends CustomPainter {
         break;
       }
 
-      final Offset prevOffset = Offset(_dateToPos(prevPrice.dateTime, size), _priceToPos(prevPrice, size));
-      final Offset currOffset = Offset(_dateToPos(currentPrice.dateTime, size), _priceToPos(currentPrice, size));
-
+      final Offset prevOffset = Offset(_dateToPos(prevPrice.dateTime, size),
+          _valueToPos(prevPrice.closePrice, size));
+      final Offset currOffset = Offset(_dateToPos(currentPrice.dateTime, size),
+          _valueToPos(currentPrice.closePrice, size));
       canvas.drawLine(prevOffset, currOffset, paint);
     }
-  }
+   }
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inDays.toDouble();
-    if (snapDays <= 0 || size.width <= 0) return;
 
-    _paintBackGround(canvas, size);
-    _paintGrid(canvas, size);
-    _pricePriceLine(canvas, size);
-
+  void _crosshairLine(Canvas canvas, Size size) {
     if (crosshairController?.time != null) {
       final currTime = crosshairController?.time;
       if (!currTime!.isBefore(controller.visibleStart) && !currTime.isAfter(controller.visibleEnd)) {
@@ -92,6 +88,27 @@ class CHartPainter extends CustomPainter {
         canvas.drawLine(Offset(x, 0), Offset(x, size.height), crossPaint);
       }
     }
+  }
+
+  void _drawOverlays(Canvas canvas, Size size) {
+    final ctx = OverlayContext(startDate: controller.visibleStart, endDate: controller.maxDomainEnd,
+        dateToPos: (date, size) => _dateToPos(date, size),
+        valueToPos: (value, size) => _valueToPos(value, size));
+    for (var overlay in overlays) {
+      overlay.draw(canvas, size, ctx);
+    }
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inDays.toDouble();
+    if (snapDays <= 0 || size.width <= 0) return;
+
+    _paintBackGround(canvas, size);
+    _paintGrid(canvas, size);
+    _pricePriceLine(canvas, size);
+    _crosshairLine(canvas, size);
+    _drawOverlays(canvas, size);
   }
 
   @override
