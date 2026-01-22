@@ -6,6 +6,7 @@ import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 
 import 'chart_controller.dart';
+import 'datetime_label.dart';
 
 class VolumeChart extends StatefulWidget {
   final AnalysisRequest? analysisSettings;
@@ -86,6 +87,7 @@ class _VolumeChartState extends State<VolumeChart>{
          const double leftTitlesSize = 48;
          const double rightTitlesSize = 48;
          const double bottomTitlesSize = 58;
+         final datetimeData = priceData.map((e) => e.dateTime).toList();
 
          return AspectRatio(aspectRatio: 16 / 9,
            child: Stack(
@@ -119,6 +121,9 @@ class _VolumeChartState extends State<VolumeChart>{
                        ],
                      );
                    }).toList(),
+                   extraLinesData: ExtraLinesData(
+                     verticalLines: widget.controller?.verticalLines ?? [],
+                   ),
                    gridData: FlGridData(show: false),
                    borderData: FlBorderData(show: false),
                    titlesData: FlTitlesData(
@@ -194,38 +199,17 @@ class _VolumeChartState extends State<VolumeChart>{
                          reservedSize: bottomTitlesSize, // dates
                          maxIncluded: false,
                          getTitlesWidget: (double value, TitleMeta meta) {
-                           final date = priceData[value.toInt()].dateTime;
+                           final date = buildDateLabel(value, meta, widget.controller!.windowWidth, datetimeData);
                            return SideTitleWidget(
                              meta: meta,
                              child: Transform.rotate(
                                angle: -3.14 / 4.0, // -45 degrees
-                               child: Text(
-                                 '${date.month}/${date.day}/${date.year}',
-                                 style: const TextStyle(
-                                   fontSize: 12,
-                                   fontWeight: FontWeight.bold,
-                                 ),
-                               ),
+                               child: date
                              ),
                            );
                          },
                        ),
                      ),
-                   ),
-                   extraLinesData: ExtraLinesData(
-                     horizontalLines: [
-                       HorizontalLine(
-                         y: 1.0,
-                         color: Colors.white70,
-                         strokeWidth: 1.5,
-                         dashArray: [6, 4],
-                         // label: HorizontalLineLabel(
-                         //   show: widget.rightSideTile,
-                         //   alignment: Alignment.centerRight,
-                         //   padding: const EdgeInsets.only(right: 4),
-                         // ),
-                       ),
-                     ],
                    ),
                  ),
                ),

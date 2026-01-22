@@ -1,7 +1,10 @@
 import 'dart:math';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+
+import 'date_vertical_lines.dart';
 
 /*
 Controller class stores domain window: minX, maxX
@@ -20,13 +23,24 @@ class ChartInteractionController extends ChangeNotifier {
   final double dataMinX;
   final double dataMaxX;
 
+  final List<double> xDomain;
+  final List<DateTime> times;
+  late List<VerticalLine> verticalLines;
+
   ChartInteractionController({
+    this.xDomain = const [], this.times = const [],
     required double initialMinX,
     required double initialMaxX,
     required this.dataMinX,
     required this.dataMaxX,
   })  : _minX = initialMinX,
-        _maxX = initialMaxX;
+        _maxX = initialMaxX {
+    verticalLines = buildDateVerticalLines(
+        times: times,
+        domainX: xDomain,
+        minX: minX,
+        maxX: maxX);
+  }
 
   double get minX => _minX;
   double get maxX => _maxX;

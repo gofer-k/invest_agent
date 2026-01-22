@@ -3,10 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
-import 'package:invest_agent/widgets/chart_controller.dart';
-import 'package:invest_agent/widgets/price_chart.dart';
-import 'package:invest_agent/widgets/sync_chart.dart';
-import 'package:invest_agent/widgets/volume_chart.dart';
+import 'package:invest_agent/widgets/mutli_chart.dart';
 import 'model/analysis_request.dart';
 import 'model/analysis_respond.dart';
 import 'model/etf_analytics_client.dart';
@@ -31,7 +28,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
   double visibleMinY = 0.0;
   double visibleMaxY = 0.0;
   String chartTitle = "";
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,9 +69,9 @@ class _InvestDashboardState extends State<InvestDashboard> {
       if (result["format"] == "gz") {
         receivedData = await receiveCompressedAnalysisResult(result);
       }
-      final calculatedPriceRange = await receivedData?.getPriceRange();
-      final calculatedMaxPrice = await receivedData?.getMaxPrice();
-      final calculatedMinPrice = await receivedData?.getMinPrice();
+      final calculatedPriceRange = receivedData?.getPriceRange();
+      final calculatedMaxPrice = receivedData?.getMaxPrice();
+      final calculatedMinPrice = receivedData?.getMinPrice();
 
       chartTitle = p.basenameWithoutExtension(request.symbolTicker);
       setState(() {
@@ -130,38 +127,16 @@ class _InvestDashboardState extends State<InvestDashboard> {
       );
     }
 
-    final sharedController = ChartInteractionController(
-      initialMinX: 0,
-      initialMaxX: currentResult.priceData.length - 1,
-      dataMinX: 0,
-      dataMaxX: currentResult.priceData.length - 1);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        // TODO: Price candlestick chart instead of price lina chart
-        Expanded(flex: 3,
-          child: SyncChart(controller: sharedController,
-            body: PriceChart(eftIndexName: chartTitle,
-              analysisSettings: currentRequest,
-              results: currentResult,
-              controller: sharedController)
-          )
-        ),
-        Expanded(flex: 1,
-          child: SyncChart(controller: sharedController,
-            body: VolumeChart(
-              results : currentResult, analysisSettings: currentRequest,
-              controller: sharedController,
-              rightSideTile: true, enableTitle: true, bottomTitle: true))
-        )
-        //TODO: add moving average with MACD
-        // TODO: add RSI indicator
-        // Expanded(flex: 1,
-        //   child: MovingAverage(result: currentResult, rolling_window: [50],),
-        // )
-      ]
+    return LayoutBuilder(builder: (context, constraints) {
+      if (currentRequest != null) {
+        return MultiChartView(
+            chartTitle: [currentRequest.symbolTicker],
+            analysisRequest: currentRequest,
+            results: currentResult,
+            chartHeight: constraints.maxHeight);
+        }
+        return const Center(child: Text("No analysis to see results"));
+      }
     );
   }
 }

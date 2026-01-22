@@ -311,49 +311,56 @@ class AnalysisRespond {
   final List<PriceData> priceData;
   final List<Indicators> indicators;
   final List<CandleStickItem> candles;
-  double? priceRange;
-  double? maxPrice;
-  double? minPrice;
+  double priceRange = 0.0;
+  double maxPrice = 0.0;
+  double minPrice = 0.0;
 
   AnalysisRespond(this.indicators, this.candles, this.priceData);
 
-  Future<double?> getPriceRange() async {
-    if (priceRange != null) {
+  Future<double> getPriceRangeAsync() async {
+    return getPriceRange();
+  }
+
+  double getPriceRange() {
+    if (priceData.isEmpty) {
+      return 0.0;
+    }
+    if (priceRange != 0.0) {
       return priceRange;
     }
-    if (priceData.isEmpty) {
-      return null;
-    }
-    final double sum = priceData.fold(
-      0.0,
-      (previousValue, priceItem) => previousValue + priceItem.closePrice,
-    );
-    // priceRange = range / priceData.length;
-    priceRange = sum;
+    priceRange = (maxPrice - minPrice).abs();
     return priceRange;
   }
 
-  Future<double?> getMaxPrice() async {
-    if (maxPrice != null) {
+  Future<double> getMaxPriceAsync() async {
+    return getMaxPrice();
+  }
+
+  double getMaxPrice() {
+    if (priceData.isEmpty) {
+      return 0.0;
+    }
+    if (maxPrice != 0.0) {
       return maxPrice;
     }
-    if (priceData.isEmpty) {
-      return null;
-    }
     final maxPriceItem = priceData.reduce(
-      (currentItem, nextItem) =>
+          (currentItem, nextItem) =>
       currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
     );
     maxPrice = maxPriceItem.closePrice;
     return maxPrice;
   }
 
-  Future<double?> getMinPrice() async {
-    if (minPrice != null) {
-      return minPrice;
-    }
+  Future<double> getMinPriceAsync() async {
+    return getMinPrice();
+  }
+
+  double getMinPrice() {
     if (priceData.isEmpty) {
-      return null;
+      return 0.0;
+    }
+    if (minPrice != 0.0) {
+      return minPrice;
     }
     final minPriceItem = priceData.reduce(
           (currentItem, nextItem) =>
@@ -403,6 +410,14 @@ class AnalysisRespond {
 
   Future<List<PriceData>> getRollingVolume(int rollingWindow) async {
     return priceData.sublist(rollingWindow);
+  }
+
+  List<PriceData> getPriceData(int prefixWindow) {
+    return priceData.sublist(prefixWindow);
+  }
+
+  List<DateTime> getDateTimeDomain(int prefixWindow) {
+    return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {

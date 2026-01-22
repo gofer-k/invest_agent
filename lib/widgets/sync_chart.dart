@@ -1,107 +1,88 @@
-import 'package:flutter/cupertino.dart';
-import 'chart_controller.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+import 'package:invest_agent/model/analysis_request.dart';
+import 'package:invest_agent/widgets/chart_painter.dart';
+import 'package:invest_agent/widgets/time_controller.dart';
+import '../model/analysis_respond.dart';
+import 'crosshair_controller.dart';
 
 class SyncChart extends StatefulWidget {
-  final ChartInteractionController controller;
-  final Widget body;
-  final double topPadding;
-  final double leftTitles;
-  final double rightTitles ;
-  final double bottomTitles;
+  final TimeController controller;
+  final CrosshairController? crosshairController;
+  final AnalysisRequest analysisRequest;
+  final AnalysisRespond results;
 
   const SyncChart({super.key, required this.controller,
-    required this.body, this.topPadding = 12, this.bottomTitles = 58,
-    this.leftTitles = 48, this.rightTitles = 48});
+    this.crosshairController, required this.analysisRequest, required this.results});
 
   @override
   State<StatefulWidget> createState() => _SyncChartState();
 }
 
 class _SyncChartState extends State<SyncChart> {
-  // Store the initial focal point when a scale gesture begins.
-  Offset _initialFocalPoint = Offset.zero;
-
   @override
+
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      return GestureDetector(behavior: HitTestBehavior.translucent,
-        // onPanUpdate: (details) {
-        //   // convert pixel delta to domain delta
-        //   final dxDomain = -details.delta.dx * widget.controller.windowWidth / width;
-        //   widget.controller.panDomain(dxDomain);
-        // },
-        onScaleStart: (details) {
-          _initialFocalPoint = details.focalPoint;
-        },
-        onScaleUpdate: (details) {
-          if (details.scale != 1.0) {
-            final focalPixel = details.focalPoint.dx - (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero).dx;
-            final focalDomain = widget.controller.pixelToDomain(focalPixel, width);
-            widget.controller.zoom(details.scale, focalDomain);
-          }
-          else {
-            // --- Panning Logic ---
-            // Calculate the change in position from the initial focal point.
-            final dx = details.focalPoint.dx - _initialFocalPoint.dx;
-            // Convert pixel delta to domain delta.
-            final dxDomain = -dx * widget.controller.windowWidth / width;
-            widget.controller.panDomain(dxDomain);
-            // Update the initial focal point for the next update.
-            _initialFocalPoint = details.focalPoint;
-          }
-        },
-        onTapDown: (details) {
-          final local = (context.findRenderObject() as RenderBox).globalToLocal(details.globalPosition);
-          final xDomain = widget.controller.pixelToDomain(local.dx, width);
-          widget.controller.setCrosshair(xDomain);
-        },
-        onTapUp: (_) => widget.controller.setCrosshair(null),
-        child: AnimatedBuilder(
-          animation: widget.controller,
-          builder: (_, _) {
-            return AspectRatio(aspectRatio: 16 / 9,
-              child: Padding(
-                padding: EdgeInsets.only(left: widget.leftTitles, right: widget.rightTitles, top: widget.topPadding),
-                child: Stack(
-                   children: [
-                      Positioned.fill(child: widget.body),
-                      if (widget.controller.crosshairX != null)
-                        CustomPaint(size: Size.infinite,
-                          painter: _CrosshairPainter(
-                            xPixel: widget.controller.domainToPixel(widget.controller.crosshairX!, width),
-                          ),
-                        ),
-                   ],
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    });
-  }
-}
+    return AnimatedBuilder(
+      animation: Listenable.merge([widget.controller, widget.crosshairController]),
+      builder: (context, _) {
+        return LayoutBuilder(builder: (context, constraints){
+          final daysPerPixel = widget.controller.visibleSpan.inDays / constraints.maxWidth;
+          final width = constraints.maxWidth;
+          final box = context.findRenderObject() as RenderBox;
+          return Listener( // Wrap with a Listener
+            onPointerSignal: (pointerSignal) {
+              if (pointerSignal is PointerScrollEvent) {
+                final scrollDelta = pointerSignal.scrollDelta.dy;
+                if (scrollDelta == 0.0) return;
 
-class _CrosshairPainter extends CustomPainter {
-  final double xPixel;
+                // Determine zoom factor (tweak the 0.1 value for sensitivity)
+                final scaleFactor = 1 - scrollDelta * 0.001;
 
-  _CrosshairPainter({required this.xPixel});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x88FFFFFF)
-      ..strokeWidth = 1;
-
-    canvas.drawLine(
-      Offset(xPixel, 0),
-      Offset(xPixel, size.height),
-      paint,
+                // Get the cursor position to zoom towards it
+                final localPos = box.globalToLocal(pointerSignal.position);
+                final anchorTime = _posToDate(localPos.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
+                widget.controller.zoom(scaleFactor, anchorTime);
+              }
+            },
+            child: GestureDetector(
+              onScaleStart: (details) {
+                ///TODO: implement this
+              },
+              onScaleUpdate: (details) {
+                if ((details.scale - 1.0).abs() > 0.02) {
+                  final localPos = details.focalPoint;
+                  final local = box.globalToLocal(localPos);
+                  final anchorTime = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
+                  widget.controller.zoom(details.scale, anchorTime);
+                }
+                else {
+                  if (width <= 0) return;
+                  final local = details.focalPointDelta;
+                  widget.controller.pan(Duration(days: (-local.dx * daysPerPixel).round()));
+                }
+              },
+              // onTapDown: widget.crosshairController == null ? null : (details) {
+              //   final local = box.globalToLocal(details.globalPosition);
+              //   final currData = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
+              //   widget.crosshairController?.update(currData, null);
+              // },
+              // onTapUp: (_) => widget.crosshairController?.clear(),
+              child: CustomPaint(
+                size: Size(width, constraints.maxHeight),
+                painter: CHartPainter(controller: widget.controller, crosshairController: widget.crosshairController,
+                    analysisRequest: widget.analysisRequest, results: widget.results),
+              )
+            )
+          );
+        });
+      },
     );
   }
 
-  @override
-  bool shouldRepaint(covariant _CrosshairPainter oldDelegate) =>
-      oldDelegate.xPixel != xPixel;
+  DateTime? _posToDate(double pos, double width, DateTime startDate, DateTime endDate) {
+    final ratio = (pos / width).clamp(0.0, 1.0);
+    final spanDays = endDate.difference(startDate).inDays;
+    return startDate.add(Duration(days: (spanDays * ratio).round()));
+  }
 }

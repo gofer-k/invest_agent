@@ -11,7 +11,7 @@ class PriceChart extends  StatefulWidget {
   final AnalysisRespond results;
   final AnalysisRequest? analysisSettings;
   final ChartInteractionController? controller;
-  final enableBottomLabels;
+  final bool enableBottomLabels;
 
   const PriceChart({super.key,
     required this.eftIndexName,
@@ -181,6 +181,9 @@ class _PriceChartState extends State<PriceChart> {
                                 }).toList()
                             )
                         ],
+                        extraLinesData: ExtraLinesData(
+                          verticalLines: widget.controller?.verticalLines ?? [],
+                        ),
                         titlesData: FlTitlesData(
                           show: true,
                           topTitles: const AxisTitles(
