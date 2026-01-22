@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/chart_overlay.dart';
 
@@ -37,7 +35,7 @@ class OverlayVolume extends ChartOverlay {
       }
       final x = ctx.dateToPos(price.dateTime, size);
       final vol = price.volume;
-      final barHeight = (vol / maxVolume) * size.height * 0.5;
+      final barHeight = (vol / maxVolume) * size.height * 0.75;
       final yTop = size.height - barHeight;
       final yBottom = size.height;
 

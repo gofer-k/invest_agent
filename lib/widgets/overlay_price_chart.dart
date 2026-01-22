@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/widgets/chart_overlay.dart';
