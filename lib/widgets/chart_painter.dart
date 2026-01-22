@@ -6,14 +6,14 @@ import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import 'crosshair_controller.dart';
 
-class CHartPainter extends CustomPainter {
+class ChartPainter extends CustomPainter {
   final TimeController controller;
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<ChartOverlay> overlays;
 
-  CHartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
+  ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
 
   double _dateToPos(DateTime date, Size size) {
     final spanDays = controller.visibleEnd.difference(controller.visibleStart).inDays;
@@ -43,38 +43,6 @@ class CHartPainter extends CustomPainter {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paintGrid);
     }
   }
-
-  void _pricePriceLine(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white54
-      ..strokeWidth = 1.2;
-
-    // TODO: pass prefixWindow from a user
-    final priceData = results.getPriceData(20);
-    final int firstVisibleIndex = priceData.indexWhere(
-        (price) => !price.dateTime.isBefore(controller.visibleStart)
-    );
-    if (firstVisibleIndex == -1) return; // Nothing to draw
-    final int startIndex = (firstVisibleIndex > 0) ? firstVisibleIndex - 1 : 0;
-
-    // Suggestion 1: Iterate over pairs for clarity
-    for (int i = startIndex + 1; i < priceData.length; ++i) {
-      final prevPrice = priceData[i - 1];
-      final currentPrice = priceData[i];
-
-      // Stop drawing once we move past the visible area
-      if (prevPrice.dateTime.isAfter(controller.visibleEnd)) {
-        break;
-      }
-
-      final Offset prevOffset = Offset(_dateToPos(prevPrice.dateTime, size),
-          _valueToPos(prevPrice.closePrice, size));
-      final Offset currOffset = Offset(_dateToPos(currentPrice.dateTime, size),
-          _valueToPos(currentPrice.closePrice, size));
-      canvas.drawLine(prevOffset, currOffset, paint);
-    }
-   }
-
 
   void _crosshairLine(Canvas canvas, Size size) {
     if (crosshairController?.time != null) {
@@ -106,17 +74,17 @@ class CHartPainter extends CustomPainter {
 
     _paintBackGround(canvas, size);
     _paintGrid(canvas, size);
-    _pricePriceLine(canvas, size);
-    _crosshairLine(canvas, size);
     _drawOverlays(canvas, size);
+    _crosshairLine(canvas, size);
   }
 
   @override
-  bool shouldRepaint(covariant CHartPainter oldDelegate) {
+  bool shouldRepaint(covariant ChartPainter oldDelegate) {
     return oldDelegate.controller != controller ||
         oldDelegate.crosshairController != crosshairController ||
         oldDelegate.results != results ||
-        oldDelegate.analysisRequest != analysisRequest;
+        oldDelegate.analysisRequest != analysisRequest ||
+        oldDelegate.overlays != overlays;
   }
 
   double priceToY(double price, double mimPrice, double maxPrice, double height) {

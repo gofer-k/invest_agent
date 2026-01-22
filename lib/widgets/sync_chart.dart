@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
-import 'package:invest_agent/widgets/chart_overlay_ma.dart';
+import 'package:invest_agent/widgets/chart_overlay.dart';
 import 'package:invest_agent/widgets/chart_painter.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 import '../model/analysis_respond.dart';
@@ -12,9 +12,10 @@ class SyncChart extends StatefulWidget {
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
-
+  final List<ChartOverlay> overLayCharts;
   const SyncChart({super.key, required this.controller,
-    this.crosshairController, required this.analysisRequest, required this.results});
+    this.crosshairController, required this.analysisRequest, required this.results,
+    this.overLayCharts = const[]});
 
   @override
   State<StatefulWidget> createState() => _SyncChartState();
@@ -69,14 +70,12 @@ class _SyncChartState extends State<SyncChart> {
               onTapUp: (_) => widget.crosshairController?.clear(),
               child: CustomPaint(
                 size: Size(width, constraints.maxHeight),
-                painter: CHartPainter(
+                painter: ChartPainter(
                   controller: widget.controller,
                   crosshairController: widget.crosshairController,
                   analysisRequest: widget.analysisRequest,
                   results: widget.results,
-                  overlays: [
-                    ChartOverlayMA(data: widget.results.getSMA(20)),
-                  ]
+                  overlays: widget.overLayCharts
                 ),
               )
             )
