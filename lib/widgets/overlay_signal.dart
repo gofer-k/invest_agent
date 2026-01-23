@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 
-class OverlaySignal extends ChartOverlay {
+class OverlaySignal extends OverlayChart {
   final DateTime date;
   final double value;
   Color signalColor;

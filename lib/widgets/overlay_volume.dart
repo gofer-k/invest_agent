@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 
 import '../model/analysis_respond.dart';
 
-class OverlayVolume extends ChartOverlay {
+class OverlayVolume extends OverlayChart {
   final List<PriceData> priceData;
   final Color upVolumeColor;
   final Color downVolumeColor;
@@ -29,7 +29,7 @@ class OverlayVolume extends ChartOverlay {
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
-    for (var price in priceData) {
+    for (final price in priceData) {
       if (price.dateTime.isBefore(ctx.startDate) || price.dateTime.isAfter(ctx.endDate)) {
         continue;
       }

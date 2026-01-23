@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-abstract class ChartOverlay {
+abstract class OverlayChart {
   void draw(Canvas canvas, Size size,  OverlayContext ctx);
 }
 

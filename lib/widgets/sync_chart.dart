@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 import 'package:invest_agent/widgets/chart_painter.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 import '../model/analysis_respond.dart';
@@ -12,7 +12,7 @@ class SyncChart extends StatefulWidget {
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
-  final List<ChartOverlay> overLayCharts;
+  final List<OverlayChart> overLayCharts;
   const SyncChart({super.key, required this.controller,
     this.crosshairController, required this.analysisRequest, required this.results,
     this.overLayCharts = const[]});

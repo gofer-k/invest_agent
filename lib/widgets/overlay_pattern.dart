@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 
-class OverlayPattern extends ChartOverlay {
+class OverlayPattern extends OverlayChart {
   final DateTime startDate;
   final DateTime endDate;
   final double topValue;

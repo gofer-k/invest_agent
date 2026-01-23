@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 
-class OverlayPriceChart extends ChartOverlay {
+class OverlayPriceChart extends OverlayChart {
   final List<PriceData> data;
   final Color lineColor;
   final double strokeWidth;

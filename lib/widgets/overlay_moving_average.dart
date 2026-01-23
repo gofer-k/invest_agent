@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 import '../model/analysis_respond.dart';
 
-class OverlayMovingAverage extends ChartOverlay {
+class OverlayMovingAverage extends OverlayChart {
   final List<SimpleMovingAverage> data;
   final Color lineColor;
   final double strokeWidth;

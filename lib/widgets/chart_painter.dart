@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/chart_overlay.dart';
+import 'package:invest_agent/widgets/overlay_chart.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 
 import '../model/analysis_request.dart';
@@ -11,7 +11,7 @@ class ChartPainter extends CustomPainter {
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
-  final List<ChartOverlay> overlays;
+  final List<OverlayChart> overlays;
 
   ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
 

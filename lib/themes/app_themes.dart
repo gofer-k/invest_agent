@@ -79,9 +79,9 @@ class AppTheme extends ThemeExtension<AppTheme> {
     this.etfTitleColor,
     this.etfTitleShadowColor,
     this.indicatorSignalColor = Colors.orange,
-    this.indicatorLowerBand = Colors.redAccent,
+    this.indicatorLowerBand = Colors.orangeAccent,
     this.indicatorUpperBand = Colors.greenAccent,
-    this.indicatorMiddleBand = Colors.orange,
+    this.indicatorMiddleBand = Colors.blueAccent,
     this.indicatorRate = Colors.blueAccent,
     this.buttonOutlineColor = const Color.fromRGBO(216, 168, 247, 1.0), // Colors.deepPurpleAccent,
     this.paddingOverlayChart = const EdgeInsets.only(

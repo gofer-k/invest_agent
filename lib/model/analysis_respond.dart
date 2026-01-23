@@ -109,36 +109,35 @@ MACDType? macdTypeFromString(String value) {
 }
 
 class MACD extends BaseIndicatorValue{
-  final double? macd;
-  final double? signal;
-  final double? hist;
+  final double macd;
+  final double signal;
+  final double hist;
   final MACDType type;
 
-  MACD({required super.dateTime, required this.type, this.macd, this.signal, this.hist});
+  MACD({required super.dateTime, required this.type, required this.macd, required this.signal, required this.hist});
 
   factory MACD.fromType(DateTime dateTime, MACDType type, {macd = double, signal = double, hist = double}) {
     return MACD(dateTime: dateTime, type: type, macd: macd, signal: signal, hist: hist);
   }
 
-  static MACD? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    final strType = jsonMap.keys.first;
-    final macdType = macdTypeFromString(strType);
+  static MACD? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap, String jsonMacdType) {
+    final macdType = macdTypeFromString(jsonMacdType);
     if (macdType == null) {
       return null;
     }
     final macd = parseNum(jsonMap['value']);
     final signal = parseNum(jsonMap['signal']);
     final hist = parseNum(jsonMap['hist']);
-    if (macd == null && signal == null && hist == null) {
-      return null;
+    if (macd != null && signal != null && hist != null) {
+      return MACD(
+          dateTime: dateTime,
+          type: macdType,
+          macd: macd,
+          signal: signal,
+          hist: hist
+      );
     }
-    return MACD(
-      dateTime: dateTime,
-      type: macdType,
-      macd: macd,
-      signal: signal,
-      hist: hist
-    );
+    return null;
   }
 }
 
@@ -163,7 +162,7 @@ class Indicators {
 
   Indicators(this.macd, this.sma, this.ema);
 
-  static Indicators? fromJson(DateTime dateTime, IndicatorType indType, Map<String, dynamic> jsonMap) {
+  static Indicators? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
     final jsonSMa = jsonMap["SMA"] as List<dynamic>;
     Map<int, SimpleMovingAverage> sma = <int, SimpleMovingAverage>{};
     for (var element in jsonSMa) {
@@ -188,7 +187,7 @@ class Indicators {
     final macdTypes = ["MACD_12_26", "MACD_50_200"];
     for (String macdType in macdTypes) {
       final jsonMACD = jsonMap[macdType] as Map<String, dynamic>;
-      final macdIndicator = MACD.fromJson(dateTime, jsonMACD);
+      final macdIndicator = MACD.fromJson(dateTime, jsonMACD, macdType);
       if (macdIndicator != null) {
         macd.add(macdIndicator);
       }
@@ -420,6 +419,15 @@ class AnalysisRespond {
     return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
   }
 
+  List<MACD> getMacd(MACDType type) {
+    final macd = <MACD>[];
+    for (var indicator in indicators) {
+      final newMacd = indicator.macd.firstWhere((macd) => macd.type == type);
+      macd.add(newMacd);
+    }
+    return macd;
+  }
+
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
     final indicators = <Indicators>[];
     final candles = <CandleStickItem>[];
@@ -454,7 +462,7 @@ class AnalysisRespond {
         }
 
         final jsonIndicators = value["indicators"] as Map<String, dynamic>;
-        final indicator = Indicators.fromJson(dateTime, IndicatorType.SMA, jsonIndicators);
+        final indicator = Indicators.fromJson(dateTime, jsonIndicators);
         if (indicator != null) {
           indicators.add(indicator);
         }
