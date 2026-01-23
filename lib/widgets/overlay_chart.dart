@@ -8,7 +8,8 @@ abstract class OverlayChart {
   final DateTime startDate;
   final DateTime endDate;
   final double Function(DateTime date, Size size) dateToPos;
-  final double Function(double value, Size size) valueToPos;
+  final double Function(double value, double height) priceToPos;
+  final double Function(double value, double min, double max, double height) indicatorToPos;
 
-  OverlayContext({required this.startDate, required this.endDate, required this.dateToPos, required this.valueToPos});
+  OverlayContext({required this.startDate, required this.endDate, required this.dateToPos, required this.priceToPos, required this.indicatorToPos});
  }

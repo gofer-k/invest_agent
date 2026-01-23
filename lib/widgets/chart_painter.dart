@@ -21,10 +21,10 @@ class ChartPainter extends CustomPainter {
     return ratio * size.width;
   }
 
-  double _valueToPos(double value, Size size) {
-    final ratio = (value - results.getMinPrice()) / results.getPriceRange();
-    return size.height * (1 - ratio);
-  }
+  // double _valueToPos(double value, Size size) {
+  //   final ratio = (value - results.getMinPrice()) / results.getPriceRange();
+  //   return size.height * (1 - ratio);
+  // }
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -61,7 +61,9 @@ class ChartPainter extends CustomPainter {
   void _drawOverlays(Canvas canvas, Size size) {
     final ctx = OverlayContext(startDate: controller.visibleStart, endDate: controller.maxDomainEnd,
         dateToPos: (date, size) => _dateToPos(date, size),
-        valueToPos: (value, size) => _valueToPos(value, size));
+        priceToPos: (value, height) => valueToPos(currValue: value, min: results.minPrice, max: results.maxPrice, height: height),
+        indicatorToPos: (value, min, max, height) => valueToPos(currValue: value, min: min, max: max, height: height)
+    );
     for (var overlay in overlays) {
       overlay.draw(canvas, size, ctx);
     }
@@ -87,11 +89,12 @@ class ChartPainter extends CustomPainter {
         oldDelegate.overlays != overlays;
   }
 
-  double priceToY(double price, double mimPrice, double maxPrice, double height) {
-    final range = maxPrice - mimPrice;
+  double valueToPos({required double currValue, required double min,
+    required double max, required double height}) {
+    final range = max - min;
     if (range == 0) return height /2;
 
-    final ratio = (price - mimPrice) / range;
+    final ratio = (currValue - min) / range;
     return height * (1 - ratio);
   }
 }

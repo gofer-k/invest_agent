@@ -24,16 +24,18 @@ class OverlayBellingerBand extends OverlayChart {
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
+    final minBandValue = band.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! <= next.stdValue! ? curr : next).stdValue ?? 0.0;
+    final maxBandValue = band.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! > next.stdValue! ? curr : next).stdValue ?? 0.0;
     final path = Path();
     path.moveTo(
         ctx.dateToPos(band[firstVisibleIndex].dateTime, size),
-        ctx.valueToPos(band[firstVisibleIndex].stdValue ?? 0.0, size));
+        ctx.indicatorToPos(band[firstVisibleIndex].stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
     for (var value in band.skip(firstVisibleIndex)) {
       if (value.dateTime.isBefore(ctx.startDate) || value.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
       final Offset offset = Offset(ctx.dateToPos(value.dateTime, size),
-          ctx.valueToPos(value.stdValue ?? 0.0, size));
+          ctx.indicatorToPos(value.stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);

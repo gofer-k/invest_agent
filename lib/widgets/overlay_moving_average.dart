@@ -25,16 +25,19 @@ class OverlayMovingAverage extends OverlayChart {
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
+    final minValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.rollingMean! <= next.rollingMean! ? curr : next).rollingMean ?? 0.0;
+    final maxValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.rollingMean! > next.rollingMean! ? curr : next).rollingMean ?? 0.0;
+
     final path = Path();
     path.moveTo(
         ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
-        ctx.valueToPos(data[firstVisibleIndex].rollingMean ?? 0.0, size));
+        ctx.indicatorToPos(data[firstVisibleIndex].rollingMean ?? 0.0, minValue, maxValue, size.height));
     for (var ma in data.skip(firstVisibleIndex)) {
       if (ma.dateTime.isBefore(ctx.startDate) || ma.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
       final Offset offset = Offset(ctx.dateToPos(ma.dateTime, size),
-          ctx.valueToPos(ma.rollingMean ?? 0.0, size));
+          ctx.indicatorToPos(ma.rollingMean ?? 0.0, minValue, maxValue, size.height));
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);

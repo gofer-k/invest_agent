@@ -32,9 +32,9 @@ class OverlayPriceChart extends OverlayChart {
       }
 
       final Offset prevOffset = Offset(ctx.dateToPos(prevPrice.dateTime, size),
-          ctx.valueToPos(prevPrice.closePrice, size));
+          ctx.priceToPos(prevPrice.closePrice, size.height));
       final Offset currOffset = Offset(ctx.dateToPos(currentPrice.dateTime, size),
-          ctx.valueToPos(currentPrice.closePrice, size));
+          ctx.priceToPos(currentPrice.closePrice, size.height));
       canvas.drawLine(prevOffset, currOffset, paint);
     }
   }

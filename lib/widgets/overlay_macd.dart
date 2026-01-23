@@ -25,7 +25,7 @@ class OverlayMacd extends OverlayChart {
     this.downColor = Colors.redAccent,
     this.lineWidth = 1.2,
     this.barWidth = 4.0});
-  
+
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (size.width <= 0) return;
@@ -33,6 +33,7 @@ class OverlayMacd extends OverlayChart {
     Size valuesSize = Size(size.width, size.height * 0.66);
     _paintCurve(ctx, canvas, valuesSize, signalColor, _OverlayType.signal);
     _paintCurve(ctx, canvas, size, macdColor, _OverlayType.indicatorValue);
+
     Size histogramSize = Size(size.width, size.height * 0.33);
     _paintHistogram(ctx, canvas, histogramSize);
   }
@@ -47,16 +48,23 @@ class OverlayMacd extends OverlayChart {
             (elem) => elem.dateTime.isAfter(ctx.startDate)
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
-
-    final path = Path();
+    final minValue = switch(type) {
+      _OverlayType.signal => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.signal <= next.signal ? curr : next).signal,
+      _OverlayType.indicatorValue => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.macd <= next.macd ? curr : next).macd
+    };
+    final maxValue = switch(type) {
+      _OverlayType.signal => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.signal > next.signal ? curr : next).signal,
+      _OverlayType.indicatorValue => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.macd > next.macd ? curr : next).macd
+    };
     final firstVal = switch(type) {
       _OverlayType.signal => macdData[firstVisibleIndex].signal,
       _OverlayType.indicatorValue => macdData[firstVisibleIndex].macd,
     };
 
+    final path = Path();
     path.moveTo(
         ctx.dateToPos(macdData[firstVisibleIndex].dateTime, size),
-        ctx.valueToPos(firstVal, size));
+        ctx.indicatorToPos(firstVal, minValue, maxValue, size.height));
     for (var elem in macdData.skip(firstVisibleIndex)) {
       if (elem.dateTime.isBefore(ctx.startDate) || elem.dateTime.isAfter(ctx.endDate)) {
         continue;
@@ -66,7 +74,7 @@ class OverlayMacd extends OverlayChart {
         _OverlayType.indicatorValue => elem.macd,
       };
       final Offset offset = Offset(ctx.dateToPos(elem.dateTime, size),
-          ctx.valueToPos(val, size));
+          ctx.indicatorToPos(val, minValue, maxValue, size.height));
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);
