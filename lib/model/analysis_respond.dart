@@ -80,6 +80,12 @@ class DeathCross extends BaseIndicatorValue{
   DeathCross({required super.dateTime, this.cross});
 }
 
+class RSI extends BaseIndicatorValue {
+  final double rsi;
+
+  RSI({required super.dateTime, required this.rsi});
+}
+
 class ExponentialMovingAverage extends BaseIndicatorValue{
   final double? ema;
   final int? rollingWindow;
@@ -144,7 +150,8 @@ class MACD extends BaseIndicatorValue{
 enum IndicatorType {
   EMA,
   SMA,
-  MACD
+  MACD,
+  RSI
 }
 
 IndicatorType? indicatorTypeFromString(String value) {
@@ -159,8 +166,9 @@ class Indicators {
   final Map<int, SimpleMovingAverage> sma;  // [rollingWindow -> value]
   final Map<int, ExponentialMovingAverage> ema;  // [rollingWindow -> value]
   final List<MACD> macd;
+  final RSI rsi;
 
-  Indicators(this.macd, this.sma, this.ema);
+  Indicators(this.macd, this.sma, this.ema, this.rsi);
 
   static Indicators? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
     final jsonSMa = jsonMap["SMA"] as List<dynamic>;
@@ -183,6 +191,9 @@ class Indicators {
       }
     }
 
+    final jsonRSI = parseNum(jsonMap["RSI"]);
+    final rsi = RSI(dateTime: dateTime, rsi: jsonRSI ?? 0.0);
+
     List<MACD> macd = [];
     final macdTypes = ["MACD_12_26", "MACD_50_200"];
     for (String macdType in macdTypes) {
@@ -192,7 +203,7 @@ class Indicators {
         macd.add(macdIndicator);
       }
     }
-    return Indicators(macd, sma, ema);
+    return Indicators(macd, sma, ema, rsi);
   }
 }
 
@@ -426,6 +437,14 @@ class AnalysisRespond {
       macd.add(newMacd);
     }
     return macd;
+  }
+
+  List<RSI> getRsi() {
+    final rsi = <RSI>[];
+    for (var indicator in indicators) {
+      rsi.add(indicator.rsi);
+    }
+    return rsi;
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
