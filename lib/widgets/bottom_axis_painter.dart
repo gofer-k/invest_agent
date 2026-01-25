@@ -72,7 +72,7 @@ class BottomAxisPainter extends CustomPainter{
   String _format(DateTime currTime, Duration span) {
     if (span.inDays > _twiceYearDays) return "${currTime.year}";
     if (span.inDays > _twiceMonthDays) return _monthShort(currTime.month);
-    if (span.inDays > _twiceWeekDays) return "${currTime.day}";
+    if (span.inDays > _twiceWeekDays) return "${_monthShort(currTime.month)}/${currTime.day}";
     return "${currTime.year}/${_monthShort(currTime.month)}/${currTime.day}";
   }
 
