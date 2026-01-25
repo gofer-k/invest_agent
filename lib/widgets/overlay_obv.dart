@@ -16,7 +16,7 @@ class OverlayOBV extends OverlayChart {
             (elem) => elem.dateTime.isAfter(ctx.startDate));
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final minValue = priceData.skip(firstVisibleIndex).reduce((curr, next) => curr.volume! <= next.volume ? curr : next).volume;
+    final minValue = priceData.skip(firstVisibleIndex).reduce((curr, next) => curr.volume <= next.volume ? curr : next).volume;
     final maxValue = priceData.skip(firstVisibleIndex).reduce((curr, next) => curr.volume > next.volume ? curr : next).volume;
 
     final path = Path();

@@ -4,6 +4,7 @@ import 'package:invest_agent/widgets/time_controller.dart';
 
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
+import '../utils/chart_utils.dart';
 import 'crosshair_controller.dart';
 
 class ChartPainter extends CustomPainter {
@@ -14,17 +15,6 @@ class ChartPainter extends CustomPainter {
   final List<OverlayChart> overlays;
 
   ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
-
-  double _dateToPos(DateTime date, Size size) {
-    final spanDays = controller.visibleEnd.difference(controller.visibleStart).inDays;
-    final ratio = date.difference(controller.visibleStart).inDays / spanDays;
-    return ratio * size.width;
-  }
-
-  // double _valueToPos(double value, Size size) {
-  //   final ratio = (value - results.getMinPrice()) / results.getPriceRange();
-  //   return size.height * (1 - ratio);
-  // }
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -48,7 +38,7 @@ class ChartPainter extends CustomPainter {
     if (crosshairController?.time != null) {
       final currTime = crosshairController?.time;
       if (!currTime!.isBefore(controller.visibleStart) && !currTime.isAfter(controller.visibleEnd)) {
-        final x = _dateToPos(currTime, size);
+        final x = dateToPos(currTime, controller.visibleStart, controller.visibleEnd, size.width);
         final crossPaint = Paint()
           ..color = Colors.white.withAlpha(153)
           ..strokeWidth = 1.0;
@@ -59,8 +49,8 @@ class ChartPainter extends CustomPainter {
   }
 
   void _drawOverlays(Canvas canvas, Size size) {
-    final ctx = OverlayContext(startDate: controller.visibleStart, endDate: controller.maxDomainEnd,
-        dateToPos: (date, size) => _dateToPos(date, size),
+    final ctx = OverlayContext(startDate: controller.visibleStart, endDate: controller.visibleEnd,
+        dateToPos: (date, size) => dateToPos(date, controller.visibleStart, controller.visibleEnd, size.width),
         priceToPos: (value, height) => valueToPos(currValue: value, min: results.minPrice, max: results.maxPrice, height: height),
         indicatorToPos: (value, min, max, height) => valueToPos(currValue: value, min: min, max: max, height: height)
     );
@@ -87,14 +77,5 @@ class ChartPainter extends CustomPainter {
         oldDelegate.results != results ||
         oldDelegate.analysisRequest != analysisRequest ||
         oldDelegate.overlays != overlays;
-  }
-
-  double valueToPos({required double currValue, required double min,
-    required double max, required double height}) {
-    final range = max - min;
-    if (range == 0) return height /2;
-
-    final ratio = (currValue - min) / range;
-    return height * (1 - ratio);
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math' hide log;
 
 class BaseIndicatorValue {
   final DateTime dateTime;
@@ -380,6 +381,14 @@ class AnalysisRespond {
     return minPrice;
   }
 
+  double getMinVolume() {
+    return priceData.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
+  }
+
+  double getMaxVolume() {
+    return priceData.reduce((value, element) => value.volume > element.volume ? value : element).volume;
+  }
+
   Future<List<SimpleMovingAverage>> getFutureSMA(int rollingWindow) async {
     return getSMA(rollingWindow);
   }
@@ -439,12 +448,36 @@ class AnalysisRespond {
     return macd;
   }
 
+  double getMinMACD(MACDType macdType) {
+    final macdData = getMacd(macdType);
+    final minMacd = macdData.reduce((value, element) => value.macd <= element.macd ? value : element).macd;
+    final minSignal = macdData.reduce((value, element) => value.signal <= element.signal ? value : element).signal;
+    return min(minMacd, minSignal);
+  }
+
+  double getMaxMACD(MACDType macdType) {
+    final macdData = getMacd(macdType);
+    final maxMacd = macdData.reduce((value, element) => value.macd > element.macd ? value : element).macd;
+    final maxSignal = macdData.reduce((value, element) => value.signal > element.signal ? value : element).signal;
+    return max(maxMacd, maxSignal);
+  }
+
   List<RSI> getRsi() {
     final rsi = <RSI>[];
     for (var indicator in indicators) {
       rsi.add(indicator.rsi);
     }
     return rsi;
+  }
+
+  double getMinRsi() {
+    final data = getRsi();
+    return data.reduce((value, element) => value.rsi <= element.rsi ? value : element).rsi;
+  }
+
+  double getMaxRsi() {
+    final data = getRsi();
+    return data.reduce((value, element) => value.rsi > element.rsi ? value : element).rsi;
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/widgets/overlay_chart.dart';
 import 'package:invest_agent/widgets/chart_painter.dart';
+import 'package:invest_agent/widgets/side_axis_painter.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
 import '../model/analysis_respond.dart';
+import 'bottom_axis_painter.dart';
 import 'crosshair_controller.dart';
 
 class SyncChart extends StatefulWidget {
@@ -13,9 +15,11 @@ class SyncChart extends StatefulWidget {
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overLayCharts;
+  final double Function() minFunc;
+  final double Function() maxFunc;
   const SyncChart({super.key, required this.controller,
     this.crosshairController, required this.analysisRequest, required this.results,
-    this.overLayCharts = const[]});
+    this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
 
   @override
   State<StatefulWidget> createState() => _SyncChartState();
@@ -68,15 +72,37 @@ class _SyncChartState extends State<SyncChart> {
                 widget.crosshairController?.update(currData, null);
               },
               onTapUp: (_) => widget.crosshairController?.clear(),
-              child: CustomPaint(
-                size: Size(width, constraints.maxHeight),
-                painter: ChartPainter(
-                  controller: widget.controller,
-                  crosshairController: widget.crosshairController,
-                  analysisRequest: widget.analysisRequest,
-                  results: widget.results,
-                  overlays: widget.overLayCharts
-                ),
+              child: Column(
+                children: [
+                  Expanded(child: Row(children: [
+                    // Main chart
+                    Expanded(child: CustomPaint(
+                      size: Size(width, constraints.minHeight),
+                        painter: ChartPainter(
+                          controller: widget.controller,
+                          crosshairController: widget.crosshairController,
+                          analysisRequest: widget.analysisRequest,
+                          results: widget.results,
+                          overlays: widget.overLayCharts),
+                      )
+                    ),
+                    // Side label
+                    SizedBox(width: 60,  // TODO: Custom or adaptable width
+                      child: CustomPaint(
+                        size: Size(width, constraints.maxHeight),
+                        painter: SideAxisPainter(minValue: widget.minFunc, maxValue: widget.maxFunc)
+                        )
+                      )
+                    ]),
+                  ),
+                  // Bottom axis char label
+                  SizedBox(height: 48,  // TODO: adaptable
+                    child: CustomPaint(
+                      size: Size(constraints.maxWidth, 48),
+                      painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
+                    )
+                  )
+                ]
               )
             )
           );

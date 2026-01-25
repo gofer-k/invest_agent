@@ -117,7 +117,7 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   side: BorderSide(width: 1.0, color: AppTheme.of(context).buttonOutlineColor?? Colors.deepPurpleAccent)),
-                onPressed: _pickAndLoadFile,
+                onPressed: () => _pickAndLoadFile("csv"),
                 child: const Text("Select historical dataset"),
               ),
               const SizedBox(height: 10),
@@ -213,29 +213,6 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
         ),
       ],
     );
-
-    // TODO: add strategy parameters
-    // const SizedBox(height: 20),
-    // _sectionTitle("Strategy Parameters (SMA)"),
-    // Row(
-    //   children: [
-    //     Expanded(
-    //       child: _numberField(
-    //         label: "Fast",
-    //         value: smaFast,
-    //         onChanged: (v) => setState(() => smaFast = v),
-    //       ),
-    //     ),
-    //     const SizedBox(width: 16),
-    //     Expanded(
-    //       child: _numberField(
-    //         label: "Slow",
-    //         value: smaSlow,
-    //         onChanged: (v) => setState(() => smaSlow = v),
-    //       ),
-    //     ),
-    //   ],
-    // ),
   }
 
   Widget _sectionTitle(String text) {
@@ -248,27 +225,11 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     );
   }
 
-  // Widget _numberField({
-  //   required String label,
-  //   required int value,
-  //   required void Function(int) onChanged,
-  // }) {
-  //   return TextField(
-  //     decoration: InputDecoration(labelText: label),
-  //     keyboardType: TextInputType.number,
-  //     controller: TextEditingController(text: value.toString()),
-  //     onSubmitted: (v) {
-  //       final parsed = int.tryParse(v);
-  //       if (parsed != null) onChanged(parsed);
-  //     },
-  //   );
-  // }
-
-  Future<void> _pickAndLoadFile() async {
+  Future<void> _pickAndLoadFile(String extension) async {
   try {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['gz'],
+      allowedExtensions: [extension],
     );
 
     if (result == null || result.files.single.path == null) return;
