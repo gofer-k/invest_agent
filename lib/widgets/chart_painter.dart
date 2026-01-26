@@ -13,8 +13,9 @@ class ChartPainter extends CustomPainter {
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overlays;
+  final double widthSideLabels;
 
-  ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[]});
+  ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -27,11 +28,14 @@ class ChartPainter extends CustomPainter {
       ..color = Colors.grey.shade800
       ..strokeWidth = 1.0;
 
-    const gridLines = 5;
-    for (var i = 0; i <= gridLines; ++i) {
-      final x = size.width * i / gridLines;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paintGrid);
-    }
+    DateTime currTime = DateTime(controller.visibleStart.year, controller.visibleStart.month, controller.visibleStart.day);
+    final halfWidthSideLabels = widthSideLabels / 2.0;
+    canvas.save();
+    drawDatetimeIndicateLine(controller.visibleStart, controller.visibleEnd, currTime, (DateTime newTime) {
+      final x = dateToPos(newTime, controller.visibleStart, controller.visibleEnd, size.width);
+      canvas.drawLine(Offset(x + halfWidthSideLabels, 0), Offset(x + halfWidthSideLabels, size.height), paintGrid);
+    });
+    canvas.restore();
   }
 
   void _crosshairLine(Canvas canvas, Size size) {

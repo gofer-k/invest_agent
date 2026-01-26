@@ -36,6 +36,8 @@ class _SyncChartState extends State<SyncChart> {
           final daysPerPixel = widget.controller.visibleSpan.inDays / constraints.maxWidth;
           final width = constraints.maxWidth;
           final box = context.findRenderObject() as RenderBox;
+          final widthSideLabels = 60.0;
+
           return Listener( // Wrap with a Listener
             onPointerSignal: (pointerSignal) {
               if (pointerSignal is PointerScrollEvent) {
@@ -83,11 +85,13 @@ class _SyncChartState extends State<SyncChart> {
                           crosshairController: widget.crosshairController,
                           analysisRequest: widget.analysisRequest,
                           results: widget.results,
-                          overlays: widget.overLayCharts),
+                          overlays: widget.overLayCharts,
+                          widthSideLabels: widthSideLabels
+                        ),
                       )
                     ),
                     // Side label
-                    SizedBox(width: 60,  // TODO: Custom or adaptable width
+                    SizedBox(width: widthSideLabels,
                       child: CustomPaint(
                         size: Size(width, constraints.maxHeight),
                         painter: SideAxisPainter(minValue: widget.minFunc, maxValue: widget.maxFunc)
@@ -96,7 +100,7 @@ class _SyncChartState extends State<SyncChart> {
                     ]),
                   ),
                   // Bottom axis char label
-                  SizedBox(width: constraints.maxWidth - 60,  height: 48,  // TODO: adaptable
+                  SizedBox(width: constraints.maxWidth - widthSideLabels,  height: 48,
                     child: CustomPaint(
                       size: Size(width, 48),
                       painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
