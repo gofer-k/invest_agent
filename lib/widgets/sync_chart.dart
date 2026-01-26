@@ -96,9 +96,9 @@ class _SyncChartState extends State<SyncChart> {
                     ]),
                   ),
                   // Bottom axis char label
-                  SizedBox(height: 48,  // TODO: adaptable
+                  SizedBox(width: constraints.maxWidth - 60,  height: 48,  // TODO: adaptable
                     child: CustomPaint(
-                      size: Size(constraints.maxWidth, 48),
+                      size: Size(width, 48),
                       painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
                     )
                   )
