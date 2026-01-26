@@ -61,6 +61,13 @@ class ChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Define a rectangle for the clipping area
+    final clipRect = Rect.fromLTWH(0, 0, size.width, size.height);
+
+    // Save the canvas state and apply the clip
+    canvas.save();
+    canvas.clipRect(clipRect);
+
     final snapDays = controller.visibleEnd.difference(controller.visibleStart).inDays.toDouble();
     if (snapDays <= 0 || size.width <= 0) return;
 
@@ -68,6 +75,8 @@ class ChartPainter extends CustomPainter {
     _paintGrid(canvas, size);
     _drawOverlays(canvas, size);
     _crosshairLine(canvas, size);
+
+    canvas.restore();
   }
 
   @override
