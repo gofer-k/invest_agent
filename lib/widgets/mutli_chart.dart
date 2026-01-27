@@ -114,7 +114,7 @@ class _MultiChartViewState extends State<MultiChartView> {
           // ),
           /*
           TODO:
-            1. filter out visualization by periods., intervals from the settings parameters
+            1. filter out visualization by periods, intervals from the settings parameters
             2. custom style visualization, themes
             3. improve performance of visualization
             4. add option to transfer dates via gRPC

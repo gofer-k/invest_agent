@@ -300,8 +300,7 @@ class CandleStickItem extends BaseIndicatorValue {
   }
 }
 
-class PriceData {
-  final DateTime dateTime;
+class PriceData extends BaseIndicatorValue {
   final double openPrice;
   final double closePrice;
   final double highPrice;
@@ -309,7 +308,7 @@ class PriceData {
   final double volume;
   final double volumeZscore;
 
-  PriceData({required this.dateTime,
+  PriceData({required super.dateTime,
     required this.openPrice,
     required this.closePrice,
     required this.highPrice,

@@ -10,7 +10,7 @@ enum _OverlayType {
 }
 
 class OverlayMacd extends OverlayChart {
-  final List<MACD> macdData;
+  final List<MACD> data;
   final Color signalColor;
   final Color macdColor;
   final Color upColor;
@@ -18,7 +18,8 @@ class OverlayMacd extends OverlayChart {
   final double lineWidth;
   final double barWidth;
 
-  OverlayMacd({required this.macdData,
+  OverlayMacd({super.overlayType = OverlayType.macd,
+    required this.data,
     this.signalColor = Colors.orangeAccent,
     this.macdColor = Colors.blueAccent,
     this.upColor = Colors.greenAccent,
@@ -44,28 +45,28 @@ class OverlayMacd extends OverlayChart {
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    final int firstVisibleIndex = macdData.indexWhere(
+    final int firstVisibleIndex = data.indexWhere(
             (elem) => elem.dateTime.isAfter(ctx.startDate)
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
     final minValue = switch(type) {
-      _OverlayType.signal => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.signal <= next.signal ? curr : next).signal,
-      _OverlayType.indicatorValue => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.macd <= next.macd ? curr : next).macd
+      _OverlayType.signal => data.skip(firstVisibleIndex).reduce((curr, next) => curr.signal <= next.signal ? curr : next).signal,
+      _OverlayType.indicatorValue => data.skip(firstVisibleIndex).reduce((curr, next) => curr.macd <= next.macd ? curr : next).macd
     };
     final maxValue = switch(type) {
-      _OverlayType.signal => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.signal > next.signal ? curr : next).signal,
-      _OverlayType.indicatorValue => macdData.skip(firstVisibleIndex).reduce((curr, next) => curr.macd > next.macd ? curr : next).macd
+      _OverlayType.signal => data.skip(firstVisibleIndex).reduce((curr, next) => curr.signal > next.signal ? curr : next).signal,
+      _OverlayType.indicatorValue => data.skip(firstVisibleIndex).reduce((curr, next) => curr.macd > next.macd ? curr : next).macd
     };
     final firstVal = switch(type) {
-      _OverlayType.signal => macdData[firstVisibleIndex].signal,
-      _OverlayType.indicatorValue => macdData[firstVisibleIndex].macd,
+      _OverlayType.signal => data[firstVisibleIndex].signal,
+      _OverlayType.indicatorValue => data[firstVisibleIndex].macd,
     };
 
     final path = Path();
     path.moveTo(
-        ctx.dateToPos(macdData[firstVisibleIndex].dateTime, size),
+        ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
         ctx.indicatorToPos(firstVal, minValue, maxValue, size.height));
-    for (var elem in macdData.skip(firstVisibleIndex)) {
+    for (var elem in data.skip(firstVisibleIndex)) {
       if (elem.dateTime.isBefore(ctx.startDate) || elem.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
@@ -92,7 +93,7 @@ class OverlayMacd extends OverlayChart {
       ..strokeCap = StrokeCap.butt;
 
     double maxHistAbs = 0;
-    for (final  macd in macdData) {
+    for (final  macd in data) {
       if (macd.dateTime.isBefore(ctx.startDate) || macd.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
@@ -103,7 +104,7 @@ class OverlayMacd extends OverlayChart {
     // Zero Line
     final halfHeight = size.height * 0.5;
     final zeroY = halfHeight;
-    for (final macd in macdData) {
+    for (final macd in data) {
       if (macd.dateTime.isBefore(ctx.startDate) || macd.dateTime.isAfter(ctx.endDate)) {
         continue;
       }

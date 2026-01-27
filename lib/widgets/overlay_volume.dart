@@ -4,20 +4,27 @@ import 'package:invest_agent/widgets/overlay_chart.dart';
 import '../model/analysis_respond.dart';
 
 class OverlayVolume extends OverlayChart {
-  final List<PriceData> priceData;
+  final List<PriceData> data;
   final Color upVolumeColor;
   final Color downVolumeColor;
   final double barWidth;
 
-  OverlayVolume({required this.priceData,
+  OverlayVolume({
+    super.overlayType = OverlayType.volume,
+    required this.data,
     this.upVolumeColor = Colors.green,
     this.downVolumeColor = Colors.redAccent,
-    this.barWidth = 3.0});
+    this.barWidth = 3.0,
+  });
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (priceData.isEmpty) return;
-    double maxVolume = priceData.reduce((current, next) => current.volume > next.volume ? current : next).volume;
+    if (data.isEmpty) return;
+    double maxVolume = data
+        .reduce(
+          (current, next) => current.volume > next.volume ? current : next,
+        )
+        .volume;
 
     final paintUp = Paint()
       ..color = upVolumeColor
@@ -29,8 +36,9 @@ class OverlayVolume extends OverlayChart {
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
-    for (final price in priceData) {
-      if (price.dateTime.isBefore(ctx.startDate) || price.dateTime.isAfter(ctx.endDate)) {
+    for (final price in data) {
+      if (price.dateTime.isBefore(ctx.startDate) ||
+          price.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
       final x = ctx.dateToPos(price.dateTime, size);
@@ -39,8 +47,11 @@ class OverlayVolume extends OverlayChart {
       final yTop = size.height - barHeight;
       final yBottom = size.height;
 
-      canvas.drawLine(Offset(x, yTop), Offset(x, yBottom), vol > 0 ? paintUp : paintDown);
+      canvas.drawLine(
+        Offset(x, yTop),
+        Offset(x, yBottom),
+        vol > 0 ? paintUp : paintDown,
+      );
     }
   }
-  
 }

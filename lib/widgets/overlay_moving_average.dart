@@ -7,7 +7,8 @@ class OverlayMovingAverage extends OverlayChart {
   final Color lineColor;
   final double strokeWidth;
 
-  OverlayMovingAverage({required this.data,
+  OverlayMovingAverage({super.overlayType = OverlayType.movingAverage,
+    required this.data,
     this.lineColor = Colors.blueAccent,
     this.strokeWidth = 1.5});
 

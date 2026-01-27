@@ -11,7 +11,8 @@ class OverlayCandlestick extends OverlayChart {
   final double bodyWidth;
   final double lineWidth;
 
-  OverlayCandlestick({required this.data,
+  OverlayCandlestick({super.overlayType = OverlayType.priceCandles,
+    required this.data,
     this.upColor = const Color(0xFF4CAF50),
     this.downColor = const Color(0xFFF44336),
     this.bodyWidth = 5.0,

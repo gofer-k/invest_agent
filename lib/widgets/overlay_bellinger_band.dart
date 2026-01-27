@@ -4,11 +4,11 @@ import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/widgets/overlay_chart.dart';
 
 class OverlayBellingerBand extends OverlayChart {
-  final BellingerBand band;
+  final BellingerBand data;
   final Color lineColor;
   final double strokeWidth;
 
-  OverlayBellingerBand({required this.band, required this.lineColor, this.strokeWidth = 1.2});
+  OverlayBellingerBand({super.overlayType = OverlayType.bellingerBands, required this.data, required this.lineColor, this.strokeWidth = 1.2});
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
@@ -19,18 +19,18 @@ class OverlayBellingerBand extends OverlayChart {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
-    final int firstVisibleIndex = band.indexWhere(
+    final int firstVisibleIndex = data.indexWhere(
             (ma) => ma.dateTime.isAfter(ctx.startDate)
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final minBandValue = band.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! <= next.stdValue! ? curr : next).stdValue ?? 0.0;
-    final maxBandValue = band.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! > next.stdValue! ? curr : next).stdValue ?? 0.0;
+    final minBandValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! <= next.stdValue! ? curr : next).stdValue ?? 0.0;
+    final maxBandValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.stdValue! > next.stdValue! ? curr : next).stdValue ?? 0.0;
     final path = Path();
     path.moveTo(
-        ctx.dateToPos(band[firstVisibleIndex].dateTime, size),
-        ctx.indicatorToPos(band[firstVisibleIndex].stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
-    for (var value in band.skip(firstVisibleIndex)) {
+        ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
+        ctx.indicatorToPos(data[firstVisibleIndex].stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
+    for (var value in data.skip(firstVisibleIndex)) {
       if (value.dateTime.isBefore(ctx.startDate) || value.dateTime.isAfter(ctx.endDate)) {
         continue;
       }

@@ -7,7 +7,12 @@ class OverlayPriceChart extends OverlayChart {
   final Color lineColor;
   final double strokeWidth;
 
-  OverlayPriceChart({required this.data, this.lineColor = Colors.white54, this.strokeWidth = 1.2});
+  OverlayPriceChart({
+    super.overlayType = OverlayType.priceLine,
+    required this.data,
+    this.lineColor = Colors.white54,
+    this.strokeWidth = 1.2,
+  });
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
@@ -16,7 +21,7 @@ class OverlayPriceChart extends OverlayChart {
       ..strokeWidth = strokeWidth;
 
     final int firstVisibleIndex = data.indexWhere(
-            (price) => !price.dateTime.isBefore(ctx.startDate)
+      (price) => !price.dateTime.isBefore(ctx.startDate),
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
     final int startIndex = (firstVisibleIndex > 0) ? firstVisibleIndex - 1 : 0;
@@ -31,10 +36,14 @@ class OverlayPriceChart extends OverlayChart {
         break;
       }
 
-      final Offset prevOffset = Offset(ctx.dateToPos(prevPrice.dateTime, size),
-          ctx.priceToPos(prevPrice.closePrice, size.height));
-      final Offset currOffset = Offset(ctx.dateToPos(currentPrice.dateTime, size),
-          ctx.priceToPos(currentPrice.closePrice, size.height));
+      final Offset prevOffset = Offset(
+        ctx.dateToPos(prevPrice.dateTime, size),
+        ctx.priceToPos(prevPrice.closePrice, size.height),
+      );
+      final Offset currOffset = Offset(
+        ctx.dateToPos(currentPrice.dateTime, size),
+        ctx.priceToPos(currentPrice.closePrice, size.height),
+      );
       canvas.drawLine(prevOffset, currOffset, paint);
     }
   }

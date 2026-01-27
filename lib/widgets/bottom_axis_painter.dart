@@ -28,10 +28,6 @@ class BottomAxisPainter extends CustomPainter{
     final span = endDate.difference(startDate);
     DateTime currTime = DateTime(startDate.year, startDate.month, startDate.day);
 
-    final paintGrid = Paint()
-      ..color = Colors.grey.shade800
-      ..strokeWidth = 1.0;
-
     drawDatetimeIndicateLine(startDate, endDate, currTime, (DateTime newTime) {
       _label = CustomDatetimeFormat.format(newTime, span);
       // Layout the painter if it hasn't been laid out or if constraints change.

@@ -4,11 +4,16 @@ import 'package:invest_agent/model/analysis_respond.dart';
 import 'overlay_chart.dart';
 
 class OverlayRsi extends OverlayChart {
-  final List<RSI> rsi;
+  final List<RSI> data;
   final Color lineColor;
   final double lineWidth;
 
-  OverlayRsi({required this.rsi,  this.lineColor = Colors.blue, this.lineWidth = 1.0});
+  OverlayRsi({
+    super.overlayType = OverlayType.rsi,
+    required this.data,
+    this.lineColor = Colors.blue,
+    this.lineWidth = 1.0,
+  });
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
@@ -18,16 +23,16 @@ class OverlayRsi extends OverlayChart {
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    final int firstVisibleIndex = rsi.indexWhere(
-            (rsi) => rsi.dateTime.isAfter(ctx.startDate)
+    final int firstVisibleIndex = data.indexWhere(
+      (rsi) => rsi.dateTime.isAfter(ctx.startDate),
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final minValue = rsi
+    final minValue = data
         .skip(firstVisibleIndex)
         .reduce((curr, next) => curr.rsi <= next.rsi ? curr : next)
         .rsi;
-    final maxValue = rsi
+    final maxValue = data
         .skip(firstVisibleIndex)
         .reduce((curr, next) => curr.rsi > next.rsi ? curr : next)
         .rsi;
@@ -35,18 +40,23 @@ class OverlayRsi extends OverlayChart {
 
     final path = Path();
     path.moveTo(
-        ctx.dateToPos(rsi[firstVisibleIndex].dateTime, size),
-        ctx.indicatorToPos(
-            rsi[firstVisibleIndex].rsi, minValue, maxValue,
-            size.height));
-    for (var value in rsi.skip(firstVisibleIndex)) {
+      ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
+      ctx.indicatorToPos(
+        data[firstVisibleIndex].rsi,
+        minValue,
+        maxValue,
+        size.height,
+      ),
+    );
+    for (var value in data.skip(firstVisibleIndex)) {
       if (value.dateTime.isBefore(ctx.startDate) ||
           value.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
-      final Offset offset = Offset(ctx.dateToPos(value.dateTime, size),
-          ctx.indicatorToPos(
-              value.rsi, minValue, maxValue, size.height));
+      final Offset offset = Offset(
+        ctx.dateToPos(value.dateTime, size),
+        ctx.indicatorToPos(value.rsi, minValue, maxValue, size.height),
+      );
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);

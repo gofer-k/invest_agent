@@ -7,18 +7,21 @@ class OverlaySignal extends OverlayChart {
   Color signalColor;
   final String text;
 
-  OverlaySignal({required this.date, required this.value,
+  OverlaySignal({
+    super.overlayType = OverlayType.signal,
+    required this.date,
+    required this.value,
     this.signalColor = Colors.green,
-    this.text = ""});
+    this.text = "",
+  });
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (date.isBefore(ctx.startDate) || date.isAfter(ctx.endDate)) return;
 
-    final x = ctx.dateToPos(date,size);
+    final x = ctx.dateToPos(date, size);
     final y = ctx.priceToPos(value, size.height);
     final paint = Paint()..color = signalColor;
     canvas.drawCircle(Offset(x, y), 4, paint);
   }
-
 }

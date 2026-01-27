@@ -1,10 +1,20 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
+import 'package:invest_agent/utils/chart_utils.dart';
+import 'package:invest_agent/widgets/overlay_bellinger_band.dart';
+import 'package:invest_agent/widgets/overlay_candlestick.dart';
 import 'package:invest_agent/widgets/overlay_chart.dart';
 import 'package:invest_agent/widgets/chart_painter.dart';
+import 'package:invest_agent/widgets/overlay_macd.dart';
+import 'package:invest_agent/widgets/overlay_moving_average.dart';
+import 'package:invest_agent/widgets/overlay_price_chart.dart';
+import 'package:invest_agent/widgets/overlay_rsi.dart';
+import 'package:invest_agent/widgets/overlay_volume.dart';
 import 'package:invest_agent/widgets/side_axis_painter.dart';
 import 'package:invest_agent/widgets/time_controller.dart';
+import 'package:invest_agent/widgets/tooltip_controller.dart';
+import 'package:invest_agent/widgets/tooltip_overlay.dart';
 import '../model/analysis_respond.dart';
 import 'bottom_axis_painter.dart';
 import 'crosshair_controller.dart';
@@ -26,8 +36,10 @@ class SyncChart extends StatefulWidget {
 }
 
 class _SyncChartState extends State<SyncChart> {
-  @override
+  final TooltipController? tooltipController;
+  _SyncChartState() : tooltipController = TooltipController();
 
+  @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: Listenable.merge([widget.controller, widget.crosshairController]),
@@ -72,41 +84,54 @@ class _SyncChartState extends State<SyncChart> {
                 final local = box.globalToLocal(details.globalPosition);
                 final currData = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
                 widget.crosshairController?.update(currData, null);
+
+                final currTime = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
+                final nearest = _findNearestValue(currTime, constraints.maxWidth, constraints.maxHeight);
+                tooltipController?.update(nearest);
               },
-              onTapUp: (_) => widget.crosshairController?.clear(),
-              child: Column(
+              onTapUp: (_) {
+                widget.crosshairController?.clear();
+                tooltipController?.clear();
+              },
+              child:  Stack(
                 children: [
-                  Expanded(child: Row(children: [
-                    // Main chart
-                    Expanded(child: CustomPaint(
-                      size: Size(width, constraints.minHeight),
-                        painter: ChartPainter(
-                          controller: widget.controller,
-                          crosshairController: widget.crosshairController,
-                          analysisRequest: widget.analysisRequest,
-                          results: widget.results,
-                          overlays: widget.overLayCharts,
-                          widthSideLabels: widthSideLabels
+                  Column(
+                      children: [
+                        Expanded(child: Row(children: [
+                          // Main chart
+                          Expanded(child: CustomPaint(
+                            size: Size(width, constraints.minHeight),
+                            painter: ChartPainter(
+                                controller: widget.controller,
+                                crosshairController: widget.crosshairController,
+                                analysisRequest: widget.analysisRequest,
+                                results: widget.results,
+                                overlays: widget.overLayCharts,
+                                widthSideLabels: widthSideLabels
+                            ),
+                          )
+                          ),
+                          // Side label
+                          SizedBox(width: widthSideLabels,
+                              child: CustomPaint(
+                                  size: Size(width, constraints.maxHeight),
+                                  painter: SideAxisPainter(minValue: widget.minFunc, maxValue: widget.maxFunc)
+                              )
+                          )
+                        ]),
                         ),
-                      )
-                    ),
-                    // Side label
-                    SizedBox(width: widthSideLabels,
-                      child: CustomPaint(
-                        size: Size(width, constraints.maxHeight),
-                        painter: SideAxisPainter(minValue: widget.minFunc, maxValue: widget.maxFunc)
+                        // Bottom axis char label
+                        SizedBox(width: constraints.maxWidth - widthSideLabels,  height: 48,
+                            child: CustomPaint(
+                                size: Size(width, 48),
+                                painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
+                            )
                         )
-                      )
-                    ]),
+                      ]
                   ),
-                  // Bottom axis char label
-                  SizedBox(width: constraints.maxWidth - widthSideLabels,  height: 48,
-                    child: CustomPaint(
-                      size: Size(width, 48),
-                      painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
-                    )
-                  )
-                ]
+                  if (tooltipController != null)
+                    TooltipOverlay(tooltipController: tooltipController!),
+                ],
               )
             )
           );
@@ -119,5 +144,97 @@ class _SyncChartState extends State<SyncChart> {
     final ratio = (pos / width).clamp(0.0, 1.0);
     final spanDays = endDate.difference(startDate).inDays;
     return startDate.add(Duration(days: (spanDays * ratio).round()));
+  }
+
+  TooltipData? _findNearestValue(DateTime? currTime, double width, double height) {
+    if (currTime == null) return null;
+
+    List<TooltipItem> items = [];
+    double? nearestPrice;
+    for (final overlayChart in widget.overLayCharts) {
+      final data = switch(overlayChart.overlayType) {
+        OverlayType.bellingerBands => (overlayChart as OverlayBellingerBand).data,
+        OverlayType.macd => (overlayChart as OverlayMacd).data,
+        OverlayType.movingAverage => (overlayChart as OverlayMovingAverage).data,
+        OverlayType.obv => null,
+        OverlayType.pattern => null,
+        OverlayType.priceCandles => (overlayChart as OverlayCandlestick).data,
+        OverlayType.priceLine => (overlayChart as OverlayPriceChart).data,
+        OverlayType.rsi => (overlayChart as OverlayRsi).data,
+        OverlayType.signal => null,
+        OverlayType.volume => (overlayChart as OverlayVolume).data,
+      };
+      if (data == null) continue;
+
+      var best = data.first;
+      int bestDiff = (best.dateTime.difference(currTime)).abs().inDays;
+      for (final c in data) {
+        final diff = (c.dateTime.difference(currTime)).abs().inDays;
+        if (diff < bestDiff) {
+          best = c; bestDiff = diff;
+        }
+      }
+
+      final toolTipItem = switch(overlayChart.overlayType) {
+        OverlayType.bellingerBands => TooltipItem(
+            overlayType: OverlayType.bellingerBands,
+            time: best.dateTime,
+            value: (best as BellingerBandEntry).stdValue),
+        OverlayType.macd => TooltipItem(
+            overlayType: OverlayType.macd,
+            time: best.dateTime,
+            value: (best as MACD).macd,
+            extras: {"signal": (best).signal, "hist": (best).hist}
+        ),
+        OverlayType.movingAverage => TooltipItem(
+          overlayType: OverlayType.movingAverage,
+          time: best.dateTime,
+          value: (best as SimpleMovingAverage).rollingMean,
+        ),
+        OverlayType.obv => null,
+        OverlayType.pattern => null,
+        OverlayType.priceCandles => TooltipItem(
+          overlayType: OverlayType.priceCandles,
+          time: best.dateTime,
+          value: (best as CandleStickItem).closePrice,
+          extras: {
+            "open": best.openPrice ?? 0.0,
+            "high": best.highPrice ?? 0.0,
+            "low": best.lowPrice ?? 0.0,
+          }),
+        OverlayType.priceLine => TooltipItem(
+          overlayType: OverlayType.priceLine,
+          time: best.dateTime,
+          value: (best as PriceData).closePrice,
+          extras: {
+            "open": (best).openPrice,
+            "high": (best).highPrice,
+            "low": (best).lowPrice,
+          }
+        ),
+        OverlayType.rsi => TooltipItem(
+          overlayType: OverlayType.rsi,
+            time: best.dateTime,
+            value: (best as RSI).rsi),
+        OverlayType.signal => null,
+        OverlayType.volume => TooltipItem(
+          overlayType: OverlayType.volume,
+            time: best.dateTime,
+            value: (best as PriceData).volume),
+      };
+
+      if (toolTipItem != null) {
+        if (toolTipItem.overlayType == OverlayType.priceCandles || toolTipItem.overlayType == OverlayType.priceLine) {
+          nearestPrice = toolTipItem.value;
+        }
+        items.add(toolTipItem);
+      }
+    }
+    if (nearestPrice != null) {
+      final x = dateToPos(currTime, widget.controller.visibleStart, widget.controller.visibleEnd, width);
+      final y = valueToPos(currValue: nearestPrice, min: widget.results.minPrice, max: widget.results.maxPrice, height: height);
+      return TooltipData(position: Offset(x, y), time: currTime, data: items);
+    }
+    return null;
   }
 }
