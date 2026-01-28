@@ -38,23 +38,11 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
   ];
   final _indicatorController = TextEditingController();
 
-  List<String> intervals = ["1d", "1w", "1y"];
-  String selectedInterval = "1d";
+  List<IntervalType> intervals = IntervalType.values;
+  IntervalType selectedInterval = IntervalType.day;
 
-  List<String> periods = [
-    "1d",
-    "5d",
-    "1w",
-    "1mo",
-    "3mo",
-    "6mo",
-    "1y",
-    "2y",
-    "3y",
-    "5y",
-    "max"
-  ];
-  String selectedPeriod = "1y";
+  List<PeriodType> periods = PeriodType.values.toList();
+  PeriodType selectedPeriod = PeriodType.year;
 
   // --- Strategy parameters ---
   // TODO: Custom this
@@ -127,12 +115,12 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
           ),
         ),
         Shrinkable(title: "Period: ($selectedPeriod)",
-          body: RollingList<String>(values: periods, initialValue: "1y",
-           onChanged: (String v) => setState(() => selectedPeriod = v))
+          body: RollingList<PeriodType>(values: periods, initialValue: PeriodType.year,
+           onChanged: (PeriodType v) => setState(() => selectedPeriod = v))
         ),
         Shrinkable(title: "Interval: ($selectedInterval)",
-          body: RollingList<String>(values: intervals, initialValue: intervals.first,
-            onChanged: (String v) => setState(() => selectedInterval = v))),
+          body: RollingList<IntervalType>(values: intervals, initialValue: intervals.first,
+            onChanged: (IntervalType v) => setState(() => selectedInterval = v))),
         Shrinkable(title: "Rolling Windows",
           body: Column(
             children: [

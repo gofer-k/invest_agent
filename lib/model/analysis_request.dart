@@ -1,3 +1,34 @@
+enum PeriodType {
+  yTd('YTD'),
+  week('1w'),
+  month('1m'),
+  quaterYear('3m'),
+  halfYear('6m'),
+  year('1y'),
+  twoYears('2y'),
+  threeYears('3y'),
+  fiveYears('5y'),
+  max('max');
+
+  const PeriodType(this.value);
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
+enum IntervalType {
+  day('1d'),
+  week('1w'),
+  month('1m'),
+  year('1y');
+  const IntervalType(this.value);
+  final String value;
+
+  @override
+  String toString() => value;
+}
+
 class StrategyParams {
   final String type;
   final int? fast;
@@ -19,8 +50,8 @@ class StrategyParams {
 class AnalysisRequest {
   final String symbolTicker;
   final String datasetSource;
-  final String period;
-  final String interval;
+  final PeriodType period;
+  final IntervalType interval;
   final List<int>? rollingWindows;
   final StrategyParams? strategy;
   final List<String>? techIndicators;
@@ -38,8 +69,8 @@ class AnalysisRequest {
   Map<String, dynamic> toJson() => {
     "symbol_ticker": symbolTicker,
     "dataset_source": datasetSource,
-    "period": period,
-    "interval": interval,
+    "period": period.toString(),
+    "interval": interval.toString(),
     "rolling_windows": rollingWindows,
     "strategy": strategy?.toJson(),
     "tech_indicators": techIndicators,

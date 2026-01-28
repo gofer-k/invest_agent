@@ -114,6 +114,7 @@ class _MultiChartViewState extends State<MultiChartView> {
           // ),
           /*
           TODO:
+            1. display candles signels
             1. filter out visualization by periods, intervals from the settings parameters
             2. custom style visualization, themes
             3. improve performance of visualization
