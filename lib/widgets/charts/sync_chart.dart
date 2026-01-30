@@ -65,6 +65,7 @@ class _SyncChartState extends State<SyncChart> {
             child: GestureDetector(
               onScaleStart: (_) {},
               onScaleUpdate: (details) {
+                widget.crosshairController?.clear();
                 if ((details.scale - 1.0).abs() > 0.02) {
                   final localPos = details.focalPoint;
                   final local = box.globalToLocal(localPos);
@@ -80,7 +81,7 @@ class _SyncChartState extends State<SyncChart> {
               onTapDown: widget.crosshairController == null ? null : (details) {
                 final local = box.globalToLocal(details.globalPosition);
                 final currTime = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
-                final nearest = _findNearestValue(currTime, constraints.maxWidth, constraints.maxHeight);
+                final nearest = _findNearestValue(currTime, width, constraints.maxHeight);
                 widget.crosshairController?.update(nearest);
               },
               onTapUp: (_) => widget.crosshairController?.clear(),
