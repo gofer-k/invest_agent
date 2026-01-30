@@ -21,10 +21,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
   AnalysisRespond? analysisResult;
   bool isLoading = false;
   String? errorMessage;
-  double priceRange = 0.0;
-  double? maxPrice;
-  double? minPrice;
-  
+
   double visibleMinY = 0.0;
   double visibleMaxY = 0.0;
   String chartTitle = "";
@@ -69,18 +66,12 @@ class _InvestDashboardState extends State<InvestDashboard> {
       if (result["format"] == "gz") {
         receivedData = await receiveCompressedAnalysisResult(result);
       }
-      final calculatedPriceRange = receivedData?.getPriceRange();
-      final calculatedMaxPrice = receivedData?.getMaxPrice();
-      final calculatedMinPrice = receivedData?.getMinPrice();
 
       chartTitle = p.basenameWithoutExtension(request.symbolTicker);
       setState(() {
         if (result["format"] == "gz") {
           analysisRequest = request;
           analysisResult = receivedData;
-          priceRange = (calculatedPriceRange != null) ? (calculatedPriceRange * 0.1) : 0.0;
-          maxPrice = calculatedMaxPrice;
-          minPrice = calculatedMinPrice;
           isLoading = false;
         }
       });

@@ -65,8 +65,8 @@ class _MultiChartViewState extends State<MultiChartView> {
                 crosshairController: _crosshairController,
                 analysisRequest: widget.analysisRequest,
                 results: widget.results,
-                minFunc: () => widget.results.getMinPrice(),
-                maxFunc: () => widget.results.getMaxPrice(),
+                minFunc: (startDate, endDate) => widget.results.getMinPrice(_chartController.visibleStart, _chartController.visibleEnd),
+                maxFunc: (startDate, endDate) => widget.results.getMaxPrice(_chartController.visibleStart, _chartController.visibleEnd),
                 overLayCharts: [
                   OverlayPriceChart(data: widget.results.getPriceData(20)),
                   if (widget.showCrosshair)

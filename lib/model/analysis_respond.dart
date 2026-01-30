@@ -337,38 +337,14 @@ class AnalysisRespond {
     this.period = period;
     _reset();
   }
-  
-  Future<double> getPriceRangeAsync() async {
-    return getPriceRange();
-  }
 
-  double getPriceRange() {
+  double getMaxPrice(DateTime? startDate, DateTime? endDate) {
     if (priceData.isEmpty) {
       return 0.0;
     }
-    if (priceRange != 0.0) {
-      return priceRange;
-    }
-    
-    maxPrice = getMaxPrice();
-    minPrice = getMinPrice();
-    priceRange = (maxPrice - minPrice).abs();
-    return priceRange;
-  }
 
-  Future<double> getMaxPriceAsync() async {
-    return getMaxPrice();
-  }
-
-  double getMaxPrice() {
-    if (priceData.isEmpty) {
-      return 0.0;
-    }
-    if (maxPrice != 0.0) {
-      return maxPrice;
-    }
-    
-    final maxPriceItem = priceData.reduce(
+    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+    final maxPriceItem = priceDataFiltered.reduce(
           (currentItem, nextItem) =>
       currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
     );
@@ -376,21 +352,16 @@ class AnalysisRespond {
     return maxPrice;
   }
 
-  Future<double> getMinPriceAsync() async {
-    return getMinPrice();
-  }
-
-  double getMinPrice() {
+  double getMinPrice(DateTime? startDate, DateTime? endDate) {
     if (priceData.isEmpty) {
       return 0.0;
     }
-    if (minPrice != 0.0) {
-      return minPrice;
-    }
-    final minPriceItem = priceData.reduce(
-          (currentItem, nextItem) =>
-      currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem,
-    );
+
+    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+    final minPriceItem = priceDataFiltered.reduce(
+            (currentItem, nextItem) =>
+        currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem);
+
     minPrice = minPriceItem.closePrice;
     return minPrice;
   }
@@ -447,6 +418,14 @@ class AnalysisRespond {
 
   List<PriceData> getPriceData(int prefixWindow) {
     return priceData.sublist(prefixWindow);
+  }
+
+  List<PriceData> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
+    final priceDataFiltered =
+    priceData.where(
+            (element) => element.dateTime.isAfter(startDate)
+            && element.dateTime.isBefore(endDate)).toList();
+    return priceDataFiltered.sublist(prefixWindow);
   }
 
   List<DateTime> getDateTimeDomain(int prefixWindow) {

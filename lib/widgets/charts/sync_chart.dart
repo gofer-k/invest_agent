@@ -24,8 +24,8 @@ class SyncChart extends StatefulWidget {
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overLayCharts;
-  final double Function() minFunc;
-  final double Function() maxFunc;
+  final double Function(DateTime? startDate, DateTime? endDate) minFunc;
+  final double Function(DateTime? startDate, DateTime? endDate) maxFunc;
   const SyncChart({super.key, required this.controller, this.crosshairController,
     required this.analysisRequest, required this.results,
     this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
@@ -106,7 +106,7 @@ class _SyncChartState extends State<SyncChart> {
                           SizedBox(width: widthSideLabels,
                               child: CustomPaint(
                                   size: Size(width, constraints.maxHeight),
-                                  painter: SideAxisPainter(minValue: widget.minFunc, maxValue: widget.maxFunc)
+                                  painter: SideAxisPainter(controller: widget.controller, minValue: widget.minFunc, maxValue: widget.maxFunc)
                               )
                           )
                         ]),

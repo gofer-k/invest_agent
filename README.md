@@ -16,7 +16,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 #TODO:
-- filter out visualization by periods,
+- scale price range by current visible price window,
 - filter out the respond data by specific intervals
 - display candles signals
 - custom style visualization, themes

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 
 class SideAxisPainter extends CustomPainter{
-  final double Function() minValue;
-  final double Function() maxValue;
+  final double Function(DateTime? startDate, DateTime? endDate) minValue;
+  final double Function(DateTime? startDate, DateTime? endDate) maxValue;
   final TextStyle style;
   final bool showLevelLines;
+  final TimeController controller;
 
   SideAxisPainter({super.repaint,
+    required this.controller,
     required this.minValue,
     required this.maxValue,
     this.showLevelLines = true,
@@ -34,8 +37,8 @@ class SideAxisPainter extends CustomPainter{
       ..color = Colors.grey.shade700
       ..strokeWidth = 1.0;
 
-    final min = minValue();
-    final max = maxValue();
+    final min = minValue(controller.visibleStart, controller.visibleEnd);
+    final max = maxValue(controller.visibleStart, controller.visibleEnd);
     final double step = (max - min) / (countLevels - 1);
 
     for (var i = 0; i < countLevels; i++) {
@@ -52,8 +55,8 @@ class SideAxisPainter extends CustomPainter{
       drawLevelLines(canvas, size, countLevels);
     }
 
-    final min = minValue();
-    final max = maxValue();
+    final min = minValue(controller.visibleStart, controller.visibleEnd);
+    final max = maxValue(controller.visibleStart, controller.visibleEnd);
 
     for (int i = 0; i <= countLevels; ++i) {
       final ratio = i / countLevels;
@@ -73,10 +76,10 @@ class SideAxisPainter extends CustomPainter{
 
   @override
   bool shouldRepaint(covariant SideAxisPainter oldDelegate) {
-    // Repaint only if min/max values, style, or line visibility have changed.
     return oldDelegate.minValue != minValue ||
         oldDelegate.maxValue != maxValue ||
         oldDelegate.style != style ||
-        oldDelegate.showLevelLines != showLevelLines;
+        oldDelegate.showLevelLines != showLevelLines ||
+        oldDelegate.controller != controller;
   }
 }
