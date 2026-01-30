@@ -446,27 +446,17 @@ class AnalysisRespond {
   }
 
   List<PriceData> getPriceData(int prefixWindow) {
-    final startDate = _periodDatetime();
-    if (startDate != DateTime.now()) {
-      return priceData.where((elem) => elem.dateTime.isBefore(startDate)).toList();
-    }
-    // max available range of the data
     return priceData.sublist(prefixWindow);
   }
 
   List<DateTime> getDateTimeDomain(int prefixWindow) {
-    final startDate = _periodDatetime();
-    if (startDate != DateTime.now()) {
-      return priceData.where((elem) => elem.dateTime.isBefore(startDate)).map((element) => element.dateTime).toList();
-    }
     return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
   }
 
   List<MACD> getMacd(MACDType type) {
-    final startDate = _periodDatetime();
     final macd = <MACD>[];
     for (var indicator in indicators) {
-      final newMacd = indicator.macd.firstWhere((macd) => macd.type == type && macd.dateTime.isBefore(startDate));
+      final newMacd = indicator.macd.firstWhere((macd) => macd.type == type);
       macd.add(newMacd);
     }
     return macd;
@@ -487,12 +477,9 @@ class AnalysisRespond {
   }
 
   List<RSI> getRsi() {
-    final startDate = _periodDatetime();
     final rsi = <RSI>[];
     for (var indicator in indicators) {
-      if (indicator.rsi.dateTime.isBefore(startDate)) {
-        rsi.add(indicator.rsi);
-      }
+      rsi.add(indicator.rsi);
     }
     return rsi;
   }
@@ -511,27 +498,6 @@ class AnalysisRespond {
     priceRange = 0.0;
     maxPrice = 0.0;
     minPrice = 0.0;
-  }
-
-  DateTime _periodDatetime() {
-    DateTime currDate = DateTime.now();
-    return switch(period) {
-      PeriodType.yTd => DateTime(currDate.year, 1, 1),
-      PeriodType.week => currDate.subtract(const Duration(days: weekDays)),
-      PeriodType.month => currDate.subtract(const Duration(days: monthDays)),
-      PeriodType.quaterYear =>
-          currDate.subtract(const Duration(days: monthDays * 3)),
-      PeriodType.halfYear =>
-          currDate.subtract(const Duration(days: monthDays * 6)),
-      PeriodType.year => currDate.subtract(const Duration(days: yearDays)),
-      PeriodType.twoYears =>
-          currDate.subtract(const Duration(days: yearDays * 2)),
-      PeriodType.threeYears =>
-          currDate.subtract(const Duration(days: yearDays * 3)),
-      PeriodType.fiveYears =>
-          currDate.subtract(const Duration(days: yearDays) * 5),
-      PeriodType.max => currDate,
-    };
   }
 
   static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {

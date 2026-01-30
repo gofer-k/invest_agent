@@ -49,6 +49,8 @@ class AnalysisRequest {
     this.techIndicators
   });
 
+  PeriodType get periodType => period;
+
   Map<String, dynamic> toJson() => {
     "symbol_ticker": symbolTicker,
     "dataset_source": datasetSource,

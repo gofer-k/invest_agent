@@ -155,7 +155,7 @@ class _SyncChartState extends State<SyncChart> {
         OverlayType.signal => null,
         OverlayType.volume => (overlayChart as OverlayVolume).data,
         // TODO: Handle this case.
-        OverlayType.tooltip_marker => null,
+        OverlayType.tooltipMarker => null,
       };
       if (data == null) continue;
 
@@ -215,7 +215,7 @@ class _SyncChartState extends State<SyncChart> {
             time: best.dateTime,
             value: (best as PriceData).volume),
         // TODO: Handle this case.
-        OverlayType.tooltip_marker => throw UnimplementedError(),
+        OverlayType.tooltipMarker => throw UnimplementedError(),
       };
 
       if (toolTipItem != null) {

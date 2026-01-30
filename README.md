@@ -16,12 +16,14 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 #TODO:
-1. display panned a chart point and bound one to the tooltip
-2. filter out visualization by periods,
-3. filter out the respond data by specific intervals
-4. display candles signals
-5. custom style visualization, themes
-6. improve performance of visualization
-7. add option to transfer dates via gRPC
-8. 6various signal
+- filter out visualization by periods,
+- filter out the respond data by specific intervals
+- display candles signals
+- custom style visualization, themes
+- improve performance of visualization 
+- add option to transfer dates via gRPC
+- 6various signal
+
+bugs:
+- sometimes crosshair marker doesn't match to the chart point.
 

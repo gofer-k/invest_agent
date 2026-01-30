@@ -39,6 +39,7 @@ class _MultiChartViewState extends State<MultiChartView> {
     super.initState();
 
     _chartController = TimeController(
+      periodType: widget.analysisRequest.periodType,
       domain: widget.results.getDateTimeDomain(widget.prefixDomain));
     if (widget.showCrosshair) {
       _crosshairController = CrosshairController();
@@ -69,7 +70,7 @@ class _MultiChartViewState extends State<MultiChartView> {
                 overLayCharts: [
                   OverlayPriceChart(data: widget.results.getPriceData(20)),
                   if (widget.showCrosshair)
-                    OverlayTooltipMarker(overlayType: OverlayType.tooltip_marker, controller: _crosshairController!),
+                    OverlayTooltipMarker(overlayType: OverlayType.tooltipMarker, controller: _crosshairController!),
                   // OverlayCandlestick(data: widget.results.getPriceData(20)),
                   // OverlayBellingerBand(band: widget.results.getBollingerBand(BollingerBandType.lowerBB, 20),
                   //     lineColor: AppTheme.of(context).indicatorLowerBand ?? Colors.green),

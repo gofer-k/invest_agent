@@ -10,7 +10,7 @@ enum OverlayType {
   priceLine,
   rsi,
   signal,
-  tooltip_marker,
+  tooltipMarker,
   volume,
 }
 
