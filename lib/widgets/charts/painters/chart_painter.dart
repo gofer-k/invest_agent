@@ -5,17 +5,15 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 import '../../../model/analysis_request.dart';
 import '../../../model/analysis_respond.dart';
 import '../../../utils/chart_utils.dart';
-import '../controllers/crosshair_controller.dart';
 
 class ChartPainter extends CustomPainter {
   final TimeController controller;
-  final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overlays;
   final double widthSideLabels;
 
-  ChartPainter({required this.controller, this.crosshairController, required this.analysisRequest, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
+  ChartPainter({required this.controller, required this.analysisRequest, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -36,20 +34,6 @@ class ChartPainter extends CustomPainter {
       canvas.drawLine(Offset(x + halfWidthSideLabels, 0), Offset(x + halfWidthSideLabels, size.height), paintGrid);
     });
     canvas.restore();
-  }
-
-  void _crosshairLine(Canvas canvas, Size size) {
-    if (crosshairController?.time != null) {
-      final currTime = crosshairController?.time;
-      if (!currTime!.isBefore(controller.visibleStart) && !currTime.isAfter(controller.visibleEnd)) {
-        final x = dateToPos(currTime, controller.visibleStart, controller.visibleEnd, size.width);
-        final crossPaint = Paint()
-          ..color = Colors.white.withAlpha(153)
-          ..strokeWidth = 1.0;
-
-        canvas.drawLine(Offset(x, 0), Offset(x, size.height), crossPaint);
-      }
-    }
   }
 
   void _drawOverlays(Canvas canvas, Size size) {
@@ -78,7 +62,6 @@ class ChartPainter extends CustomPainter {
     _paintBackGround(canvas, size);
     _paintGrid(canvas, size);
     _drawOverlays(canvas, size);
-    _crosshairLine(canvas, size);
 
     canvas.restore();
   }
@@ -86,7 +69,6 @@ class ChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ChartPainter oldDelegate) {
     return oldDelegate.controller != controller ||
-        oldDelegate.crosshairController != crosshairController ||
         oldDelegate.results != results ||
         oldDelegate.analysisRequest != analysisRequest ||
         oldDelegate.overlays != overlays;

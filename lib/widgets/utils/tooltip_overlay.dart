@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:invest_agent/widgets/charts/controllers/tooltip_controller.dart';
+import 'package:invest_agent/widgets/charts/controllers/crosshair_controller.dart';
 
 import '../charts/overlay_chart.dart';
 
 class TooltipOverlay extends StatelessWidget {
-  final TooltipController tooltipController;
+  final CrosshairController tooltipController;
 
   const TooltipOverlay({super.key, required this.tooltipController});
 
@@ -53,6 +53,7 @@ class TooltipOverlay extends StatelessWidget {
       OverlayType.rsi => "RSI: ",
       OverlayType.signal => null,
       OverlayType.volume => "Volume: ",
+      OverlayType.tooltip_marker => null,
     };
     return text != null ? intl.NumberFormat.compact().format(item.value) : "";
   }

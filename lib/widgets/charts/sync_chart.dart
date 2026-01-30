@@ -13,11 +13,10 @@ import 'package:invest_agent/widgets/charts/overlay_rsi.dart';
 import 'package:invest_agent/widgets/charts/overlay_volume.dart';
 import 'package:invest_agent/widgets/charts/painters/side_axis_painter.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
-import 'package:invest_agent/widgets/charts/controllers/tooltip_controller.dart';
+import 'package:invest_agent/widgets/charts/controllers/crosshair_controller.dart';
 import 'package:invest_agent/widgets/utils/tooltip_overlay.dart';
 import '../../model/analysis_respond.dart';
 import 'painters/bottom_axis_painter.dart';
-import 'controllers/crosshair_controller.dart';
 
 class SyncChart extends StatefulWidget {
   final TimeController controller;
@@ -27,8 +26,8 @@ class SyncChart extends StatefulWidget {
   final List<OverlayChart> overLayCharts;
   final double Function() minFunc;
   final double Function() maxFunc;
-  const SyncChart({super.key, required this.controller,
-    this.crosshairController, required this.analysisRequest, required this.results,
+  const SyncChart({super.key, required this.controller, this.crosshairController,
+    required this.analysisRequest, required this.results,
     this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
 
   @override
@@ -36,8 +35,6 @@ class SyncChart extends StatefulWidget {
 }
 
 class _SyncChartState extends State<SyncChart> {
-  final TooltipController? tooltipController;
-  _SyncChartState() : tooltipController = TooltipController();
 
   @override
   Widget build(BuildContext context) {
@@ -82,17 +79,11 @@ class _SyncChartState extends State<SyncChart> {
               },
               onTapDown: widget.crosshairController == null ? null : (details) {
                 final local = box.globalToLocal(details.globalPosition);
-                final currData = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
-                widget.crosshairController?.update(currData, null);
-
                 final currTime = _posToDate(local.dx, width, widget.controller.visibleStart, widget.controller.visibleEnd);
                 final nearest = _findNearestValue(currTime, constraints.maxWidth, constraints.maxHeight);
-                tooltipController?.update(nearest);
+                widget.crosshairController?.update(nearest);
               },
-              onTapUp: (_) {
-                widget.crosshairController?.clear();
-                tooltipController?.clear();
-              },
+              onTapUp: (_) => widget.crosshairController?.clear(),
               child:  Stack(
                 children: [
                   Column(
@@ -101,15 +92,14 @@ class _SyncChartState extends State<SyncChart> {
                           // Main chart
                           Expanded(child: CustomPaint(
                             size: Size(width, constraints.minHeight),
-                            painter: ChartPainter(
+                              painter: ChartPainter(
                                 controller: widget.controller,
-                                crosshairController: widget.crosshairController,
                                 analysisRequest: widget.analysisRequest,
                                 results: widget.results,
                                 overlays: widget.overLayCharts,
                                 widthSideLabels: widthSideLabels
-                            ),
-                          )
+                              ),
+                            )
                           ),
                           // Side label
                           SizedBox(width: widthSideLabels,
@@ -129,8 +119,8 @@ class _SyncChartState extends State<SyncChart> {
                         )
                       ]
                   ),
-                  if (tooltipController != null)
-                    TooltipOverlay(tooltipController: tooltipController!),
+                  if (widget.crosshairController != null)
+                    TooltipOverlay(tooltipController: widget.crosshairController!),
                 ],
               )
             )
@@ -163,6 +153,8 @@ class _SyncChartState extends State<SyncChart> {
         OverlayType.rsi => (overlayChart as OverlayRsi).data,
         OverlayType.signal => null,
         OverlayType.volume => (overlayChart as OverlayVolume).data,
+        // TODO: Handle this case.
+        OverlayType.tooltip_marker => null,
       };
       if (data == null) continue;
 
@@ -221,6 +213,8 @@ class _SyncChartState extends State<SyncChart> {
           overlayType: OverlayType.volume,
             time: best.dateTime,
             value: (best as PriceData).volume),
+        // TODO: Handle this case.
+        OverlayType.tooltip_marker => throw UnimplementedError(),
       };
 
       if (toolTipItem != null) {

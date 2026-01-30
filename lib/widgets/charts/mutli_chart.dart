@@ -5,7 +5,9 @@ import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import 'controllers/crosshair_controller.dart';
+import 'overlay_chart.dart';
 import 'overlay_price_chart.dart';
+import 'overlay_tooltip_marker.dart';
 
 class MultiChartView extends StatefulWidget {
   final List<String> chartTitle;
@@ -32,7 +34,6 @@ class MultiChartView extends StatefulWidget {
 class _MultiChartViewState extends State<MultiChartView> {
   late final TimeController _chartController;
   late final CrosshairController? _crosshairController;
-
   @override
   void initState() {
     super.initState();
@@ -67,6 +68,8 @@ class _MultiChartViewState extends State<MultiChartView> {
                 maxFunc: () => widget.results.getMaxPrice(),
                 overLayCharts: [
                   OverlayPriceChart(data: widget.results.getPriceData(20)),
+                  if (widget.showCrosshair)
+                    OverlayTooltipMarker(overlayType: OverlayType.tooltip_marker, controller: _crosshairController!),
                   // OverlayCandlestick(data: widget.results.getPriceData(20)),
                   // OverlayBellingerBand(band: widget.results.getBollingerBand(BollingerBandType.lowerBB, 20),
                   //     lineColor: AppTheme.of(context).indicatorLowerBand ?? Colors.green),
