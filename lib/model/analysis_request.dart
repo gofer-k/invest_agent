@@ -1,21 +1,4 @@
-enum PeriodType {
-  yTd('YTD'),
-  week('1w'),
-  month('1m'),
-  quaterYear('3m'),
-  halfYear('6m'),
-  year('1y'),
-  twoYears('2y'),
-  threeYears('3y'),
-  fiveYears('5y'),
-  max('max');
-
-  const PeriodType(this.value);
-  final String value;
-
-  @override
-  String toString() => value;
-}
+import 'analysis_period.dart';
 
 enum IntervalType {
   day('1d'),

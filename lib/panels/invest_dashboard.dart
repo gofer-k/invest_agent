@@ -3,10 +3,10 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/panels/etf_settings_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
-import 'package:invest_agent/widgets/mutli_chart.dart';
-import 'model/analysis_request.dart';
-import 'model/analysis_respond.dart';
-import 'model/etf_analytics_client.dart';
+import 'package:invest_agent/widgets/charts/mutli_chart.dart';
+import '../model/analysis_request.dart';
+import '../model/analysis_respond.dart';
+import '../model/etf_analytics_client.dart';
 import 'package:path/path.dart' as p;
 class InvestDashboard extends StatefulWidget {
   const InvestDashboard({super.key});

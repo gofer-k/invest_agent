@@ -1,21 +1,16 @@
-class CustomDatetimeFormat {
-  static const int yearDays = 365;
-  static const int monthDays = 30;
-  static const int weekDays = 7;
-  static const int twiceYearDays = yearDays * 2;
-  static const int twiceMonthDays = monthDays * 2;
-  static const int twiceWeekDays = weekDays * 2;
+import '../model/analysis_period.dart';
 
+class CustomDatetimeFormat {
   static Duration span(DateTime startDate, DateTime endDate, DateTime currTime) {
     final span = endDate.difference(startDate);
-    if(span.inDays > CustomDatetimeFormat.twiceYearDays) {
-      return Duration(days: CustomDatetimeFormat.yearDays);
+    if(span.inDays > twiceYearDays) {
+      return Duration(days: yearDays);
     }
-    else if (span.inDays > CustomDatetimeFormat.twiceMonthDays) {
-      return Duration(days: CustomDatetimeFormat.monthDays);
+    else if (span.inDays > twiceMonthDays) {
+      return Duration(days: monthDays);
     }
-    else if(span.inDays > CustomDatetimeFormat.twiceWeekDays) {
-      return Duration(days: CustomDatetimeFormat.weekDays);
+    else if(span.inDays > twiceWeekDays) {
+      return Duration(days: weekDays);
     }
     return Duration(days: 1);
   }

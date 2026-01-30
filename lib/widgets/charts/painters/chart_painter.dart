@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/overlay_chart.dart';
-import 'package:invest_agent/widgets/time_controller.dart';
+import 'package:invest_agent/widgets/charts/overlay_chart.dart';
+import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import '../model/analysis_request.dart';
-import '../model/analysis_respond.dart';
-import '../utils/chart_utils.dart';
-import 'crosshair_controller.dart';
+import '../../../model/analysis_request.dart';
+import '../../../model/analysis_respond.dart';
+import '../../../utils/chart_utils.dart';
+import '../controllers/crosshair_controller.dart';
 
 class ChartPainter extends CustomPainter {
   final TimeController controller;

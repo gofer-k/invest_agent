@@ -1,9 +1,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/rolling_list.dart';
-import 'package:invest_agent/widgets/shrinkable.dart';
+import 'package:invest_agent/widgets/utils/rolling_list.dart';
+import 'package:invest_agent/widgets/utils/shrinkable.dart';
 import 'package:path/path.dart' as p;
 
+import '../model/analysis_period.dart';
 import '../model/analysis_request.dart';
 import '../themes/app_themes.dart';
 

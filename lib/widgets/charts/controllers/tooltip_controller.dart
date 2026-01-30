@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import 'overlay_chart.dart';
+import '../overlay_chart.dart';
 
 class TooltipItem {
   final OverlayType overlayType;

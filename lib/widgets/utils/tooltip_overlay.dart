@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
-import 'package:invest_agent/widgets/tooltip_controller.dart';
+import 'package:invest_agent/widgets/charts/controllers/tooltip_controller.dart';
 
-import 'overlay_chart.dart';
+import '../charts/overlay_chart.dart';
 
 class TooltipOverlay extends StatelessWidget {
   final TooltipController tooltipController;
@@ -54,6 +54,6 @@ class TooltipOverlay extends StatelessWidget {
       OverlayType.signal => null,
       OverlayType.volume => "Volume: ",
     };
-    return text != null ? "${intl.NumberFormat.compact().format(item.value)}" : "";
+    return text != null ? intl.NumberFormat.compact().format(item.value) : "";
   }
 }

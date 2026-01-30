@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/utils/custom_datetime_format.dart';
 
-import '../utils/chart_utils.dart';
+import '../../../utils/chart_utils.dart';
 
 class BottomAxisPainter extends CustomPainter{
   final DateTime startDate;

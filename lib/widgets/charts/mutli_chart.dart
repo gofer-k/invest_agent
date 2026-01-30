@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
-import 'package:invest_agent/widgets/sync_chart.dart';
-import 'package:invest_agent/widgets/time_controller.dart';
+import 'package:invest_agent/widgets/charts/sync_chart.dart';
+import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import 'crosshair_controller.dart';
+import 'controllers/crosshair_controller.dart';
 import 'overlay_price_chart.dart';
 
 class MultiChartView extends StatefulWidget {
@@ -112,15 +112,6 @@ class _MultiChartViewState extends State<MultiChartView> {
           //     overLayCharts: [ OverlayRsi(rsi: widget.results.getRsi()) ],
           //   ),
           // ),
-          /*
-          TODO:
-            1. display candles signels
-            1. filter out visualization by periods, intervals from the settings parameters
-            2. custom style visualization, themes
-            3. improve performance of visualization
-            4. add option to transfer dates via gRPC
-            5. various signal
-           */
         ],
       )
     );

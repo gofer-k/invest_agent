@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:invest_agent/model/analysis_respond.dart';
-import 'package:invest_agent/widgets/overlay_chart.dart';
+import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 class OverlayBellingerBand extends OverlayChart {
   final BellingerBand data;
