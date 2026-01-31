@@ -16,14 +16,13 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 #TODO:
-- scale price range by current visible price window,
-- filter out the respond data by specific intervals
 - display candles signals
 - custom style visualization, themes
 - improve performance of visualization 
 - add option to transfer dates via gRPC
 - 6various signal
-
+- filter out the respond data by specific intervals??
+- 
 bugs:
 - sometimes crosshair marker doesn't match to the chart point.
 

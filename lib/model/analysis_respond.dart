@@ -416,7 +416,7 @@ class AnalysisRespond {
     return priceData.sublist(rollingWindow);
   }
 
-  List<PriceData> getPriceData(int prefixWindow) {
+  List<PriceData> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
     return priceData.sublist(prefixWindow);
   }
 

@@ -60,19 +60,29 @@ class _InvestDashboardState extends State<InvestDashboard> {
       errorMessage = null;
     });
 
+    if (analysisRequest != null && analysisRequest!.symbolTicker == request.symbolTicker) {
+      analysisResult?.changePeriod(request.period);
+      analysisRequest = request;
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     try {
       final result = await client.runAnalysis(request);
       AnalysisRespond? receivedData;
+
       if (result["format"] == "gz") {
         receivedData = await receiveCompressedAnalysisResult(result);
       }
-
       chartTitle = p.basenameWithoutExtension(request.symbolTicker);
+
       setState(() {
-        if (result["format"] == "gz") {
-          analysisRequest = request;
+        analysisRequest = request;
+        // Only assign if we successfully got data
+        if (receivedData != null) {
           analysisResult = receivedData;
-          isLoading = false;
         }
       });
     } catch (e) {
@@ -81,6 +91,12 @@ class _InvestDashboardState extends State<InvestDashboard> {
         log("ETF agent analysis: Error: $errorMessage");
         isLoading = false;
       });
+    } finally {
+      if (mounted) { // Best practice check before calling setState in async gaps
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 

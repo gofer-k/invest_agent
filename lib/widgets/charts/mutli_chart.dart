@@ -32,17 +32,40 @@ class MultiChartView extends StatefulWidget {
 }
 
 class _MultiChartViewState extends State<MultiChartView> {
-  late final TimeController _chartController;
-  late final CrosshairController? _crosshairController;
+  late TimeController _chartController;
+  CrosshairController? _crosshairController;
+
+
+  void _initializeControllers() {
+    // If you are re-initializing, make sure to dispose the old controller
+    // if it's already been created. The 'late' keyword means we can't check for null,
+    // so a separate check or a different pattern might be needed if you call this
+    // outside of initState/didUpdateWidget. However, in this context,
+    // we can assume dispose will be handled correctly.
+    _chartController = TimeController(
+        periodType: widget.analysisRequest.periodType,
+        domain: widget.results.getDateTimeDomain(widget.prefixDomain));
+    if (widget.showCrosshair && _crosshairController == null) {
+      _crosshairController = CrosshairController();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+  }
 
-    _chartController = TimeController(
-      periodType: widget.analysisRequest.periodType,
-      domain: widget.results.getDateTimeDomain(widget.prefixDomain));
-    if (widget.showCrosshair) {
-      _crosshairController = CrosshairController();
+  // This method is called when the parent widget is rebuilt with new properties.
+  @override
+  void didUpdateWidget(MultiChartView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if the analysisRequest has changed.
+    if (widget.analysisRequest != oldWidget.analysisRequest) {
+      // Re-initialize the controller with the new data.
+      _chartController.dispose();
+      _initializeControllers();
     }
   }
 
@@ -68,7 +91,7 @@ class _MultiChartViewState extends State<MultiChartView> {
                 minFunc: (startDate, endDate) => widget.results.getMinPrice(_chartController.visibleStart, _chartController.visibleEnd),
                 maxFunc: (startDate, endDate) => widget.results.getMaxPrice(_chartController.visibleStart, _chartController.visibleEnd),
                 overLayCharts: [
-                  OverlayPriceChart(data: widget.results.getPriceData(20)),
+                  OverlayPriceChart(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
                   if (widget.showCrosshair)
                     OverlayTooltipMarker(overlayType: OverlayType.tooltipMarker, controller: _crosshairController!),
                   // OverlayCandlestick(data: widget.results.getPriceData(20)),
