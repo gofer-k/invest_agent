@@ -16,11 +16,12 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 #TODO:
+- panel for visualization parameters: chosen charts, period per group charts, customize chart style
 - display candles signals
 - custom style visualization, themes
 - improve performance of visualization 
 - add option to transfer dates via gRPC
-- 6various signal
+- various signals
 - filter out the respond data by specific intervals??
 - 
 bugs:

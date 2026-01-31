@@ -1,13 +1,14 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:invest_agent/panels/etf_settings_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
-import 'package:invest_agent/widgets/charts/mutli_chart.dart';
+import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import '../model/etf_analytics_client.dart';
 import 'package:path/path.dart' as p;
+
+import 'configuration_panel.dart';
 class InvestDashboard extends StatefulWidget {
   const InvestDashboard({super.key});
 
@@ -38,9 +39,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
           // SETTINGS PANEL
           Expanded(
             flex: 1,
-            child: EtfSettingsPanel(
-              onRunAnalysis: _handleRunAnalysis,
-            ),
+            child: ConfigurationPanel(onRequest: _handleRunAnalysis),
           ),
           const SizedBox(width: 10),
           // ANALYSIS PANEL

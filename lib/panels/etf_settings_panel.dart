@@ -42,9 +42,6 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
   List<IntervalType> intervals = IntervalType.values;
   IntervalType selectedInterval = IntervalType.day;
 
-  List<PeriodType> periods = PeriodType.values.toList();
-  PeriodType selectedPeriod = PeriodType.year;
-
   // --- Strategy parameters ---
   // TODO: Custom this
   int smaFast = 20;
@@ -82,7 +79,7 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
       datasetSource: datasetSource!,
       rollingWindows: rollingWindows,
       interval: selectedInterval,
-      period: selectedPeriod,
+      period: PeriodType.max,  //TODO:: remove this
       strategy: StrategyParams(
         type: "sma",
         fast: smaFast,
@@ -114,10 +111,6 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
               Text(selectedSymbol ?? "No file selected"),
             ],
           ),
-        ),
-        Shrinkable(title: "Period: ($selectedPeriod)",
-          body: RollingList<PeriodType>(values: periods, initialValue: PeriodType.year,
-           onChanged: (PeriodType v) => setState(() => selectedPeriod = v))
         ),
         Shrinkable(title: "Interval: ($selectedInterval)",
           body: RollingList<IntervalType>(values: intervals, initialValue: intervals.first,
