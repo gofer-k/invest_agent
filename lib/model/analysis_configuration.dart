@@ -11,7 +11,6 @@ enum MainChartType {
 
 enum SupplementChart {
   bb("BB - Bollinger Bands"),
-  bbLower("BB Lower"),
   deathCross("Death cross"),
   goldenCross("Golden cross"),
   ema("EMA - exponential Moving Average"),
@@ -20,6 +19,16 @@ enum SupplementChart {
   sma("MA - moving average");
   const SupplementChart(this.name);
   final String name;
+}
+
+class MultiChart {
+  String title;
+  MainChartType mainChart;
+  List<SupplementChart> overlayCharts;
+  MultiChart({required this.title, required this.mainChart, required this.overlayCharts});
+  void removeOverlayChart(SupplementChart suppChart) {
+    overlayCharts.remove(suppChart);
+  }
 }
 
 class AnalysisConfiguration {
@@ -49,7 +58,7 @@ class AnalysisConfiguration {
     return true;
   }
 
-  bool addMainChart(MainChartType chartType, List<SupplementChart> charts) {
+  bool addMainChart({required MainChartType chartType, List<SupplementChart> charts = const []}) {
     if (_validate(chartType, charts)) {
       profileChart[chartType] = charts;
       return true;
