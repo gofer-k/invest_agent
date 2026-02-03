@@ -48,7 +48,6 @@ class OverlayOBV extends OverlayChart {
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    //TODO: smooth curve
     canvas.drawPath(path, paint);
   }
 }

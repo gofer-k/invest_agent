@@ -22,7 +22,6 @@ class OverlayCandlestick extends OverlayChart {
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (data.isEmpty) return;
 
-    // TODO: check out the price in visible range
     double minPrice = data.reduce((current, next) => current.lowPrice < next.lowPrice ? current : next).lowPrice;
     double maxPrice = data.reduce((current, next) => current.highPrice > next.highPrice ? current : next).highPrice;
     final wickPaint = Paint()..strokeWidth = lineWidth;

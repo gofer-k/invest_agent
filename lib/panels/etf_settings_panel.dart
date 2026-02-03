@@ -227,7 +227,6 @@ class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      // TODO: handle error better
       SnackBar(content: Text('Error loading file: $e')),
     );
   }
