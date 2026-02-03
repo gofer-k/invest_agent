@@ -366,12 +366,14 @@ class AnalysisRespond {
     return minPrice;
   }
 
-  double getMinVolume() {
-    return priceData.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
+  double getMinVolume(DateTime? startDate, DateTime? endDate) {
+    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+    return priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
   }
 
-  double getMaxVolume() {
-    return priceData.reduce((value, element) => value.volume > element.volume ? value : element).volume;
+  double getMaxVolume(DateTime? startDate, DateTime? endDate) {
+    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+    return priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
   }
 
   Future<List<SimpleMovingAverage>> getFutureSMA(int rollingWindow) async {
@@ -441,17 +443,28 @@ class AnalysisRespond {
     return macd;
   }
 
-  double getMinMACD(MACDType macdType) {
-    final macdData = getMacd(macdType);
-    final minMacd = macdData.reduce((value, element) => value.macd <= element.macd ? value : element).macd;
-    final minSignal = macdData.reduce((value, element) => value.signal <= element.signal ? value : element).signal;
+  List<MACD> getMacdFiltered(MACDType type, DateTime startDate, DateTime endDate) {
+    final macd = <MACD>[];
+    for (var indicator in indicators) {
+      if (indicator.rsi.dateTime.isAfter(startDate) && indicator.rsi.dateTime.isBefore(endDate)) {
+        final newMacd = indicator.macd.firstWhere((macd) => macd.type == type);
+        macd.add(newMacd);
+      }
+    }
+    return macd;
+  }
+  
+  double getMinMACD(MACDType macdType, DateTime? startDate, DateTime? endDate) {
+    final dataFiltered = (startDate != null && endDate != null) ? getMacdFiltered(macdType, startDate, endDate) : getMacd(macdType);
+    final minMacd = dataFiltered.reduce((value, element) => value.macd <= element.macd ? value : element).macd;
+    final minSignal = dataFiltered.reduce((value, element) => value.signal <= element.signal ? value : element).signal;
     return min(minMacd, minSignal);
   }
 
-  double getMaxMACD(MACDType macdType) {
-    final macdData = getMacd(macdType);
-    final maxMacd = macdData.reduce((value, element) => value.macd > element.macd ? value : element).macd;
-    final maxSignal = macdData.reduce((value, element) => value.signal > element.signal ? value : element).signal;
+  double getMaxMACD(MACDType macdType, DateTime? startDate, DateTime? endDate) {
+    final dataFiltered = (startDate != null && endDate != null) ? getMacdFiltered(macdType, startDate, endDate) : getMacd(macdType);
+    final maxMacd = dataFiltered.reduce((value, element) => value.macd > element.macd ? value : element).macd;
+    final maxSignal = dataFiltered.reduce((value, element) => value.signal > element.signal ? value : element).signal;
     return max(maxMacd, maxSignal);
   }
 
@@ -463,13 +476,23 @@ class AnalysisRespond {
     return rsi;
   }
 
-  double getMinRsi() {
-    final data = getRsi();
+  List<RSI> getRsiFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
+    final rsi = <RSI>[];
+    for (var indicator in indicators) {
+      if (indicator.rsi.dateTime.isAfter(startDate) && indicator.rsi.dateTime.isBefore(endDate)) {
+        rsi.add(indicator.rsi);
+      }
+    }
+    return rsi;
+  }
+
+  double getMinRsi(DateTime? startDate, DateTime? endDate) {
+    final data = (startDate != null && endDate != null) ? getRsiFiltered(0, startDate, endDate) : getRsi();
     return data.reduce((value, element) => value.rsi <= element.rsi ? value : element).rsi;
   }
 
-  double getMaxRsi() {
-    final data = getRsi();
+  double getMaxRsi(DateTime? startDate, DateTime? endDate) {
+    final data = (startDate != null && endDate != null) ? getRsiFiltered(0, startDate, endDate) : getRsi();
     return data.reduce((value, element) => value.rsi > element.rsi ? value : element).rsi;
   }
   

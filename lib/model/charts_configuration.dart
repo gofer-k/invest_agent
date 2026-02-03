@@ -1,3 +1,5 @@
+import 'package:invest_agent/model/analysis_period.dart';
+
 enum MainChartType {
   candlestickPrice("Candlestick",),
   linePrice("Line"),
@@ -31,8 +33,10 @@ class MultiChart {
   }
 }
 
-class AnalysisConfiguration {
-  Map<MainChartType, List<SupplementChart>> profileChart;
+class ChartsConfiguration {
+  final List<MultiChart> multiCharts;
+  final PeriodType periodType;
+
   static const Map<MainChartType, List<SupplementChart>> _profileRules = {
     MainChartType.candlestickPrice: [
       SupplementChart.bb, SupplementChart.sma,
@@ -48,31 +52,23 @@ class AnalysisConfiguration {
       SupplementChart.emaSignal]
   };
 
-  AnalysisConfiguration(): profileChart = {};
+  ChartsConfiguration({required this.periodType, required this.multiCharts});
 
-  bool _validate(MainChartType mainChartType, List<SupplementChart> suppCharts) {
-    final availableSuppCharts = _profileRules[mainChartType];
+  static bool validate(MultiChart chart) {
+    final availableSuppCharts = _profileRules[chart.mainChart];
     if (availableSuppCharts != null) {
-      return suppCharts.every((suppChart) => availableSuppCharts.contains(suppChart));
+      return chart.overlayCharts.every((suppChart) => availableSuppCharts.contains(suppChart));
     }
     return true;
   }
 
-  bool addMainChart({required MainChartType chartType, List<SupplementChart> charts = const []}) {
-    if (_validate(chartType, charts)) {
-      profileChart[chartType] = charts;
-      return true;
+  void addChart(MultiChart newChart) {
+    if (ChartsConfiguration.validate(newChart)) {
+      multiCharts.add(newChart);
     }
-    return false;
   }
 
-  void removeMainChart(MainChartType chartType) {
-    profileChart.remove(chartType);
-  }
-
-  void removeSupplementChart(MainChartType chartType, SupplementChart suppChart) {
-    if (profileChart.containsKey(chartType)) {
-      profileChart[chartType]!.remove(suppChart);
-    }
+  void removeChart(MultiChart chart) {
+    multiCharts.remove(chart);
   }
 }

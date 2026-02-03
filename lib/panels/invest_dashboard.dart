@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
+import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 import '../model/etf_analytics_client.dart';
@@ -18,8 +19,10 @@ class InvestDashboard extends StatefulWidget {
 
 class _InvestDashboardState extends State<InvestDashboard> {
   final ETFAnalyticsClient client = ETFAnalyticsClient();
+  ChartsConfiguration? configurationCharts;
   AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
+  
   bool isLoading = false;
   String? errorMessage;
 
@@ -39,7 +42,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
           // SETTINGS PANEL
           Expanded(
             flex: 1,
-            child: ConfigurationPanel(onRequest: _handleRunAnalysis),
+            child: ConfigurationPanel(onRequest: _handleRunAnalysis, onConfigAnalysis: _handleConfigAnalysis),
           ),
           const SizedBox(width: 10),
           // ANALYSIS PANEL
@@ -99,6 +102,10 @@ class _InvestDashboardState extends State<InvestDashboard> {
     }
   }
 
+  Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
+    configurationCharts = config;
+  }
+  
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
     final filePath = result["response_file"];
     final data = loadFinancialDataFromGzip(filePath);
@@ -134,11 +141,12 @@ class _InvestDashboardState extends State<InvestDashboard> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      if (currentRequest != null) {
+      if (currentRequest != null && configurationCharts != null) {
         return MultiChartView(
             chartTitle: [currentRequest.symbolTicker],
             analysisRequest: currentRequest,
             results: currentResult,
+            chartConfig: configurationCharts!,
             chartHeight: constraints.maxHeight);
         }
         return const Center(child: Text("No analysis to see results"));

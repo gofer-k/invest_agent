@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/analysis_configuration.dart';
+import 'package:invest_agent/model/charts_configuration.dart';
 import '../model/analysis_period.dart';
 import '../themes/app_themes.dart';
 import '../widgets/chart_config_dialog.dart';
@@ -7,7 +7,8 @@ import '../widgets/utils/rolling_list.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class EtfSettingsCharts extends StatefulWidget {
-  const EtfSettingsCharts({super.key});
+  final void Function(ChartsConfiguration) onConfigAnalysis;
+  const EtfSettingsCharts({super.key, required this.onConfigAnalysis});
 
   @override
   State<StatefulWidget> createState() => _EtfSettingsChartsState();
@@ -17,7 +18,6 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
   List<PeriodType> periods = PeriodType.values.toList();
   PeriodType selectedPeriod = PeriodType.year;
   List<MultiChart> multiChart = [];
-  AnalysisConfiguration configuration = AnalysisConfiguration();
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +36,10 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
             const Text("Main chart type"),
 
             IconButton(icon: Icon(Icons.add), onPressed: (){
-              showConfigurationChart(context, (MultiChart newMultiChart) {
-                setState(() => multiChart.add(newMultiChart));
+              showConfigurationChart(context, (newMultiChart) {
+                setState(() {
+                  multiChart.add(newMultiChart);
+                });
               });
             }),
           ]
@@ -47,17 +49,22 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
             body: Column(
               children: [
                Text(chart.mainChart.toString().split('.').last, style: Theme.of(context).textTheme.titleLarge),
-                Wrap(spacing: 8,
-                  children: chart.overlayCharts.map((w) =>
-                    Chip(label: Text(w.toString().split('.').last),
-                      onDeleted: () {
-                        setState(() => chart.removeOverlayChart(w));
-                      },
-                    )
-                  ).toList(),
-                ),
+                if (chart.overlayCharts.isNotEmpty)
+                  Wrap(spacing: 8,
+                    children: chart.overlayCharts.map((w) =>
+                      Chip(label: Text(w.toString().split('.').last),
+                        onDeleted: () {
+                          setState(() {
+                            chart.removeOverlayChart(w);
+                          });
+                        },
+                      )
+                    ).toList(),
+                  ),
                 IconButton(icon: Icon(Icons.remove_outlined), onPressed: (){
-                   setState(() => multiChart.remove(chart));
+                   setState(() {
+                     multiChart.remove(chart);
+                   });
                 }),
               ],
             ),
@@ -77,5 +84,6 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
     );
   }
   void _updateAnalysis() {
+    widget.onConfigAnalysis(ChartsConfiguration(periodType: selectedPeriod, multiCharts: multiChart));
   }
 }
