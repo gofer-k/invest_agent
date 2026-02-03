@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:invest_agent/widgets/utils/dropdown.dart';
 import '../model/analysis_configuration.dart';
 
@@ -53,11 +52,6 @@ class _ChartConfigDialogState extends State<ChartConfigDialog> {
               border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.text,
-            onSubmitted: (title) {
-              setState(() {
-                multiTitle = title;
-              });
-            },
             textAlign: TextAlign.end, // Align text to the right, closer to the unit
           ),
           Row(
@@ -90,11 +84,7 @@ class _ChartConfigDialogState extends State<ChartConfigDialog> {
                 ),
               ),
               IconButton(icon: Icon(Icons.add_box_outlined), onPressed: () {
-                if (!selectedOverlayCharts.contains(overlayChart)) {
-                  setState(() {
-                    selectedOverlayCharts.add(overlayChart);
-                  });
-                }
+                setState(() => selectedOverlayCharts.add(overlayChart));
               }),
             ],
           ),
@@ -114,12 +104,10 @@ class _ChartConfigDialogState extends State<ChartConfigDialog> {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Cancel"),
-        ),
+        BackButton(onPressed: () => Navigator.of(context).pop()),
         ElevatedButton(
           onPressed: () {
+            multiTitle = controller.text;
             final newChart = MultiChart(title: multiTitle, mainChart: selectedMainChart,
               overlayCharts: selectedOverlayCharts);
             widget.onSave(newChart);

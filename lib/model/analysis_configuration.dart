@@ -1,6 +1,6 @@
 enum MainChartType {
-  candlestickPrice("Candlestick Price",),
-  linePrice("Line Price"),
+  candlestickPrice("Candlestick",),
+  linePrice("Line"),
   macd("MACD"),
   volume("Volume"),
   rsi("RSI");
@@ -11,10 +11,10 @@ enum MainChartType {
 
 enum SupplementChart {
   bb("BB - Bollinger Bands"),
-  deathCross("Death cross"),
-  goldenCross("Golden cross"),
-  ema("EMA - exponential Moving Average"),
-  emaSignal("EMA Signal"),
+  deathCross("DC - Death cross"),
+  goldenCross("GC - Golden cross"),
+  ema("EMA - exp. moving average"),
+  emaSignal("EMA signal"),
   obv("OBV - on balance volume"),
   sma("MA - moving average");
   const SupplementChart(this.name);

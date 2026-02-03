@@ -1,9 +1,5 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_configuration.dart';
-import 'package:invest_agent/widgets/utils/shrinkable_list_Item.dart';
-
 import '../model/analysis_period.dart';
 import '../themes/app_themes.dart';
 import '../widgets/chart_config_dialog.dart';
@@ -34,31 +30,35 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
                 onChanged: (PeriodType v) => setState(() => selectedPeriod = v))
         ),
         const SizedBox(height: 8),
-        Row(children: [
+        Row(mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
             const Text("Main chart type"),
+
             IconButton(icon: Icon(Icons.add), onPressed: (){
               showConfigurationChart(context, (MultiChart newMultiChart) {
-                setState(() {
-                  multiChart.add(newMultiChart);
-                });
+                setState(() => multiChart.add(newMultiChart));
               });
             }),
           ]
         ),
-        for (var multiChart in multiChart)
-          Shrinkable(title: multiChart.title, expanded: true,
+        for (var chart in multiChart)
+          Shrinkable(title: chart.title, expanded: true,
             body: Column(
               children: [
-               Text("Main chart type: ${multiChart.mainChart.name}"),
+               Text(chart.mainChart.toString().split('.').last, style: Theme.of(context).textTheme.titleLarge),
                 Wrap(spacing: 8,
-                  children: multiChart.overlayCharts.map((w) =>
-                    Chip(label: Text("$w"),
+                  children: chart.overlayCharts.map((w) =>
+                    Chip(label: Text(w.toString().split('.').last),
                       onDeleted: () {
-                        setState(() => multiChart.removeOverlayChart(w));
+                        setState(() => chart.removeOverlayChart(w));
                       },
                     )
                   ).toList(),
                 ),
+                IconButton(icon: Icon(Icons.remove_outlined), onPressed: (){
+                   setState(() => multiChart.remove(chart));
+                }),
               ],
             ),
           ),
@@ -76,7 +76,6 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
       ],
     );
   }
-
   void _updateAnalysis() {
   }
 }
