@@ -19,7 +19,7 @@ class InvestDashboard extends StatefulWidget {
 
 class _InvestDashboardState extends State<InvestDashboard> {
   final ETFAnalyticsClient client = ETFAnalyticsClient();
-  ChartsConfiguration? configurationCharts;
+  ChartsConfiguration configurationCharts = ChartsConfiguration();
   AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
   
@@ -42,7 +42,9 @@ class _InvestDashboardState extends State<InvestDashboard> {
           // SETTINGS PANEL
           Expanded(
             flex: 1,
-            child: ConfigurationPanel(onRequest: _handleRunAnalysis, onConfigAnalysis: _handleConfigAnalysis),
+            child: ConfigurationPanel(onRequest: _handleRunAnalysis,
+              onConfigAnalysis: _handleConfigAnalysis,
+              configurationCharts: configurationCharts,),
           ),
           const SizedBox(width: 10),
           // ANALYSIS PANEL
@@ -103,7 +105,9 @@ class _InvestDashboardState extends State<InvestDashboard> {
   }
 
   Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
-    configurationCharts = config;
+    setState(() {
+      configurationCharts = config;
+    });
   }
   
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
@@ -141,12 +145,12 @@ class _InvestDashboardState extends State<InvestDashboard> {
     }
 
     return LayoutBuilder(builder: (context, constraints) {
-      if (currentRequest != null && configurationCharts != null) {
+      if (currentRequest != null) {
         return MultiChartView(
             chartTitle: [currentRequest.symbolTicker],
             analysisRequest: currentRequest,
             results: currentResult,
-            chartConfig: configurationCharts!,
+            chartConfig: configurationCharts,
             chartHeight: constraints.maxHeight);
         }
         return const Center(child: Text("No analysis to see results"));

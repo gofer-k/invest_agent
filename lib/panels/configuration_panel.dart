@@ -8,7 +8,8 @@ import 'etf_settings_panel.dart';
 class ConfigurationPanel extends StatelessWidget {
   final Future<void> Function(AnalysisRequest) onRequest;
   final Future<void> Function(ChartsConfiguration) onConfigAnalysis;
-  const ConfigurationPanel({super.key, required this.onRequest, required this.onConfigAnalysis});
+  final ChartsConfiguration configurationCharts;
+  const ConfigurationPanel({super.key, required this.onRequest, required this.onConfigAnalysis, required this.configurationCharts});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +27,9 @@ class ConfigurationPanel extends StatelessWidget {
           EtfSettingsPanel(onRunAnalysis: (AnalysisRequest request) {
             onRequest(request);
           }),
-          EtfSettingsCharts(onConfigAnalysis: (ChartsConfiguration config){
-            onConfigAnalysis(config);
+          EtfSettingsCharts(configurationCharts: configurationCharts,
+            onConfigAnalysis: (ChartsConfiguration config){
+              onConfigAnalysis(config);
           })
         ]),
       )

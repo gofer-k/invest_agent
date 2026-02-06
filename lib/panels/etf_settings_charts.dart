@@ -8,7 +8,8 @@ import '../widgets/utils/shrinkable.dart';
 
 class EtfSettingsCharts extends StatefulWidget {
   final void Function(ChartsConfiguration) onConfigAnalysis;
-  const EtfSettingsCharts({super.key, required this.onConfigAnalysis});
+  final ChartsConfiguration configurationCharts;
+  const EtfSettingsCharts({super.key, required this.onConfigAnalysis, required this.configurationCharts});
 
   @override
   State<StatefulWidget> createState() => _EtfSettingsChartsState();
@@ -16,9 +17,24 @@ class EtfSettingsCharts extends StatefulWidget {
 
 class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
   List<PeriodType> periods = PeriodType.values.toList();
-  PeriodType selectedPeriod = PeriodType.year;
-  List<MultiChart> multiChart = [];
+  late PeriodType _selectedPeriod;
+  PeriodType get selectedPeriod => _selectedPeriod;
+  set selectedPeriod(PeriodType value) {
+    _selectedPeriod = value;
+  }
+  late List<MultiChart> _multiChart;
+  List<MultiChart> get multiChart => _multiChart;
+  set multiChart(List<MultiChart> value) {
+    _multiChart = value;
+  }
 
+  @override
+  void initState() {
+    super.initState();
+    selectedPeriod = widget.configurationCharts.periodType;
+    multiChart = List.from(widget.configurationCharts.multiCharts);
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -36,7 +52,7 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
             const Text("Main chart type"),
 
             IconButton(icon: Icon(Icons.add), onPressed: (){
-              showConfigurationChart(context, (newMultiChart) {
+              showConfigurationChart(context, null, (newMultiChart) {
                 setState(() {
                   multiChart.add(newMultiChart);
                 });
@@ -45,7 +61,27 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
           ]
         ),
         for (var chart in multiChart)
-          Shrinkable(title: chart.title, expanded: true,
+          Shrinkable(title: chart.title,
+            actions: [
+              IconButton(icon: Icon(Icons.update_outlined),
+                onPressed: (){
+                  showConfigurationChart(context, chart, (newMultiChart) {
+                    setState(() {
+                      final index = multiChart.indexOf(chart);
+                      if (index != -1) {
+                        multiChart[index] = newMultiChart;
+                      }
+                    });
+                  });
+                }),
+              IconButton(icon: Icon(Icons.remove_outlined),
+                onPressed: (){
+                  setState(() {
+                    multiChart.remove(chart);
+                  });
+                }),
+            ],
+            expanded: true,
             body: Column(
               children: [
                Text(chart.mainChart.toString().split('.').last, style: Theme.of(context).textTheme.titleLarge),
@@ -61,11 +97,11 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
                       )
                     ).toList(),
                   ),
-                IconButton(icon: Icon(Icons.remove_outlined), onPressed: (){
-                   setState(() {
-                     multiChart.remove(chart);
-                   });
-                }),
+                // IconButton(icon: Icon(Icons.remove_outlined), onPressed: (){
+                //    setState(() {
+                //      multiChart.remove(chart);
+                //    });
+                // }),
               ],
             ),
           ),

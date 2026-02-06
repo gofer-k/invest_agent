@@ -3,41 +3,57 @@ import 'package:invest_agent/widgets/utils/dropdown.dart';
 import '../model/charts_configuration.dart';
 
 void showConfigurationChart(
-    BuildContext context, Function(MultiChart newMultiChart) onSave) {
+    BuildContext context, MultiChart? chart,
+    Function(MultiChart newMultiChart) onSave) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return ChartConfigDialog(onSave: onSave);
+      return ChartConfigDialog(chart: chart, onSave: onSave);
     },
   );
 }
 
 class ChartConfigDialog extends StatefulWidget {
   final Function(MultiChart newMultiChart) onSave;
+  final MultiChart? chart;
 
-  const ChartConfigDialog({super.key, required this.onSave});
+  const ChartConfigDialog({super.key, required this.onSave, required this.chart});
 
   @override
   State<ChartConfigDialog> createState() => _ChartConfigDialogState();
 }
 
 class _ChartConfigDialogState extends State<ChartConfigDialog> {
-  String multiTitle = '';
-  MainChartType selectedMainChart = MainChartType.linePrice;
-  SupplementChart overlayChart = SupplementChart.sma;
-  List<SupplementChart> selectedOverlayCharts = [];
+  late String _multiTitle;
+  String get multiTitle => _multiTitle;
+  set multiTitle(String value) => _multiTitle = value;
+
+  late MainChartType _selectedMainChart;
+  MainChartType get selectedMainChart => _selectedMainChart;
+  set selectedMainChart(MainChartType value) => _selectedMainChart = value;
+
+  late List<SupplementChart> _selectedOverlayCharts;
+  List<SupplementChart> get selectedOverlayCharts => _selectedOverlayCharts;
+  set selectedOverlayCharts(List<SupplementChart> value) =>  _selectedOverlayCharts = value;
+
   late final TextEditingController controller;
+  SupplementChart overlayChart = SupplementChart.sma;
 
   @override
   void initState() {
     super.initState();
     controller = TextEditingController();
+    multiTitle = widget.chart?.title ?? '';
+    selectedMainChart = widget.chart?.mainChart ?? MainChartType.linePrice;
+    selectedOverlayCharts = List.from(widget.chart?.overlayCharts ?? []);
+    controller.text = multiTitle;
   }
 
   @override
   Widget build(BuildContext context) {
+    final titleStr = widget.chart != null ? "Add multi Chart" : "Update multi Chart";
     return AlertDialog(
-      title: const Text("Add multi Chart"),
+      title: Text(titleStr),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

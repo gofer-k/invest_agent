@@ -24,10 +24,10 @@ enum SupplementChart {
 }
 
 class MultiChart {
-  String title;
-  MainChartType mainChart;
-  List<SupplementChart> overlayCharts;
-  MultiChart({required this.title, required this.mainChart, required this.overlayCharts});
+  final String title;
+  final MainChartType mainChart;
+  final List<SupplementChart> overlayCharts;
+  const MultiChart({required this.title, this.mainChart = MainChartType.linePrice, this.overlayCharts = const[]});
   void removeOverlayChart(SupplementChart suppChart) {
     overlayCharts.remove(suppChart);
   }
@@ -52,7 +52,8 @@ class ChartsConfiguration {
       SupplementChart.emaSignal]
   };
 
-  ChartsConfiguration({required this.periodType, required this.multiCharts});
+  ChartsConfiguration({this.periodType = PeriodType.year,
+    this.multiCharts = const [MultiChart(title: "Price")]});
 
   static bool validate(MultiChart chart) {
     final availableSuppCharts = _profileRules[chart.mainChart];

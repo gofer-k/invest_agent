@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class Shrinkable extends StatefulWidget {
   final String title;
   final Widget body;
+  final List<IconButton> actions;
   final TextStyle? titleStyle;
   final bool expanded;
 
@@ -10,6 +11,7 @@ class Shrinkable extends StatefulWidget {
     super.key,
     required this.title,
     required this.body,
+    this.actions = const[],
     this.titleStyle,
     this.expanded = false
   });
@@ -71,9 +73,13 @@ class _ShrinkableState extends State<Shrinkable>
             padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisSize: MainAxisSize.max,
               children: [
                 Text(widget.title,
                   style: widget.titleStyle ?? Theme.of(context).textTheme.titleMedium,),
+                for(var action in widget.actions)
+                  action,
+                  const SizedBox(width: 2),
                 Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
               ],
             ),
