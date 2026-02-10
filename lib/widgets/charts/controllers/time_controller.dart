@@ -41,15 +41,16 @@ class TimeController extends ChangeNotifier {
   }
 
   void zoom(double factor, DateTime? anchor) {
-    if (factor == 1.0)  return;
+      if (factor == 1.0)  return;
 
-    final currentSpan = visibleSpan;
-    final newSpan = currentSpan * (1 / factor);
-    if (newSpan <= initialSpan) {
-      final mid = visibleStart.add(currentSpan ~/ 2);
-      visibleStart = mid.subtract(newSpan ~/ 2);
-      visibleEnd = mid.add(newSpan ~/ 2);
-      notifyListeners();
+      final currentSpan = visibleSpan.inMilliseconds;
+      final newSpan = Duration(milliseconds: (currentSpan * (1 / factor)).round()); // Assuming rounding is desired for double result
+      if (newSpan <= initialSpan) {
+        final mid = visibleStart.add(visibleSpan ~/ 2);
+        final halfNewSpan = newSpan ~/ 2;
+        visibleStart = mid.subtract(halfNewSpan);
+        visibleEnd = mid.add(halfNewSpan);
+        notifyListeners();
+      }
     }
-  }
 }

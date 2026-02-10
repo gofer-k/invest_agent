@@ -121,11 +121,11 @@ class _MultiChartViewState extends State<MultiChartView> {
   OverlayChart _showMainChart(MainChartType chartType) {
     return switch(chartType) {
       MainChartType.candlestickPrice =>
-        OverlayCandlestick(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
+        OverlayCandlestick(data: widget.results.getPriceData(widget.prefixDomain, _chartController.visibleStart, _chartController.visibleEnd)),
       MainChartType.linePrice =>
-        OverlayPriceChart(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
+        OverlayPriceChart(data: widget.results.getPriceData(widget.prefixDomain, _chartController.visibleStart, _chartController.visibleEnd)),
       MainChartType.macd => OverlayMacd(data: widget.results.getMacd(MACDType.MACD_12_26)),
-      MainChartType.volume => OverlayVolume(data: widget.results.getPriceData(20,  _chartController.visibleStart, _chartController.visibleEnd)),
+      MainChartType.volume => OverlayVolume(data: widget.results.getPriceData(widget.prefixDomain,  _chartController.visibleStart, _chartController.visibleEnd)),
       MainChartType.rsi => OverlayRsi(data: widget.results.getRsi()),
     };
   }

@@ -20,6 +20,10 @@ class OverlayPriceChart extends OverlayChart {
       ..color = lineColor
       ..strokeWidth = strokeWidth;
 
+    final paintPoint = Paint()
+      ..color = Colors.redAccent
+      ..style = PaintingStyle.fill;
+
     final int firstVisibleIndex = data.indexWhere(
       (price) => !price.dateTime.isBefore(ctx.startDate),
     );
@@ -45,6 +49,7 @@ class OverlayPriceChart extends OverlayChart {
         ctx.priceToPos(currentPrice.closePrice, size.height),
       );
       canvas.drawLine(prevOffset, currOffset, paint);
+      canvas.drawCircle(currOffset, 3, paintPoint);
     }
   }
 }

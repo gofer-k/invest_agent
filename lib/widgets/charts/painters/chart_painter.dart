@@ -30,8 +30,8 @@ class ChartPainter extends CustomPainter {
     final halfWidthSideLabels = widthSideLabels / 2.0;
     canvas.save();
     drawDatetimeIndicateLine(controller.visibleStart, controller.visibleEnd, currTime, (DateTime newTime) {
-      final x = dateToPos(newTime, controller.visibleStart, controller.visibleEnd, size.width);
-      canvas.drawLine(Offset(x + halfWidthSideLabels, 0), Offset(x + halfWidthSideLabels, size.height), paintGrid);
+      final x = dateToPos(newTime, controller.visibleStart, controller.visibleEnd, size.width) + halfWidthSideLabels;
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paintGrid);
     });
     canvas.restore();
   }
@@ -56,7 +56,7 @@ class ChartPainter extends CustomPainter {
     canvas.save();
     canvas.clipRect(clipRect);
 
-    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inDays.toDouble();
+    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inMilliseconds;
     if (snapDays <= 0 || size.width <= 0) return;
 
     _paintBackGround(canvas, size);

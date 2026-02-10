@@ -25,6 +25,11 @@ class OverlayTooltipMarker extends OverlayChart {
       Offset(pos.dx, size.height),
       linePaint,
     );
+    canvas.drawLine(
+      Offset(0, pos.dy),
+      Offset(size.width, pos.dy),
+      linePaint,
+    );
 
     // Circle marker
     final circlePaint = Paint()

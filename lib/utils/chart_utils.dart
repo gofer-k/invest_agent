@@ -1,3 +1,5 @@
+import 'package:invest_agent/model/analysis_respond.dart';
+
 import '../model/analysis_period.dart';
 import 'custom_datetime_format.dart';
 
@@ -11,9 +13,50 @@ double valueToPos({required double currValue, required double min,
 }
 
 double dateToPos(DateTime curr, DateTime start, DateTime end, double width) {
-  final spanDays = end.difference(start).inDays;
-  final ratio = curr.difference(start).inDays / spanDays;
+  final total = end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
+  if (total == 0) return 0;
+
+  final currOffset = curr.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
+  final ratio = currOffset / total;
+
   return ratio * width;
+}
+
+DateTime posToDate(double x, DateTime start, DateTime end, double width) {
+  final total = end.millisecondsSinceEpoch - start.millisecondsSinceEpoch;
+  final ratio = x / width;
+  final ms = start.millisecondsSinceEpoch + (ratio * total).round();
+  return DateTime.fromMillisecondsSinceEpoch(ms);
+}
+
+// int findNearestIndex(DateTime target, List<Tt extends BaseIndicatorValue> data) {
+int findNearestIndex(DateTime startDate, DateTime target, List<BaseIndicatorValue> data) {
+  int low = 0;
+  int high = data.length - 1;
+  // final int firstVisibleIndex = data.indexWhere(
+  //       (price) => !price.dateTime.isBefore(startDate),
+  // );
+  while (low < high) {
+    final mid = (low + high) >> 1;
+    final midTime = data[mid].dateTime;
+
+    if (midTime.isBefore(target)) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+
+  // low is the first >= target
+  if (low == 0) return 0;
+
+  final prev = data[low - 1];
+  final curr = data[low];
+
+  final diffPrev = (prev.dateTime.millisecondsSinceEpoch - target.millisecondsSinceEpoch).abs();
+  final diffCurr = (curr.dateTime.millisecondsSinceEpoch - target.millisecondsSinceEpoch).abs();
+
+  return diffPrev < diffCurr ? low - 1 : low;
 }
 
 DateTime? startDatetime(PeriodType period, DateTime endDate) {
