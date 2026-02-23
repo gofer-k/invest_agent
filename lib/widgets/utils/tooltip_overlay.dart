@@ -6,18 +6,24 @@ import '../charts/overlay_chart.dart';
 
 class TooltipOverlay extends StatelessWidget {
   final CrosshairController tooltipController;
+  final Size viewport;
 
-  const TooltipOverlay({super.key, required this.tooltipController});
+  const TooltipOverlay({super.key, required this.tooltipController, required this.viewport});
 
   @override
   Widget build(BuildContext context) {
+    final maxWidthPos = viewport.width;
+    final maxHeightPos = viewport.height;
+
     return AnimatedBuilder(
         animation: tooltipController,
         builder: (context, _) {
           final data = tooltipController.data;
           if (data == null) return const SizedBox.shrink();
-          return Positioned(
-            left: data.position.dx + 8, top: data.position.dy - 40,
+          final posLeft = data.position.dx.clamp(0.0, maxWidthPos);
+          final posTop = data.position.dy.clamp(0.0, maxHeightPos);
+
+          return Positioned(left: posLeft, top: posTop,
             child: Container(margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

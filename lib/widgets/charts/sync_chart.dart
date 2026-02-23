@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/analysis_request.dart';
+import 'package:invest_agent/model/axis_label.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
 import 'package:invest_agent/widgets/charts/overlay_bellinger_band.dart';
 import 'package:invest_agent/widgets/charts/overlay_candlestick.dart';
@@ -42,6 +43,9 @@ class _SyncChartState extends State<SyncChart> {
   Widget build(BuildContext context) {
     const sideLabelsWidth = 60.0;
     const bottomLabelsHeight = 48.0;
+    DateTimeLabel? bottomLabel;
+    ValueLabel? valueLabel;
+
     return AnimatedBuilder(
       animation: Listenable.merge([widget.controller, widget.crosshairController]),
       builder: (context, _) {
@@ -70,6 +74,13 @@ class _SyncChartState extends State<SyncChart> {
               final currTime = posToDate(local.dx, widget.controller.visibleStart, widget.controller.visibleEnd, chartSpace.width);
               final nearest = _findNearestValue(widget.controller.visibleStart, currTime, chartSpace.width, chartSpace.height);
               widget.crosshairController?.update(nearest);
+              if(nearest != null) {
+                bottomLabel = DateTimeLabel(time: nearest.time, position: Offset(0.0, chartSpace.height));
+                if (nearest.data.isNotEmpty) {
+                  valueLabel = ValueLabel(value: nearest.data.first.value!,
+                      position: nearest.position);
+                }
+              }
             },
             child: GestureDetector(
               onScaleStart: (_) {},
@@ -93,7 +104,7 @@ class _SyncChartState extends State<SyncChart> {
               //   final nearest = _findNearestValue(currTime, width, constraints.maxHeight);
               //   widget.crosshairController?.update(nearest);
               // },
-              onTapUp: (_) => widget.crosshairController?.clear(),
+              // onTapUp: (_) => widget.crosshairController?.clear(),
               child:  Stack(
                 children: [
                   Column(
@@ -114,8 +125,12 @@ class _SyncChartState extends State<SyncChart> {
                           // Side label
                           SizedBox(width: sideLabelsWidth,
                               child: CustomPaint(
-                                  size: Size(sideLabelsWidth, chartSpace.height),
-                                  painter: SideAxisPainter(controller: widget.controller, minValue: widget.minFunc, maxValue: widget.maxFunc)
+                                size: Size(sideLabelsWidth, chartSpace.height),
+                                painter: SideAxisPainter(controller: widget.controller,
+                                    minValue: widget.minFunc,
+                                    maxValue: widget.maxFunc,
+                                    highLightLabels: [?valueLabel]
+                                )
                               )
                           )
                         ]),
@@ -124,13 +139,16 @@ class _SyncChartState extends State<SyncChart> {
                         SizedBox(width: chartSpace.width,  height: bottomLabelsHeight,
                             child: CustomPaint(
                                 size: Size(chartSpace.width, bottomLabelsHeight),
-                                painter: BottomAxisPainter(startDate: widget.controller.visibleStart, endDate: widget.controller.visibleEnd)
+                                painter: BottomAxisPainter(
+                                    startDate: widget.controller.visibleStart,
+                                    endDate: widget.controller.visibleEnd,
+                                    highLightLabels: [?bottomLabel])
                             )
                         )
                       ]
                   ),
                   if (widget.crosshairController != null)
-                    TooltipOverlay(tooltipController: widget.crosshairController!),
+                    TooltipOverlay(viewport: chartSpace, tooltipController: widget.crosshairController!),
                 ],
               )
             )
@@ -168,7 +186,7 @@ class _SyncChartState extends State<SyncChart> {
         if (data == null) continue;
 
         if (nearestIndex == -1) {
-          nearestIndex = findNearestIndex(startDate, currTime, data);
+          nearestIndex = findNearestIndex(currTime, data);
           nearestDatetime = data[nearestIndex].dateTime;
         }
         final snappedItem = data[nearestIndex];

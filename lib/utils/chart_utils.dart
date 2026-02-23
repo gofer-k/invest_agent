@@ -29,13 +29,9 @@ DateTime posToDate(double x, DateTime start, DateTime end, double width) {
   return DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
-// int findNearestIndex(DateTime target, List<Tt extends BaseIndicatorValue> data) {
-int findNearestIndex(DateTime startDate, DateTime target, List<BaseIndicatorValue> data) {
+int findNearestIndex(DateTime target, List<BaseIndicatorValue> data) {
   int low = 0;
   int high = data.length - 1;
-  // final int firstVisibleIndex = data.indexWhere(
-  //       (price) => !price.dateTime.isBefore(startDate),
-  // );
   while (low < high) {
     final mid = (low + high) >> 1;
     final midTime = data[mid].dateTime;
