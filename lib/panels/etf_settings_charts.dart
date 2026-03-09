@@ -22,11 +22,7 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
   set selectedPeriod(PeriodType value) {
     _selectedPeriod = value;
   }
-  late List<MultiChart> _multiChart;
-  List<MultiChart> get multiChart => _multiChart;
-  set multiChart(List<MultiChart> value) {
-    _multiChart = value;
-  }
+  late List<MultiChart> multiChart;
 
   @override
   void initState() {

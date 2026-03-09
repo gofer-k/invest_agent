@@ -19,11 +19,9 @@ samples, guidance on mobile development, and a full API reference.
 - display candles signals
 - filter out the respond data by specific intervals??
 - display configured a chart values (main, supplement charts or indicator or signals): max, min, level values on the side pane
-- panel for visualization parameters: chosen charts, period per group charts, customize chart styl
+- panel for visualization parameters: chosen charts, period per group charts, customize chart style
 - custom style visualization, themes
 - improve performance of visualization 
 - add option to transfer dates via gRPC
 - various signals
-bugs:
-- sometimes crosshair and tooltip marker doesn't match to the chart point.
 
