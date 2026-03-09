@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:invest_agent/panels/portfolio_config_panel.dart';
 
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
@@ -13,13 +14,14 @@ class ConfigurationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(length: 2,
+    return DefaultTabController(length: 3,
       child: Scaffold(
         appBar: AppBar(
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.settings), text: 'Request'),
               Tab(icon: Icon(Icons.update), text: 'Results'),
+              Tab(icon: Icon(Icons.cached), text: 'Portfolio'),
             ]
           ),
         ),
@@ -30,7 +32,8 @@ class ConfigurationPanel extends StatelessWidget {
           EtfSettingsCharts(configurationCharts: configurationCharts,
             onConfigAnalysis: (ChartsConfiguration config){
               onConfigAnalysis(config);
-          })
+          }),
+          PortfolioConfigPanel(),
         ]),
       )
     );

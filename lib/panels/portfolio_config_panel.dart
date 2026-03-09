@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../model/portfolio_config.dart';
 import '../themes/app_themes.dart';
 import '../widgets/utils/shrinkable.dart';
+import 'package:path/path.dart' as p;
 
 class PortfolioConfigPanel extends StatefulWidget {
   const PortfolioConfigPanel({super.key});
@@ -22,6 +23,8 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
   final weightController = TextEditingController();
   final metaIdController = TextEditingController();
   final thresholdController = TextEditingController(text: "0.05");
+
+  String? cache;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +49,7 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
                   child: const Text("Select historical dataset"),
                 ),
                 const SizedBox(height: 10),
-                Text(config_file ?? "No file selected"),
+                Text(cache ?? "No file selected"),
               ],
             ),
           ),
@@ -144,6 +147,9 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
       if (!mounted) return;
 
       config_file = result.files.single.path!;
+      setState(() {
+        cache = p.basenameWithoutExtension(result.files.single.path!);
+      });
     } catch (e) {
       // After the await (which might have thrown the error), check if the widget is still here.
       if (!mounted) return;
