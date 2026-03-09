@@ -36,6 +36,7 @@ dependencies:
   http_parser: ^4.1.2
   intl: ^0.20.2
   dart_duckdb: ^1.4.4
+  sealed_currencies: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
