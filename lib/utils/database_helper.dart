@@ -1,6 +1,6 @@
 import 'package:dart_duckdb/dart_duckdb.dart';
 import 'package:invest_agent/model/cache_registry.dart';
-import '../model/cache.dart';
+import '../model/cache_schema.dart';
 
 
 class DatabaseHelper {
@@ -28,39 +28,39 @@ class DatabaseHelper {
   }
 
   // --- CRUD OPERATIONS ---
-  Future<void> createCache<T extends Cache>(T cache) async {
-    _con.execute(cache.createKey());
-    _con.execute(cache.create());
+  Future<void> createCache<T extends CacheSchema>() async {
+    await _con.execute((T as dynamic).createKey);
+    await _con.execute((T as dynamic).create);
   }
 
-  Future<T?> fetchOne<T extends Cache>(T cache) async {
+  Future<T?> fetchOne<T extends CacheSchema>(T cache) async {
     final queryResult = (await _con.query(cache.readOne())).fetchOne();
     return queryResult != null ? CacheRegistry.create<T>(queryResult) : null;
   }
 
-  Future<List<T>> fetchAll<T extends Cache>(T cache) async {
-    final queryResults = (await _con.query(cache.readAll())).fetchAll();
+  Future<List<T>> fetchAll<T extends CacheSchema>() async {
+    final queryResults = (await _con.query((T as dynamic).readAll())).fetchAll();
     return queryResults.map((row) => CacheRegistry.create<T>(row)).toList();
   }
 
-  Future<void> saveOne<T extends Cache>(T cache) async {
+  Future<void> saveOne<T extends CacheSchema>(T cache) async {
     await _con.execute(cache.saveOne());
   }
 
-  Future<void> saveAll<T extends Cache>(List<T> caches) async {
+  Future<void> saveAll<T extends CacheSchema>(List<T> caches) async {
     for (final cache in caches) {
       await _con.execute(cache.saveOne());
     }
   }
 
-  Future<void> updateOne<T extends Cache>(T cache) async {
+  Future<void> updateOne<T extends CacheSchema>(T cache) async {
     final query = cache.updateOne();
     if (query != null) {
       await _con.execute(query);
     }
   }
 
-  Future<void> updateAll<T extends Cache>(List<T> caches) async {
+  Future<void> updateAll<T extends CacheSchema>(List<T> caches) async {
     for (final cache in caches) {
       final query = cache.updateOne();
       if (query != null) {
@@ -69,14 +69,12 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> deleteOne<T extends Cache>(T cache) async{
+  Future<void> deleteOne<T extends CacheSchema>(T cache) async{
     await _con.execute(cache.deleteOne());
   }
 
-  Future<void> deleteAll<T extends Cache>(List<T> caches) async{
-    for (final cache in caches) {
-      await _con.execute(cache.deleteOne());
-    }
+  Future<void> deleteAll<T extends CacheSchema>() async{
+    await _con.execute((T as dynamic).deleteAll());
   }
 
   void dispose() {
