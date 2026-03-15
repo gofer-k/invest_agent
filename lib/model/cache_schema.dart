@@ -1,14 +1,16 @@
 abstract class CacheSchema {
-  static String createKey() => throw UnimplementedError();
-  static String create() => throw UnimplementedError();
-  static String readAll() => throw UnimplementedError();
-  static String deleteAll() => throw UnimplementedError();
+  String get createKey;
+  String get create;
+  String get readAll;
+  String get deleteAll;
 
-  String deleteOne();
-  String saveOne();
-  String readOne();
-  String? updateOne();
+  String deleteOne(Cache cache);
+  String saveOne(Cache cache);
+  String readOne(Cache cache);
+  String updateOne(Cache cache);
+}
 
-  CacheSchema.from(List<Object?> item);
+abstract class Cache {
+  Cache.from(List<Object?> item);
   Map<String, dynamic> toMap();
 }

@@ -1,11 +1,14 @@
 import 'package:invest_agent/model/portfolio_config.dart';
 
+import 'asset_config.dart';
+
 typedef CacheFactory<T> = T Function(List<Object?> item);
 
 class CacheRegistry {
   // A map that links Types to their specific factory functions
   static final Map<Type, CacheFactory<Object>> _factories = {
     PortfolioConfig: (item) => PortfolioConfig.from(item),
+    AssetConfig: (item) => AssetConfig.from(item),
     // Add other models here:
   };
 

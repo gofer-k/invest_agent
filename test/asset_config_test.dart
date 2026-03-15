@@ -3,10 +3,12 @@ import 'package:sealed_currencies/sealed_currencies.dart';
 import 'package:invest_agent/model/asset_config.dart';
 
 void main() {
+
   group('AssetConfig Tests', () {
     final testCurrency = FiatEur();
-    const testExchange = StockExchange.XETRA;
+    const testExchange = StockExchange.xEtra;
     const testSymbol = "SAP";
+    final schema = AssetConfigSchema();
 
     test('should initialize correctly with constructor', () {
       final config = AssetConfig(
@@ -31,7 +33,7 @@ void main() {
       expect(config.id, 10);
       expect(config.symbol, "VOD");
       expect(config.currency.code, "GBP");
-      expect(config.stockExchange, StockExchange.LSE);
+      expect(config.stockExchange, StockExchange.lSe);
     });
 
     test('from() factory should throw exception on invalid currency', () {
@@ -48,7 +50,7 @@ void main() {
       final config = AssetConfig(
         symbol: "BMW",
         currency: FiatEur(),
-        stockExchange: StockExchange.XETRA,
+        stockExchange: StockExchange.xEtra,
       );
 
       final map = config.toMap();
@@ -60,42 +62,41 @@ void main() {
     });
 
     group('SQL String Generation', () {
-      final config = AssetConfig(
-        id: 99,
-        symbol: "PKN",
-        currency: FiatPln(),
-        stockExchange: StockExchange.XWAR,
-      );
-
       test('create() contains correct table name and columns', () {
-        final sql = AssetConfig.create();
-        expect(sql, contains("CREATE TABLE IF NOT EXISTS metadata"));
+        final sql = schema.create;
+        expect(sql, contains("CREATE TABLE IF NOT EXISTS ${AssetConfigSchema.cacheName}"));
         expect(sql, contains("symbol TEXT NOT NULL"));
         expect(sql, contains("symbol_suffix VARCHAR"));
       });
 
       test('readOne() uses correct ID', () {
-        expect(config.readOne(), contains("WHERE id = 99"));
+        final item = AssetConfig(id: 1, symbol: "ABC", currency: FiatEur(),
+            stockExchange: StockExchange.xEtra);
+        expect(schema.readOne(item), contains("WHERE id = ${item.id}"));
       });
 
       test('deleteOne() uses correct ID', () {
-        expect(config.deleteOne(), contains("WHERE id = 99"));
+        final item = AssetConfig(id: 1, symbol: "ABC", currency: FiatEur(),
+            stockExchange: StockExchange.xEtra);
+        expect(schema.deleteOne(item), contains("WHERE id = 99"));
       });
 
       test('updateOne() returns null if ID is missing', () {
         final newConfig = AssetConfig(
           symbol: "NEW",
           currency: FiatUsd(),
-          stockExchange: StockExchange.LSE,
+          stockExchange: StockExchange.lSe,
         );
-        expect(newConfig.updateOne(), isNull);
+        expect(schema.updateOne(newConfig), isNull);
       });
 
       test('updateOne() generates valid SQL when ID is present', () {
-        final sql = config.updateOne();
-        expect(sql, contains("UPDATE metadata"));
-        expect(sql, contains("SET symbol = 'PKN'"));
-        expect(sql, contains("WHERE id = 99"));
+        final item = AssetConfig(id: 1, symbol: "ABC", currency: FiatEur(),
+            stockExchange: StockExchange.xEtra);
+        final sql = schema.updateOne(item);
+        expect(sql, contains("UPDATE ${AssetConfigSchema.cacheName}"));
+        expect(sql, contains("SET symbol = '${item.symbol}'"));
+        expect(sql, contains("WHERE id = ${item.id}"));
       });
     });
   });

@@ -6,10 +6,11 @@ import '../model/cache_schema.dart';
 class DatabaseHelper {
   // Singleton
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  late Database _db;
-  late Connection _con;
+  Database? _db;
+  Connection? _con;
   late String cacheFile;
-  bool _isInitialized = false;
+
+  Future<void>? _initFuture;
 
   factory DatabaseHelper(String cacheFile) {
    _instance.cacheFile = cacheFile;
@@ -19,66 +20,87 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<void> init() async {
-    if (_isInitialized) return;
+    if (_initFuture != null) return _initFuture;
 
-    _db = await duckdb.open(cacheFile);
-    _con = await duckdb.connect(_db);
+    _initFuture = _doInit();
+    return _initFuture;
+  }
 
-    _isInitialized = true;
+  Future<void> _doInit() async {
+    try {
+      _db = await duckdb.open(cacheFile);
+      _con = await duckdb.connect(_db!);
+    } catch (e) {
+      _initFuture = null;
+      rethrow;
+    }
+  }
+
+  Connection get con {
+    if (_con == null) {
+      throw StateError('DatabaseHelper must be initialized by calling await init() before use.');
+    }
+    return _con!;
+  }
+
+  Database get db {
+    if (_db == null) {
+      throw StateError('DatabaseHelper must be initialized by calling await init() before use.');
+    }
+    return _db!;
   }
 
   // --- CRUD OPERATIONS ---
-  Future<void> createCache<T extends CacheSchema>() async {
-    await _con.execute((T as dynamic).createKey);
-    await _con.execute((T as dynamic).create);
+  Future<void> createCache(CacheSchema schema) async {
+    await con.execute(schema.createKey);
+    await con.execute(schema.create);
   }
 
-  Future<T?> fetchOne<T extends CacheSchema>(T cache) async {
-    final queryResult = (await _con.query(cache.readOne())).fetchOne();
+  Future<T?> fetchOne<T extends Cache>(CacheSchema schema, T cache) async {
+    final queryResult = (await con.query(schema.readOne(cache))).fetchOne();
     return queryResult != null ? CacheRegistry.create<T>(queryResult) : null;
   }
 
-  Future<List<T>> fetchAll<T extends CacheSchema>() async {
-    final queryResults = (await _con.query((T as dynamic).readAll())).fetchAll();
-    return queryResults.map((row) => CacheRegistry.create<T>(row)).toList();
+  Future<List<T>> fetchAll<T extends Cache>(CacheSchema schema) async {
+    final queryResults = await con.query(schema.readAll);
+    return queryResults.fetchAll().map((row) => CacheRegistry.create<T>(row)).toList();
   }
 
-  Future<void> saveOne<T extends CacheSchema>(T cache) async {
-    await _con.execute(cache.saveOne());
+  Future<void> saveOne<T extends Cache>(CacheSchema schema, T cache) async {
+    await con.execute(schema.saveOne(cache));
   }
 
-  Future<void> saveAll<T extends CacheSchema>(List<T> caches) async {
+  Future<void> saveAll<T extends Cache>(CacheSchema schema, List<T> caches) async {
     for (final cache in caches) {
-      await _con.execute(cache.saveOne());
+      await con.execute(schema.saveOne(cache));
     }
   }
 
-  Future<void> updateOne<T extends CacheSchema>(T cache) async {
-    final query = cache.updateOne();
-    if (query != null) {
-      await _con.execute(query);
-    }
+  Future<void> updateOne<T extends Cache>(CacheSchema schema, T cache) async {
+    final query = schema.updateOne(cache);
+     await con.execute(query);
   }
 
-  Future<void> updateAll<T extends CacheSchema>(List<T> caches) async {
+  Future<void> updateAll<T extends Cache>(CacheSchema schema, List<T> caches) async {
     for (final cache in caches) {
-      final query = cache.updateOne();
-      if (query != null) {
-        await _con.execute(query);
-      }
+      final query = schema.updateOne(cache);
+      await con.execute(query);
     }
   }
 
-  Future<void> deleteOne<T extends CacheSchema>(T cache) async{
-    await _con.execute(cache.deleteOne());
+  Future<void> deleteOne<T extends Cache>(CacheSchema schema, T cache) async{
+    await con.execute(schema.deleteOne(cache));
   }
 
-  Future<void> deleteAll<T extends CacheSchema>() async{
-    await _con.execute((T as dynamic).deleteAll());
+  Future<void> deleteAll<T extends Cache>(CacheSchema schema) async{
+    await con.execute(schema.deleteAll);
   }
 
   void dispose() {
-    _con.dispose();
-    _db.dispose();
+    _con?.dispose();
+    _db?.dispose();
+    _initFuture = null;
+    _con = null;
+    _db = null;
   }
 }

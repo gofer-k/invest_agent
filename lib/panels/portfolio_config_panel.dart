@@ -36,11 +36,11 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
   Future<void> _loadData() async {
     dbHelper = DatabaseHelper(configFile ?? "");
     dbHelper.init();
-    dbHelper.createCache<PortfolioConfig>();
-    dbHelper.createCache<AssetConfig>();
+    dbHelper.createCache(PortfolioConfigSchema());
+    dbHelper.createCache(AssetConfigSchema());
 
-    portfolios = await dbHelper.fetchAll<PortfolioConfig>();
-    assets = await dbHelper.fetchAll<AssetConfig>();
+    portfolios = await dbHelper.fetchAll<PortfolioConfig>(PortfolioConfigSchema());
+    assets = await dbHelper.fetchAll<AssetConfig>(AssetConfigSchema());
     if (mounted) {
       setState(() {
         // Update UI after work is done
@@ -56,7 +56,6 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     dbHelper.dispose();
     super.dispose();
   }
@@ -142,7 +141,7 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
                     onDeleted: () {
                       setState(() {
                         portfolio.metaIds.remove(asset.id);
-                        dbHelper.updateOne<PortfolioConfig>(portfolio);
+                        dbHelper.updateOne<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
                       });
                     },
                   )
@@ -174,7 +173,6 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
   //         TextFormField(controller: nameController,
   //           decoration: InputDecoration(labelText: 'Portfolio name'),
   //           validator: (value) => (value == null || value.isEmpty) ? 'put a name' : null,),
-  //         // TODO: Load list of asset names from the database
   //         // TextFormField(
   //         //   controller: metaIdController,
   //         //   decoration: InputDecoration(labelText: 'Meta ID (FK)'),

@@ -2,9 +2,9 @@ import 'package:invest_agent/model/cache_schema.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
 enum StockExchange {
-  LSE("XLON", ".L"),
-  XETRA("XETR", ".DE"),
-  XWAR("xWAR", ".WA");
+  lSe("XLON", ".L"),
+  xEtra("XETR", ".DE"),
+  xWar("xWAR", ".WA");
 
   const StockExchange(this.code, this.suffix);
 
@@ -17,19 +17,77 @@ enum StockExchange {
   final String suffix;
 }
 
-class AssetConfig extends CacheSchema{
+class AssetConfigSchema implements CacheSchema
+{
+  static const String cacheName = "metadata";
+  static const String cacheSequenceName = "metadata_id_sequence";
+
+  @override
+  String get create =>
+  '''
+      CREATE TABLE IF NOT EXISTS $cacheName (
+        id INTEGER PRIMARY KEY DEFAULT nextval('$cacheSequenceName'),
+        symbol TEXT NOT NULL,
+        exchange VARCHAR,
+        currency VARCHAR,
+        symbol_suffix VARCHAR,
+        UNIQUE(id, symbol));
+    ''';
+
+  @override
+  String get createKey => "CREATE SEQUENCE IF NOT EXISTS $cacheSequenceName START 1;";
+
+  @override
+  String get deleteAll => "DELETE FROM $cacheName;";
+
+  @override
+  String deleteOne(Cache cache) => "DELETE FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
+
+  @override
+  String get readAll => "SELECT * FROM $cacheName ORDER BY id DESC;";
+
+  @override
+  String readOne(Cache cache) => "SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
+
+  @override
+  String saveOne(Cache cache) {
+    final assetConfig = cache as AssetConfig;
+    return '''
+      INSERT INTO $cacheName 
+      VALUES (
+     nextval('$cacheSequenceName'),      
+     '${assetConfig.symbol}',
+     '${assetConfig.stockExchange.code}',
+     '${assetConfig.currency.code}',
+     '${assetConfig.stockExchange.suffix}' 
+      );
+    ''';
+  }
+
+  @override
+  String updateOne(Cache cache) {
+    final assetConfig = cache as AssetConfig;
+    return '''
+      UPDATE $cacheName
+      SET symbol = '${assetConfig.symbol}',
+          exchange = '${assetConfig.stockExchange.code}',
+          currency = '${assetConfig.currency.code}',
+          symbol_suffix = '${assetConfig.stockExchange.suffix}'
+      WHERE id = ${assetConfig.id};
+      ''';
+  }
+}
+
+class AssetConfig extends Cache{
   final int? id;
   final String symbol;
   final FiatCurrency currency;
   final StockExchange stockExchange;
 
-  static const String cacheName = "metadata";
-  static const String cacheSequenceName = "metadata_id_sequence";
-
-  static StockExchange? _stockExchangeFromString(String stockSymbol, String stock_suffix) {
+  static StockExchange? _stockExchangeFromString(String stockSymbol, String stockSuffix) {
     try {
       return StockExchange.values.firstWhere((e) =>
-      e.code == stockSymbol && e.suffix == stock_suffix);
+      e.code == stockSymbol && e.suffix == stockSuffix);
     } catch (e) {
       return null; // Return null if no match is found
     }
@@ -70,63 +128,4 @@ class AssetConfig extends CacheSchema{
     'currency': currency.code,
     'symbol_suffix': stockExchange.suffix,
   };
-
-  static String create() {
-    return '''
-      CREATE TABLE IF NOT EXISTS $cacheName (
-        id INTEGER PRIMARY KEY DEFAULT nextval('$cacheSequenceName'),
-        symbol TEXT NOT NULL,
-        exchange VARCHAR,
-        currency VARCHAR,
-        symbol_suffix VARCHAR,
-        UNIQUE(id, symbol));
-    ''';
-  }
-
-  static String createKey() {
-    return "CREATE SEQUENCE IF NOT EXISTS $cacheSequenceName START 1;";
-  }
-
-  static String deleteAll() {
-    return "DELETE FROM $cacheName;";
-  }
-
-  static String readAll() {
-    return "SELECT * FROM $cacheName ORDER BY id DESC;";
-  }
-
-  @override
-  String deleteOne() {
-    return "DELETE FROM $cacheName WHERE id = $id;";
-  }
-
-  @override
-  String readOne() {
-    return "SELECT * FROM $cacheName WHERE id = $id;";
-  }
-
-  @override
-  String saveOne() {
-    return '''
-      INSERT INTO $cacheName 
-      VALUES (
-     '$symbol',
-      '${currency.code}',
-      '${stockExchange.code}',
-      );
-      ''';
-  }
-
-  @override
-  String? updateOne() {
-    if (id == null) return null;
-    return '''
-      UPDATE $cacheName
-      SET symbol = '$symbol',
-          exchange = '${stockExchange.code}',
-          currency = '${currency.code}',
-          symbol_suffix = '${stockExchange.suffix}'
-      WHERE id = $id;
-      ''';
-  }
 }
