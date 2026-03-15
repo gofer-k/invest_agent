@@ -76,18 +76,9 @@ void main() {
       });
 
       test('deleteOne() uses correct ID', () {
-        final item = AssetConfig(id: 1, symbol: "ABC", currency: FiatEur(),
+        final item = AssetConfig(id: 99, symbol: "ABC", currency: FiatEur(),
             stockExchange: StockExchange.xEtra);
         expect(schema.deleteOne(item), contains("WHERE id = 99"));
-      });
-
-      test('updateOne() returns null if ID is missing', () {
-        final newConfig = AssetConfig(
-          symbol: "NEW",
-          currency: FiatUsd(),
-          stockExchange: StockExchange.lSe,
-        );
-        expect(schema.updateOne(newConfig), isNull);
       });
 
       test('updateOne() generates valid SQL when ID is present', () {

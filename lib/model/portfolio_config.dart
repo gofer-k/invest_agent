@@ -34,12 +34,19 @@ class PortfolioConfigSchema implements CacheSchema {
   ''';
 
   @override
-  String get deleteAll => "DELETE FROM $cacheName;";
+  String get deleteAll =>
+    '''
+    DELETE FROM $junctionTable;
+    DELETE FROM $cacheName;
+    ''';
 
   @override
   String deleteOne(Cache cache) {
     final id = (cache as PortfolioConfig).id;
-    return "DELETE FROM $cacheName WHERE id = $id;";
+    return '''
+      DELETE FROM $junctionTable WHERE portfolio_id = $id;
+      DELETE FROM $cacheName WHERE id = $id;      
+      ''';
   }
 
   @override
@@ -103,14 +110,17 @@ class PortfolioConfigSchema implements CacheSchema {
     final idsArray = "[${metaIds.join(',')}]";
 
     return '''
-     UPDATE $cacheName
+      -- Remove existing references first to prevent constraint issues during update
+      DELETE FROM $junctionTable WHERE portfolio_id = $id;
+      
+      -- Update the parent record
+      UPDATE $cacheName
       SET portfolio_name = '$portfolioName',
           target_weight = $targetWeight,
           rebalance_threshold = $rebalanceThreshold
       WHERE id = $id;
 
-      DELETE FROM $junctionTable WHERE portfolio_id = $id;
-
+      -- Re-insert the references
       INSERT INTO $junctionTable (portfolio_id, meta_id)
       SELECT $id, unnest($idsArray);
       ''';
@@ -140,9 +150,9 @@ class PortfolioConfig implements Cache{
     return PortfolioConfig(
       id: row[0] as int?,
       portfolioName: row[1] as String,
-      metaIds: [],  // Populate separate metaIds from junction source
-      targetWeight: (row[3] as num).toDouble(),
-      rebalanceThreshold: (row[4] as num).toDouble(),
+      targetWeight: (row[2] as num).toDouble(),
+      rebalanceThreshold: (row[3] as num).toDouble(),
+      metaIds: (row[4] as List).cast<int>(),
     );
   }
 
