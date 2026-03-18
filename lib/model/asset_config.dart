@@ -79,7 +79,7 @@ class AssetConfigSchema implements CacheSchema
 }
 
 class AssetConfig extends Cache{
-  final int? id;
+  final int id;
   final String symbol;
   final FiatCurrency currency;
   final StockExchange stockExchange;
@@ -94,11 +94,14 @@ class AssetConfig extends Cache{
   }
 
   AssetConfig({
-    this.id,
+    required this.id,
     required this.symbol,
     required this.currency,
     required this.stockExchange,
   }) : super.from([]);
+
+  @override
+  String toString() => symbol;
 
   @override
   factory AssetConfig.from(List<Object?> item) {
@@ -115,7 +118,7 @@ class AssetConfig extends Cache{
       throw Exception("Invalidate input stock exchange: [${item[2]}, ${item[4]}]");
     }
     return AssetConfig(
-        id: item[0] as int?,
+        id: item[0] as int,
         symbol: item[1] as String,
         currency: currency,
         stockExchange: stockExchange);

@@ -50,7 +50,7 @@ void main() {
       final config = AssetConfig(
         symbol: "BMW",
         currency: FiatEur(),
-        stockExchange: StockExchange.xEtra,
+        stockExchange: StockExchange.xEtra, id: -1,
       );
 
       final map = config.toMap();

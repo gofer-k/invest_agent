@@ -22,8 +22,6 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
   List<PortfolioConfig> portfolios = [];
   PortfolioConfig? selectedPortfolio;
 
-  List<AssetConfig> assets = [];
-
   late DatabaseHelper dbHelper;
   String? configFile;
   String? cacheName;
@@ -36,14 +34,15 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
   Future<void> _loadData() async {
     dbHelper = DatabaseHelper(configFile ?? "");
     dbHelper.init();
-    dbHelper.createCache(PortfolioConfigSchema());
-    dbHelper.createCache(AssetConfigSchema());
+    await dbHelper.createCache(PortfolioConfigSchema());
+    await dbHelper.createCache(AssetConfigSchema());
 
-    portfolios = await dbHelper.fetchAll<PortfolioConfig>(PortfolioConfigSchema());
-    assets = await dbHelper.fetchAll<AssetConfig>(AssetConfigSchema());
+    final dbPortfolios = await dbHelper.fetchAll<PortfolioConfig>(PortfolioConfigSchema());
+
     if (mounted) {
       setState(() {
         // Update UI after work is done
+        portfolios = dbPortfolios;
       });
     }
   }
@@ -134,19 +133,20 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
       body: Column(
         children: [
           Text(portfolio.portfolioName, style: Theme.of(context).textTheme.titleLarge),
-          if (portfolio.metaIds.isNotEmpty)
-            Wrap(spacing: 8,
-              children: assets.where((asset) => portfolio.metaIds.contains(asset.id)).map((asset) =>
-                  Chip(label: Text(asset.symbol),
-                    onDeleted: () {
-                      setState(() {
-                        portfolio.metaIds.remove(asset.id);
-                        dbHelper.updateOne<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
-                      });
-                    },
-                  )
-              ).toList(),
-            ),
+          // TODO:
+          // if (portfolio.metaIds.isNotEmpty)
+          //   Wrap(spacing: 8,
+          //     children: assets.where((asset) => portfolio.metaIds.contains(asset.id)).map((asset) =>
+          //         Chip(label: Text(asset.symbol),
+          //           onDeleted: () {
+          //             setState(() {
+          //               portfolio.metaIds.remove(asset.id);
+          //               dbHelper.updateOne<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
+          //             });
+          //           },
+          //         )
+          //     ).toList(),
+          //   ),
         ],
       ),
     );

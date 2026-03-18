@@ -13,4 +13,5 @@ abstract class CacheSchema {
 abstract class Cache {
   Cache.from(List<Object?> item);
   Map<String, dynamic> toMap();
+  String toString();
 }
