@@ -131,4 +131,15 @@ class AssetConfig extends Cache{
     'currency': currency.code,
     'symbol_suffix': stockExchange.suffix,
   };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AssetConfig &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          symbol == other.symbol;
+
+  @override
+  int get hashCode => id.hashCode ^ symbol.hashCode;
 }

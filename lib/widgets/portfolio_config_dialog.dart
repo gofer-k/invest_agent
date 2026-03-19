@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/utils/database_helper.dart';
+import 'package:invest_agent/widgets/trading_asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
@@ -12,28 +13,19 @@ void showPortfolio(
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return PortfolioDialog(portfolioConfig: portfolio, dbController: db,  onSave: onSave);
+      return PortfolioDialog(portfolioConfig: portfolio, dbController: db,  onSave: onSave, db: db,);
     },
   );
 }
 
-enum FiatCurrencyEnum {
-  usd(FiatCurrency.usd()),
-  eur(FiatCurrency.eur()),
-  pln(FiatCurrency.pln()),
-  gbp(FiatCurrency.gbp());
-
-  const FiatCurrencyEnum(this.data);
-  final FiatCurrency data;
-}
-
 class PortfolioDialog extends StatefulWidget {
   final Function(PortfolioConfig newPortfolio) onSave;
+  final DatabaseHelper db;
   final PortfolioConfig? portfolioConfig;
   final DatabaseHelper dbController;
 
   const PortfolioDialog({
-    super.key, required this.onSave, required this.portfolioConfig, required this.dbController});
+    super.key, required this.onSave, required this.portfolioConfig, required this.dbController, required this.db});
 
   @override
   State<PortfolioDialog> createState() => _PortfolioDialogState();
@@ -43,8 +35,8 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
   late String portfolioName = widget.portfolioConfig?.portfolioName ?? '';
   late double targetWeight = widget.portfolioConfig?.targetWeight ?? 0.25;
   late double rebalanceThreshold = widget.portfolioConfig?.rebalanceThreshold ?? 0.05;
-  List<AssetConfig> availableAssets = List.empty();
-  List<AssetConfig> portfolioAssets = List.empty();
+  List<AssetConfig> availableAssets = List.empty(growable: true);
+  List<AssetConfig> portfolioAssets = List.empty(growable: true);
   final defaultAsset = AssetConfig(id: -1, symbol: "Not symbol", currency: FiatCurrency.usd(), stockExchange: StockExchange.lSe);
   late AssetConfig selectedAsset = defaultAsset;
 
@@ -58,6 +50,9 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
         availableAssets = dbAssets;
         if (availableAssets.isNotEmpty) {
           selectedAsset = availableAssets.first;
+        } else {
+          availableAssets = [defaultAsset];
+          selectedAsset = defaultAsset;
         }
         if (widget.portfolioConfig != null) {
           portfolioAssets = availableAssets.where((asset) =>
@@ -71,12 +66,19 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
   void initState() {
     super.initState();
     controller = TextEditingController();
+    controller.text = portfolioName;
     _loadState();
   }
 
   @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final titleStr = widget.portfolioConfig != null ? "Add portfolio" : "Update portfolio";
+    final titleStr = widget.portfolioConfig == null ? "Add portfolio" : "Update portfolio";
     return AlertDialog(
       title: Text(titleStr),
       content: Column(
@@ -110,10 +112,13 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
                 ),
               ),
               IconButton(icon: Icon(Icons.add_box_outlined), onPressed: () {
-                setState(() {
-                  if (selectedAsset != defaultAsset) {
-                    portfolioAssets.add(selectedAsset);
-                  }
+                showAsset(context, selectedAsset, widget.db, (newAsset) {
+                  setState(() {
+                    if (newAsset != null) {
+                      availableAssets.add(newAsset);
+                      portfolioAssets.add(newAsset);
+                    }
+                  });
                 });
               }),
             ],
@@ -132,7 +137,7 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
               ).toList(),
             ),
           const SizedBox(height: 20),
-          FactorSlider(label: 'Target weight [%]',
+          FactorSlider(label: r'Target weight [\%]',
             initialValue: targetWeight, minValue: 0.0, maxValue: 1.0,
             onChanged: (double value) {
               setState(() {
@@ -140,7 +145,7 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
               });
             }
           ),
-          FactorSlider(label: 'Rebalance threshold [%]',
+          FactorSlider(label: r'Rebalance threshold [\%]',
             initialValue: rebalanceThreshold, minValue: 0.0, maxValue: 1.0,
             onChanged: (double value) {
               setState(() {

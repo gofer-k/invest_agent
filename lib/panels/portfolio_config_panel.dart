@@ -33,7 +33,7 @@ class _PortfolioConfigPanelState extends State<PortfolioConfigPanel> {
 
   Future<void> _loadData() async {
     dbHelper = DatabaseHelper(configFile ?? "");
-    dbHelper.init();
+    await dbHelper.init();
     await dbHelper.createCache(PortfolioConfigSchema());
     await dbHelper.createCache(AssetConfigSchema());
 

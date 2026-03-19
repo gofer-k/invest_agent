@@ -26,16 +26,27 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
   }
 
   @override
+  void didUpdateWidget(covariant DropdownList<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.choiceType != oldWidget.choiceType) {
+      _selectedItem = widget.choiceType;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     const TextStyle dropdownTextStyle = TextStyle(
       fontSize: 18.0, // Increased font size
       color: Colors.white70, // A whitish color (you can adjust opacity or use Colors.white)
     );
 
+    // Ensure the selected item is actually in the choices list to avoid Flutter assertion errors
+    T? effectiveValue = widget.choices.contains(_selectedItem) ? _selectedItem : null;
+
     return DropdownButton<T>(
       // The hint text is shown when no item is selected.
-      hint: Text(widget.hint ?? 'Select an shape', style: dropdownTextStyle,),
-      value: _selectedItem,
+      hint: Text(widget.hint ?? 'Select an item', style: dropdownTextStyle,),
+      value: effectiveValue,
       icon: const Icon(Icons.arrow_downward),
       elevation: 2,
       isExpanded: true,
