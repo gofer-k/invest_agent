@@ -1,8 +1,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 
+const _secureStorage = FlutterSecureStorage();
 class MainSettingsPanel extends StatefulWidget {
   const MainSettingsPanel({super.key});
 
@@ -24,6 +26,15 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
   void initState() {
     super.initState();
     _loadAccounts();
+  }
+
+  Future<void> _performTrade(UserAccount account) async {
+   final apiKey = await _secureStorage.read(key: '${account.name}_apiKey');
+    final apiSecret = await _secureStorage.read(key: '${account.name}_apiSecret');
+
+    if (apiKey != null && apiSecret != null) {
+      // TODO: Initialize your trading client with the real keys
+    }
   }
 
   Future<void> _loadAccounts() async {
@@ -56,10 +67,20 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
 
   Future<void> _saveAccount() async {
     if (_formKey.currentState!.validate()) {
+      final String accountId = _nameController.text;
+      try {
+        await _secureStorage.write(key: '${accountId}_apiKey', value: _apiKeyController.text);
+        await _secureStorage.write(key: '${accountId}_apiSecret', value: _apiSecretController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Secure storage error: Ensure libsecret and a keyring are installed."))
+        );
+      }
+
       final account = UserAccount(
         name: _nameController.text,
-        apiKey: _apiKeyController.text,
-        apiSecret: _apiSecretController.text,
+        apiKey: 'SECURE_STORAGE',
+        apiSecret: 'SECURE_STORAGE',
         providerData: _selectedProvider,
       );
 
@@ -117,6 +138,7 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
                   decoration: const InputDecoration(labelText: 'Marketplace', isDense: true),
                 ),
                 TextFormField(
+                  obscureText: true,
                   controller: _apiKeyController,
                   decoration: const InputDecoration(labelText: 'API Key', isDense: true),
                   validator: (v) => v!.isEmpty ? 'Required' : null,
