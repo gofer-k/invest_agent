@@ -42,7 +42,6 @@ class AppVerticalTaskBar extends StatelessWidget {
   }
 
   Widget _buildOverflowFAB(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(
       width: 32,
       height: 32,

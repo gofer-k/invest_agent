@@ -14,12 +14,11 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
   final _formKey = GlobalKey<FormState>();
   String _dbPath = 'No cache';
   List<UserAccount> _accounts = [];
-  
-  // Form controllers
+
   final _nameController = TextEditingController();
   final _apiKeyController = TextEditingController();
   final _apiSecretController = TextEditingController();
-  String _selectedProvider = 'Binance';
+  ProviderData _selectedProvider = ProviderData.MarketPlace;
 
   @override
   void initState() {
@@ -44,7 +43,7 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
   Future<void> _pickDbPath() async {
     String? result = await FilePicker.platform.saveFile(
       dialogTitle: 'Select DuckDB Cache Location',
-      fileName: 'invest_cache.db',
+      fileName: 'No cache path',
     );
 
     if (result != null) {
@@ -111,9 +110,9 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
                   decoration: const InputDecoration(labelText: 'Account Name', isDense: true),
                   validator: (v) => v!.isEmpty ? 'Required' : null,
                 ),
-                DropdownButtonFormField<String>(
-                  value: _selectedProvider,
-                  items: ['MarketPlace'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                DropdownButtonFormField<ProviderData>(
+                  initialValue: _selectedProvider,
+                  items: ProviderData.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
                   onChanged: (v) => setState(() => _selectedProvider = v!),
                   decoration: const InputDecoration(labelText: 'Marketplace', isDense: true),
                 ),

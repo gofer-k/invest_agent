@@ -1,11 +1,24 @@
 import 'cache_schema.dart';
 
+enum ProviderData {
+  MarketPlace("MarketPlace"),
+  Binance("Investing"),
+  TradingView("TradingView");
+
+  final String name;
+  const ProviderData(this.name);
+
+  static ProviderData? fromString(String? providerName) {
+    return ProviderData.values.firstWhere((e) => e.name == providerName);
+  }
+}
+
 class UserAccount extends Cache {
   final int? id;
   final String name;
   final String apiKey;
   final String apiSecret;
-  final String providerData;
+  final ProviderData providerData;
 
   UserAccount({
     this.id,
@@ -22,7 +35,7 @@ class UserAccount extends Cache {
       'name': name,
       'apiKey': apiKey,
       'apiSecret': apiSecret,
-      'providerData': providerData,
+      'providerData': providerData.name,
     };
   }
 
@@ -32,7 +45,7 @@ class UserAccount extends Cache {
       name: item[1] as String,
       apiKey: item[2] as String,
       apiSecret: item[3] as String,
-      providerData: item[4] as String,
+      providerData: ProviderData.fromString(item[4] as String) ?? ProviderData.MarketPlace,
     );
   }
 
@@ -70,7 +83,7 @@ class UserAccountSchema extends CacheSchema {
   @override
   String saveOne(Cache cache) {
     final user = cache as UserAccount;
-    return "INSERT INTO user_accounts (name, apiKey, apiSecret, providerData) VALUES ('${user.name}', '${user.apiKey}', '${user.apiSecret}', '${user.providerData}');";
+    return "INSERT INTO user_accounts (name, apiKey, apiSecret, providerData) VALUES ('${user.name}', '${user.apiKey}', '${user.apiSecret}', '${user.providerData.name}');";
   }
 
   @override
@@ -82,6 +95,6 @@ class UserAccountSchema extends CacheSchema {
   @override
   String updateOne(Cache cache) {
     final user = cache as UserAccount;
-    return "UPDATE user_accounts SET name = '${user.name}', apiKey = '${user.apiKey}', apiSecret = '${user.apiSecret}', providerData = '${user.providerData}' WHERE id = ${user.id};";
+    return "UPDATE user_accounts SET name = '${user.name}', apiKey = '${user.apiKey}', apiSecret = '${user.apiSecret}', providerData = '${user.providerData.name}' WHERE id = ${user.id};";
   }
 }
