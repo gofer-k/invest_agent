@@ -8,19 +8,19 @@ import '../model/analysis_period.dart';
 import '../model/analysis_request.dart';
 import '../themes/app_themes.dart';
 
-class EtfSettingsPanel extends StatefulWidget {
+class RequestSettingsPanel extends StatefulWidget {
   final void Function(AnalysisRequest) onRunAnalysis;
 
-  const EtfSettingsPanel({
+  const RequestSettingsPanel({
     super.key,
     required this.onRunAnalysis,
   });
 
   @override
-  State<EtfSettingsPanel> createState() => _EtfSettingsPanelState();
+  State<RequestSettingsPanel> createState() => _RequestSettingsPanelState();
 }
 
-class _EtfSettingsPanelState extends State<EtfSettingsPanel> {
+class _RequestSettingsPanelState extends State<RequestSettingsPanel> {
   // --- Dataset selection ---
   String? datasetSource;
   String? selectedSymbol;

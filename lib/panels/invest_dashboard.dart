@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:invest_agent/panels/portfolio_config_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
@@ -9,7 +10,11 @@ import '../model/analysis_respond.dart';
 import '../model/etf_analytics_client.dart';
 import 'package:path/path.dart' as p;
 
-import 'configuration_panel.dart';
+import 'etf_settings_charts.dart';
+import 'request_settings_panel.dart';
+import 'main_settings_panel.dart';
+import '../widgets/app_task_bar.dart';
+
 class InvestDashboard extends StatefulWidget {
   const InvestDashboard({super.key});
 
@@ -30,24 +35,106 @@ class _InvestDashboardState extends State<InvestDashboard> {
   double visibleMaxY = 0.0;
   String chartTitle = "";
 
+  // Panel Management: null means hidden, 0: Request, 1: Results, 2: Portfolio, 3: Main Settings
+  int? activePanelIndex;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Investment Dashboard')),
       body: Row(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // SETTINGS PANEL
-          Expanded(
-            flex: 1,
-            child: ConfigurationPanel(onRequest: _handleRunAnalysis,
-              onConfigAnalysis: _handleConfigAnalysis,
-              configurationCharts: configurationCharts,),
+          // VERTICAL TASK BAR ON THE LEFT
+          AppVerticalTaskBar(
+            mainActions: [
+              TaskBarIcon(
+                icon: Icons.play_arrow,
+                color: Colors.green,
+                tooltip: 'Run Analysis',
+                onPressed: () {
+                  // Trigger analysis logic if request is available
+                },
+              ),
+              const Divider(height: 20, indent: 8, endIndent: 8),
+              // TAB ACTIONS MOVED TO VERTICAL BAR
+              TaskBarIcon(
+                icon: Icons.settings,
+                tooltip: 'Request Settings',
+                color: activePanelIndex == 0 ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(0),
+              ),
+              TaskBarIcon(
+                icon: Icons.update,
+                tooltip: 'Results Settings',
+                color: activePanelIndex == 1 ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(1),
+              ),
+              TaskBarIcon(
+                icon: Icons.cached,
+                tooltip: 'Portfolio Configuration',
+                color: activePanelIndex == 2 ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(2),
+              ),
+              const Divider(height: 20, indent: 8, endIndent: 8),
+              TaskBarIcon(
+                icon: Icons.settings_applications,
+                tooltip: 'Main Settings',
+                color: activePanelIndex == 3 ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(3),
+              ),
+            ],
+            overflowActions: [
+              ListTile(
+                leading: const Icon(Icons.help_outline, size: 20),
+                title: const Text('Help'),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          // ANALYSIS PANEL
+          
+          // COLLAPSIBLE SIDE PANEL
+          if (activePanelIndex != null)
+            SizedBox(
+              width: 350,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: Column(
+                  children: [
+                    // Panel Header with Hide Icon
+                    Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? const Color(0xFF3C3F41) 
+                          : const Color(0xFFF2F2F2),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _getPanelTitle(),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.remove, size: 18),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            tooltip: 'Hide Panel',
+                            onPressed: () => setState(() => activePanelIndex = null),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(child: _buildActivePanel()),
+                  ],
+                ),
+              ),
+            ),
+
+          // MAIN ANALYSIS PANEL
           Expanded(
             flex: 4,
             child: _buildAnalysisPanel(),
@@ -55,6 +142,44 @@ class _InvestDashboardState extends State<InvestDashboard> {
         ],
       ),
     );
+  }
+
+  String _getPanelTitle() {
+    switch (activePanelIndex) {
+      case 0: return 'REQUEST';
+      case 1: return 'RESULTS';
+      case 2: return 'PORTFOLIO';
+      case 3: return 'MAIN SETTINGS';
+      default: return '';
+    }
+  }
+
+  void _togglePanel(int index) {
+    setState(() {
+      if (activePanelIndex == index) {
+        activePanelIndex = null; // Hide if same icon clicked
+      } else {
+        activePanelIndex = index; // Switch to new panel
+      }
+    });
+  }
+
+  Widget _buildActivePanel() {
+    switch (activePanelIndex) {
+      case 0:
+        return RequestSettingsPanel(onRunAnalysis: _handleRunAnalysis);
+      case 1:
+        return EtfSettingsCharts(
+          configurationCharts: configurationCharts,
+          onConfigAnalysis: _handleConfigAnalysis,
+        );
+      case 2:
+        return PortfolioConfigPanel();
+      case 3:
+        return const MainSettingsPanel();
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   // Handle the callback from the settings panel
@@ -158,4 +283,3 @@ class _InvestDashboardState extends State<InvestDashboard> {
     );
   }
 }
-

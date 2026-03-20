@@ -1,4 +1,5 @@
 import 'package:invest_agent/model/portfolio_config.dart';
+import 'package:invest_agent/model/user_account.dart';
 
 import 'asset_config.dart';
 
@@ -9,6 +10,7 @@ class CacheRegistry {
   static final Map<Type, CacheFactory<Object>> _factories = {
     PortfolioConfig: (item) => PortfolioConfig.from(item),
     AssetConfig: (item) => AssetConfig.from(item),
+    UserAccount: (item) => UserAccount.fromList(item),
     // Add other models here:
   };
 
