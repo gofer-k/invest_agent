@@ -74,7 +74,7 @@ class _AssetDialogState extends State<AssetDialog> {
             decoration: const InputDecoration(
               labelText: "Asset Symbol",
               hintText: "e.g. ISAC",
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.text,
             textAlign: TextAlign.end,

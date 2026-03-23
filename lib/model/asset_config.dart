@@ -4,7 +4,7 @@ import 'package:sealed_currencies/sealed_currencies.dart';
 enum StockExchange {
   lSe("XLON", ".L"),
   xEtra("XETR", ".DE"),
-  xWar("xWAR", ".WA");
+  xWar("XWAR", ".WA");
 
   const StockExchange(this.code, this.suffix);
 

@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:invest_agent/panels/portfolio_config_panel.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
@@ -35,7 +34,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
   double visibleMaxY = 0.0;
   String chartTitle = "";
 
-  // Panel Management: null means hidden, 0: Request, 1: Results, 2: Portfolio, 3: Main Settings
+  // Panel Management: null means hidden, 0: Request, 1: Results, 2: Main Settings
   int? activePanelIndex;
 
   @override
@@ -71,18 +70,12 @@ class _InvestDashboardState extends State<InvestDashboard> {
                 color: activePanelIndex == 1 ? Theme.of(context).primaryColor : null,
                 onPressed: () => _togglePanel(1),
               ),
-              TaskBarIcon(
-                icon: Icons.cached,
-                tooltip: 'Portfolio Configuration',
-                color: activePanelIndex == 2 ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(2),
-              ),
               const Divider(height: 20, indent: 8, endIndent: 8),
               TaskBarIcon(
                 icon: Icons.settings_applications,
                 tooltip: 'Main Settings',
-                color: activePanelIndex == 3 ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(3),
+                color: activePanelIndex == 2 ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(2),
               ),
             ],
             overflowActions: [
@@ -148,8 +141,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
     switch (activePanelIndex) {
       case 0: return 'REQUEST';
       case 1: return 'RESULTS';
-      case 2: return 'PORTFOLIO';
-      case 3: return 'MAIN SETTINGS';
+      case 2: return 'MAIN SETTINGS';
       default: return '';
     }
   }
@@ -174,8 +166,6 @@ class _InvestDashboardState extends State<InvestDashboard> {
           onConfigAnalysis: _handleConfigAnalysis,
         );
       case 2:
-        return PortfolioConfigPanel();
-      case 3:
         return const MainSettingsPanel();
       default:
         return const SizedBox.shrink();
