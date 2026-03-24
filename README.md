@@ -16,6 +16,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 #TODO:
+- save/lodd/update persist app's cache source 
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
 - load, save, remove, update MarketPlace api account (api key, secret key) ?

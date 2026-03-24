@@ -1,10 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/panels/portfolio_config_panel.dart';
-import 'package:invest_agent/utils/database_helper.dart';
-
-import '../model/portfolio_config.dart';
 import 'account_panel.dart';
 
 class MainSettingsPanel extends StatefulWidget {
@@ -16,17 +12,14 @@ class MainSettingsPanel extends StatefulWidget {
 
 class _MainSettingsPanelState extends State<MainSettingsPanel> {
   String _dbPath = 'No cache';
-  late DatabaseHelper? db;
 
   @override
   void initState() {
     super.initState();
-    _loadCacheData();
   }
 
   @override
   void dispose() {
-    db?.dispose();
     super.dispose();
   }
 
@@ -40,18 +33,7 @@ class _MainSettingsPanelState extends State<MainSettingsPanel> {
       setState(() {
         _dbPath = result;
       });
-      _loadCacheData();
-    }
-  }
-
-  Future<void> _loadCacheData() async {
-    db = DatabaseHelper(_dbPath);
-    try {
-      // Ensure the table exists
-      await db?.createCache(UserAccountSchema());
-      await db?.createCache(PortfolioConfigSchema());
-    } catch (e) {
-      debugPrint('Error create cache: $e');
+      // TODO: save cache path to ModelManager
     }
   }
 
@@ -76,9 +58,9 @@ return Column();
             onTap: _pickDbPath,
           ),
           const SizedBox(height: 24),
-          if (db?.isConnected() ?? false)
-            AccountPanel(db),
-            PortfolioConfigPanel(db),
+          AccountPanel(),
+          // TODO: add portfolio section
+          // PortfolioConfigPanel(),
         ],
       ),
     );
