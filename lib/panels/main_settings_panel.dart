@@ -1,48 +1,42 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:invest_agent/panels/portfolio_config_panel.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers.dart';
 import 'account_panel.dart';
 
-class MainSettingsPanel extends StatefulWidget {
+class MainSettingsPanel extends ConsumerStatefulWidget {
   const MainSettingsPanel({super.key});
 
   @override
-  State<MainSettingsPanel> createState() => _MainSettingsPanelState();
+  ConsumerState<MainSettingsPanel> createState() => _MainSettingsPanel();
 }
 
-class _MainSettingsPanelState extends State<MainSettingsPanel> {
-  String _dbPath = 'No cache';
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
+  class _MainSettingsPanel extends ConsumerState<MainSettingsPanel> {
    Future<void> _pickDbPath() async {
+    final currentPath = ref.watch(databasePathProvider).value ?? 'Loading...';
     String? result = await FilePicker.platform.saveFile(
       dialogTitle: 'Select DuckDB Cache Location',
-      fileName: 'No cache path',
+      fileName: currentPath,
     );
 
     if (result != null) {
+      final pathNotifier = ref.read(databasePathProvider.notifier);
+      await pathNotifier.setPath(result);
       setState(() {
-        _dbPath = result;
+
       });
-      // TODO: save cache path to ModelManager
     }
   }
 
   Widget portfolioSection() {
-return Column();
+     // TODO: add portfolio section
+    return Column();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentPath = ref.watch(databasePathProvider).value ?? 'Loading...';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -53,7 +47,7 @@ return Column();
           ListTile(
             dense: true,
             title: const Text('Cache Location'),
-            subtitle: Text(_dbPath, style: const TextStyle(fontSize: 12)),
+            subtitle: Text(currentPath, style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.folder_open, size: 20),
             onTap: _pickDbPath,
           ),
