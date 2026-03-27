@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/themes/app_themes.dart';
+import 'package:invest_agent/widgets/utils/logger_riverpod.dart';
 
 import 'panels/invest_dashboard.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    const ProviderScope(
-      child: InvestApp(),
+    ProviderScope(
+      observers: [
+        LoggerRiverpod(),
+      ],
+      child: const InvestApp(),
     ),
   );
 }
