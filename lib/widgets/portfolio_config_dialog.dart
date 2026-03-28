@@ -1,37 +1,39 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
-import 'package:invest_agent/utils/database_helper.dart';
 import 'package:invest_agent/widgets/trading_asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
+import '../model/model_manager.dart';
+
 void showPortfolio(
-  BuildContext context, PortfolioConfig? portfolio, DatabaseHelper db,
+  BuildContext context, PortfolioConfig? portfolio,
   Function(PortfolioConfig portfolio) onSave) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return PortfolioDialog(portfolioConfig: portfolio, dbController: db,  onSave: onSave, db: db,);
+      return PortfolioDialog(portfolioConfig: portfolio, onSave: onSave);
     },
   );
 }
 
-class PortfolioDialog extends StatefulWidget {
+class PortfolioDialog extends ConsumerStatefulWidget {
   final Function(PortfolioConfig newPortfolio) onSave;
-  final DatabaseHelper db;
   final PortfolioConfig? portfolioConfig;
-  final DatabaseHelper dbController;
 
   const PortfolioDialog({
-    super.key, required this.onSave, required this.portfolioConfig, required this.dbController, required this.db});
+    super.key, required this.onSave, required this.portfolioConfig});
 
   @override
-  State<PortfolioDialog> createState() => _PortfolioDialogState();
+  ConsumerState<PortfolioDialog> createState() => _PortfolioDialogState();
 }
 
-class _PortfolioDialogState extends State<PortfolioDialog> {
+class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   late String portfolioName = widget.portfolioConfig?.portfolioName ?? '';
   late double targetWeight = widget.portfolioConfig?.targetWeight ?? 0.25;
   late double rebalanceThreshold = widget.portfolioConfig?.rebalanceThreshold ?? 0.05;
@@ -43,23 +45,18 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
   late final TextEditingController controller;
 
   Future<void> _loadState() async {
-    final dbAssets = await widget.dbController.fetchAll<AssetConfig>(AssetConfigSchema());
-    if (mounted) {
-      setState(() {
-        // Update UI after work is done
-        availableAssets = dbAssets;
-        if (availableAssets.isNotEmpty) {
-          selectedAsset = availableAssets.first;
-        } else {
-          availableAssets = [defaultAsset];
-          selectedAsset = defaultAsset;
-        }
-        if (widget.portfolioConfig != null) {
-          portfolioAssets = availableAssets.where((asset) =>
-              widget.portfolioConfig!.metaIds.contains(asset.id)).toList();
-        }
-      });
-    }
+    final assets = await ref.read(assetsLoaderProvider.future);
+
+    if (!mounted) return;
+    setState(() {
+      availableAssets = assets.isNotEmpty ? assets : [defaultAsset];
+      selectedAsset = availableAssets.isNotEmpty ? availableAssets.first : defaultAsset;
+
+      if (widget.portfolioConfig != null) {
+        final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
+        portfolioAssets = assets.where((asset) => metaIdsSet.contains(asset.id)).toList();
+      }
+    });
   }
 
   @override
@@ -88,10 +85,10 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
           // Portfolio name
           TextField(
             controller: controller,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Enter portfolio name",
               isDense: true,
-              border: const OutlineInputBorder(),
+              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.text,
             textAlign: TextAlign.end,
@@ -111,8 +108,8 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
                     }
                 ),
               ),
-              IconButton(icon: Icon(Icons.add_box_outlined), onPressed: () {
-                showAsset(context, selectedAsset, widget.db, (newAsset) {
+              IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
+                showAsset(context, selectedAsset, (newAsset) {
                   setState(() {
                     if (newAsset != null) {
                       availableAssets.add(newAsset);
@@ -130,7 +127,7 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
                   Chip(label: Text(asset.symbol),
                     onDeleted: () {
                       setState(() {
-                        widget.portfolioConfig!.metaIds.remove(asset.id);
+                        portfolioAssets.remove(asset);
                       });
                     },
                   )
@@ -169,12 +166,11 @@ class _PortfolioDialogState extends State<PortfolioDialog> {
               metaIds: newMetaIds,
             );
             widget.onSave(newPortfolio);
+            Navigator.of(context).pop();
           },
           child: const Text("Save"),
         ),
       ],
     );
   }
-
-
 }

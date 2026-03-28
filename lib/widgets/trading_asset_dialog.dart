@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../model/asset_config.dart';
-import '../utils/database_helper.dart';
 
 void showAsset(
-    BuildContext context, AssetConfig? assetConfig, DatabaseHelper db,
+    BuildContext context, AssetConfig? assetConfig,
     Function(AssetConfig? assetConfig) onSave) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AssetDialog(assetConfig: assetConfig, dbController: db,  onSave: onSave);
+      return AssetDialog(assetConfig: assetConfig, onSave: onSave);
     },
   );
 }
@@ -30,18 +30,17 @@ enum FiatCurrencyEnum {
   }
 }
 
-class AssetDialog extends StatefulWidget{
+class AssetDialog extends ConsumerStatefulWidget{
   final Function(AssetConfig? assetConfig) onSave;
   final AssetConfig? assetConfig;
-  final DatabaseHelper dbController;
   const AssetDialog({
-    super.key, required this.onSave, required this.assetConfig, required this.dbController});
+    super.key, required this.onSave, required this.assetConfig});
 
   @override
-  State<StatefulWidget> createState() => _AssetDialogState();
+  ConsumerState<AssetDialog> createState() => _AssetDialogState();
 }
 
-class _AssetDialogState extends State<AssetDialog> {
+class _AssetDialogState extends ConsumerState<AssetDialog> {
   late FiatCurrencyEnum selectedCurrency =
       FiatCurrencyEnum.fromCurrency(widget.assetConfig?.currency) ?? FiatCurrencyEnum.usd;
   late StockExchange selectedStockExchange = widget.assetConfig?.stockExchange ?? StockExchange.lSe;

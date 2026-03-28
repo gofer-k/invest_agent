@@ -14,6 +14,7 @@ class DatabasePath extends _$DatabasePath {
   @override
   FutureOr<String> build() async {
     final savedPath = await _storage.read(key: _dbPathKey);
+    print("DatabasePath.build: ${savedPath ?? _defaultDbName}");
     return savedPath ?? _defaultDbName;
   }
 
@@ -21,16 +22,19 @@ class DatabasePath extends _$DatabasePath {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _storage.write(key: _dbPathKey, value: newPath);
+      print("DatabasePath.setPath: $newPath");
       return newPath;
     });
   }
 }
 
 @riverpod
-DatabaseHelper databaseHelper(Ref ref) {
+Future<DatabaseHelper> databaseHelper(Ref ref) async {
   // Watch the path. Whenever setPath is called, this provider will re-evaluate.
-  final pathAsync = ref.watch(databasePathProvider);
-  final path = pathAsync.value ?? _defaultDbName;
-  
-  return DatabaseHelper(path);
+  final path = await ref.watch(databasePathProvider.future);
+
+  print("DatabaseHelper: $path");
+  final helper = DatabaseHelper(path);
+  await helper.init();
+  return helper;
 }

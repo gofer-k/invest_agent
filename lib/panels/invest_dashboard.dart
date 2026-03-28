@@ -26,7 +26,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
   ChartsConfiguration configurationCharts = ChartsConfiguration();
   AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
-  
+
   bool isLoading = false;
   String? errorMessage;
 

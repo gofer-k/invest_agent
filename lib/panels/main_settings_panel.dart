@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/panels/portfolio_panel.dart';
 import '../providers.dart';
 import 'account_panel.dart';
 
@@ -15,7 +16,7 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
    Future<void> _pickDbPath() async {
     final currentPath = ref.watch(databasePathProvider).value ?? 'Loading...';
     String? result = await FilePicker.platform.saveFile(
-      dialogTitle: 'Select DuckDB Cache Location',
+      dialogTitle: 'Select cache Location',
       fileName: currentPath,
     );
 
@@ -53,8 +54,7 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
           ),
           const SizedBox(height: 24),
           AccountPanel(),
-          // TODO: add portfolio section
-          // PortfolioConfigPanel(),
+          PortfolioPanel()
         ],
       ),
     );

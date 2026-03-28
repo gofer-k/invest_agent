@@ -33,7 +33,7 @@ final class DatabasePathProvider
   DatabasePath create() => DatabasePath();
 }
 
-String _$databasePathHash() => r'ce4b3b4bef7125d5642e3c2c67c328acf4a43660';
+String _$databasePathHash() => r'08cff6091bdd5e07bd14f0771dce9c533ebbd0de';
 
 abstract class _$DatabasePath extends $AsyncNotifier<String> {
   FutureOr<String> build();
@@ -57,8 +57,13 @@ abstract class _$DatabasePath extends $AsyncNotifier<String> {
 final databaseHelperProvider = DatabaseHelperProvider._();
 
 final class DatabaseHelperProvider
-    extends $FunctionalProvider<DatabaseHelper, DatabaseHelper, DatabaseHelper>
-    with $Provider<DatabaseHelper> {
+    extends
+        $FunctionalProvider<
+          AsyncValue<DatabaseHelper>,
+          DatabaseHelper,
+          FutureOr<DatabaseHelper>
+        >
+    with $FutureModifier<DatabaseHelper>, $FutureProvider<DatabaseHelper> {
   DatabaseHelperProvider._()
     : super(
         from: null,
@@ -75,21 +80,14 @@ final class DatabaseHelperProvider
 
   @$internal
   @override
-  $ProviderElement<DatabaseHelper> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $FutureProviderElement<DatabaseHelper> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  DatabaseHelper create(Ref ref) {
+  FutureOr<DatabaseHelper> create(Ref ref) {
     return databaseHelper(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(DatabaseHelper value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<DatabaseHelper>(value),
-    );
   }
 }
 
-String _$databaseHelperHash() => r'6f07dd5cc0220a6dc329de81a2297f12636c0743';
+String _$databaseHelperHash() => r'8a0c5635a250cee5473765c5bf1e44c8fcc36bf6';
