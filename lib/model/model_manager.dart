@@ -88,6 +88,12 @@ class ModelManager extends _$ModelManager {
     }
   }
 
+  Future<void> save<T extends Cache>(CacheSchema schema, T item) async {
+    final db = await _getDb();
+    await db.saveOne(schema, item);
+    await fetch<T>(schema);
+  }
+
   Future<void> update<T extends Cache>(CacheSchema schema, T item) async {
     final db = await _getDb();
     await db.updateOne(schema, item);

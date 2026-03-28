@@ -23,9 +23,6 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
     if (result != null) {
       final pathNotifier = ref.read(databasePathProvider.notifier);
       await pathNotifier.setPath(result);
-      setState(() {
-
-      });
     }
   }
 

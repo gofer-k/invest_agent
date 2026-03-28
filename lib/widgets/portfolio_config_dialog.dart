@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/widgets/trading_asset_dialog.dart';
-import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../model/model_manager.dart';
 
@@ -34,37 +32,44 @@ class PortfolioDialog extends ConsumerStatefulWidget {
 }
 
 class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
-  late String portfolioName = widget.portfolioConfig?.portfolioName ?? '';
-  late double targetWeight = widget.portfolioConfig?.targetWeight ?? 0.25;
-  late double rebalanceThreshold = widget.portfolioConfig?.rebalanceThreshold ?? 0.05;
-  List<AssetConfig> availableAssets = List.empty(growable: true);
-  List<AssetConfig> portfolioAssets = List.empty(growable: true);
-  final defaultAsset = AssetConfig(id: -1, symbol: "Not symbol", currency: FiatCurrency.usd(), stockExchange: StockExchange.lSe);
-  late AssetConfig selectedAsset = defaultAsset;
-
   late final TextEditingController controller;
 
-  Future<void> _loadState() async {
-    final assets = await ref.read(assetsLoaderProvider.future);
-
-    if (!mounted) return;
-    setState(() {
-      availableAssets = assets.isNotEmpty ? assets : [defaultAsset];
-      selectedAsset = availableAssets.isNotEmpty ? availableAssets.first : defaultAsset;
-
-      if (widget.portfolioConfig != null) {
-        final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
-        portfolioAssets = assets.where((asset) => metaIdsSet.contains(asset.id)).toList();
-      }
-    });
-  }
+  // State variables
+  late double targetWeight = widget.portfolioConfig?.targetWeight ?? 0.25;
+  late double rebalanceThreshold = widget.portfolioConfig?.rebalanceThreshold ?? 0.05;
+  List<AssetConfig> availableAssets = [];
+  Set<AssetConfig> portfolioAssets = {};
+  AssetConfig? selectedAsset;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController();
-    controller.text = portfolioName;
+    controller = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
     _loadState();
+  }
+
+  Future<void> _loadState() async {
+    try {
+      final assets = await ref.read(assetsLoaderProvider.future);
+      if (!mounted) return;
+
+      setState(() {
+        availableAssets = assets;
+        if (assets.isNotEmpty) {
+          selectedAsset = assets.first;
+        }
+
+        if (widget.portfolioConfig != null) {
+          final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
+          portfolioAssets = assets.where((asset) => metaIdsSet.contains(asset.id)).toSet();
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      // Handle error (e.g., show error message)
+      if (mounted) setState(() => isLoading = false);
+    }
   }
 
   @override
@@ -75,102 +80,126 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final titleStr = widget.portfolioConfig == null ? "Add portfolio" : "Update portfolio";
+    if (isLoading) {
+      return const AlertDialog(
+        content: SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
+      );
+    }
+
+    final titleStr = widget.portfolioConfig == null ? "Add Portfolio" : "Update Portfolio";
+
     return AlertDialog(
       title: Text(titleStr),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Portfolio name
-          TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              hintText: "Enter portfolio name",
-              isDense: true,
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.text,
-            textAlign: TextAlign.end,
-          ),
-          // Available assets
-          Row(
-            children: [
-              Expanded(
-                child: DropdownList<AssetConfig>(
-                    hint: "Select asset",
-                    choices: availableAssets,
-                    choiceType: selectedAsset,
-                    onSelected: (AssetConfig? selected) {
-                      if (selected != null) {
-                        setState(() => selectedAsset = selected);
-                      }
-                    }
-                ),
+      content: SingleChildScrollView( // Added to prevent overflow on small screens
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: "Portfolio Name",
+                hintText: "Enter portfolio name",
+                border: OutlineInputBorder(),
               ),
-              IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
-                showAsset(context, selectedAsset, (newAsset) {
-                  setState(() {
-                    if (newAsset != null) {
-                      availableAssets.add(newAsset);
-                      portfolioAssets.add(newAsset);
-                    }
-                  });
-                });
-              }),
-            ],
-          ),
-          // Modify portfolio's assets
-          if (portfolioAssets.isNotEmpty)
-            Wrap(spacing: 8,
-              children: portfolioAssets.map((asset) =>
-                  Chip(label: Text(asset.symbol),
-                    onDeleted: () {
-                      setState(() {
-                        portfolioAssets.remove(asset);
-                      });
-                    },
-                  )
-              ).toList(),
             ),
-          const SizedBox(height: 20),
-          FactorSlider(label: r'Target weight [\%]',
-            initialValue: targetWeight, minValue: 0.0, maxValue: 1.0,
-            onChanged: (double value) {
-              setState(() {
-                targetWeight = value;
-              });
-            }
-          ),
-          FactorSlider(label: r'Rebalance threshold [\%]',
-            initialValue: rebalanceThreshold, minValue: 0.0, maxValue: 1.0,
-            onChanged: (double value) {
-              setState(() {
-                rebalanceThreshold = value;
-              });
-            }
-          ),
-        ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<AssetConfig>(
+                    initialValue: selectedAsset,
+                    hint: const Text("Select asset"),
+                    items: availableAssets.map((asset) => DropdownMenuItem(
+                      value: asset,
+                      child: Text(asset.symbol),
+                    )).toList(),
+                    onChanged: (AssetConfig? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedAsset = newValue;
+                          portfolioAssets.add(newValue);
+                        });
+                      }
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_box_outlined),
+                  onPressed: () => _handleAddNewAsset(context),
+                ),
+              ],
+            ),
+            if (portfolioAssets.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: portfolioAssets.map((asset) => Chip(
+                  label: Text(asset.symbol),
+                  onDeleted: () => setState(() => portfolioAssets.remove(asset)),
+                )).toList(),
+              ),
+            ],
+            const SizedBox(height: 20),
+            FactorSlider(
+              label: 'Target weight (%)',
+              initialValue: targetWeight,
+              minValue: 0.0,
+              maxValue: 1.0,
+              onChanged: (val) => setState(() => targetWeight = val),
+            ),
+            FactorSlider(
+              label: 'Rebalance threshold (%)',
+              initialValue: rebalanceThreshold,
+              minValue: 0.0,
+              maxValue: 1.0,
+              onChanged: (val) => setState(() => rebalanceThreshold = val),
+            ),
+          ],
+        ),
       ),
       actions: [
-        BackButton(onPressed: () => Navigator.of(context).pop()),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
         ElevatedButton(
-          onPressed: () {
-            portfolioName = controller.text;
-            final List<int> newMetaIds = portfolioAssets.map((asset) => asset.id).toList();
-            final bewId = widget.portfolioConfig?.id;
-            final newPortfolio = PortfolioConfig(id: bewId,
-              portfolioName: portfolioName,
-              targetWeight: targetWeight,
-              rebalanceThreshold: rebalanceThreshold,
-              metaIds: newMetaIds,
-            );
-            widget.onSave(newPortfolio);
-            Navigator.of(context).pop();
-          },
+          onPressed: _savePortfolio,
           child: const Text("Save"),
         ),
       ],
     );
+  }
+
+  void _handleAddNewAsset(BuildContext context) {
+    showAsset(context, selectedAsset, (newAsset) async {
+      if (newAsset != null) {
+        // Corrected Schema
+        await ref.read(modelManagerProvider.notifier).save<AssetConfig>(
+            AssetConfigSchema(), newAsset);
+
+        setState(() {
+          availableAssets.add(newAsset);
+          portfolioAssets.add(newAsset);
+          selectedAsset = newAsset;
+        });
+      }
+    });
+  }
+
+  void _savePortfolio() {
+    final name = controller.text.trim();
+    if (name.isEmpty) return;
+
+    final newPortfolio = PortfolioConfig(
+      id: widget.portfolioConfig?.id,
+      portfolioName: name,
+      targetWeight: targetWeight,
+      rebalanceThreshold: rebalanceThreshold,
+      metaIds: portfolioAssets.map((a) => a.id).toList(),
+    );
+
+    widget.onSave(newPortfolio);
+    Navigator.of(context).pop();
   }
 }

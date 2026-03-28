@@ -2,7 +2,6 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/src/framework.dart';
 import '../model/model_manager.dart';
 import '../model/portfolio_config.dart';
 import '../providers.dart';
@@ -22,9 +21,9 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
   @override
   Widget build(BuildContext context) {
     final dbAsync = ref.watch(databaseHelperProvider);
-    final portfolios = ref.watch(usePortfolios as ProviderListenable<dynamic>);
-    // final portfolios = ref.watch(modelManagerProvider.select(
-    //         (s) => s.getItems<PortfolioConfig>()));
+    // final portfolios = ref.watch(usePortfolios);
+    final portfolios = ref.watch(modelManagerProvider.select(
+            (s) => s.getItems<PortfolioConfig>()));
 
     return Shrinkable(
       title: "Portfolios",
@@ -67,7 +66,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           icon: const Icon(Icons.add),
           onPressed: () {
             showPortfolio(context, selectedPortfolio, (newPortfolio) async {
-              await ref.read(modelManagerProvider.notifier).update<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
+              await ref.read(modelManagerProvider.notifier).save<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
             });
           },
         )
