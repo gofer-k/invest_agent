@@ -47,9 +47,9 @@ class ModelManager extends _$ModelManager {
           await db.createCache(PortfolioConfigSchema());
 
           // Trigger initial background fetches to populate the cache
-          // await fetchType<UserAccount>();
-          // await fetchType<AssetConfig>();
-          // await fetchType<PortfolioConfig>();
+          await fetchType<UserAccount>();
+          await fetchType<AssetConfig>();
+          await fetchType<PortfolioConfig>();
         } catch (e) {
           debugPrint('ModelManager Init Error: $e');
         }
@@ -172,3 +172,4 @@ Future<List<AssetConfig>> assetsLoader(Ref ref) async {
 Future<List<PortfolioConfig>> portfolioLoader(Ref ref) async {
   return await ref.read(modelManagerProvider.notifier).fetchType<PortfolioConfig>();
 }
+

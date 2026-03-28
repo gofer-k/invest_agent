@@ -63,6 +63,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         if (widget.portfolioConfig != null) {
           final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
           portfolioAssets = assets.where((asset) => metaIdsSet.contains(asset.id)).toSet();
+
         }
         isLoading = false;
       });

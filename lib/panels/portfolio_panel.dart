@@ -18,12 +18,29 @@ class PortfolioPanel extends ConsumerStatefulWidget {
 class _PortfolioState extends ConsumerState<PortfolioPanel> {
   PortfolioConfig? selectedPortfolio;
 
+  final portfolioDetailsProvider = Provider.family<String, PortfolioConfig>((ref, portfolio) {
+    // Use watch so this updates if the model manager or assets change
+    final allAssets = ref.watch(useAssetsProvider);
+
+    final symbols = allAssets
+        .where((asset) => portfolio.metaIds.contains(asset.id))
+        .map((asset) => asset.symbol)
+        .join(', ');
+
+    final weight = (portfolio.targetWeight * 100).toStringAsFixed(0);
+    final balance = (portfolio.rebalanceThreshold * 100).toStringAsFixed(0);
+
+    return "${portfolio.portfolioName}: [weight: $weight%], "
+        "[balance: $balance%], "
+        "[$symbols]";
+  });
+
+
   @override
   Widget build(BuildContext context) {
     final dbAsync = ref.watch(databaseHelperProvider);
-    // final portfolios = ref.watch(usePortfolios);
-    final portfolios = ref.watch(modelManagerProvider.select(
-            (s) => s.getItems<PortfolioConfig>()));
+    final usePortfolios = ref.watch(portfolioLoaderProvider);
+    final portfolios = usePortfolios.whenData((portfolios) => portfolios).value ?? [];
 
     return Shrinkable(
       title: "Portfolios",
@@ -67,6 +84,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           onPressed: () {
             showPortfolio(context, selectedPortfolio, (newPortfolio) async {
               await ref.read(modelManagerProvider.notifier).save<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
+              ref.invalidate(portfolioLoaderProvider);
             });
           },
         )
@@ -75,6 +93,20 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
   }
 
   Widget _changePortfolio(PortfolioConfig portfolio) {
+    final details = ref.watch(portfolioDetailsProvider(portfolio));
+
+    // final allAssets = ref.watch(useAssetsProvider);
+    //
+    // final portfolioAssets = allAssets.where((a) => portfolio.metaIds.contains(a.id));
+    // final symbols = portfolioAssets.map((a) => a.symbol).join(', ');
+    //
+    // final weight = (portfolio.targetWeight * 100).toStringAsFixed(0);
+    // final balance = (portfolio.rebalanceThreshold * 100).toStringAsFixed(0);
+    //
+    // final details = "${portfolio.portfolioName}: [weight: $weight%], "
+    //     "[balance: $balance%], "
+    //     "[${symbols.isEmpty ? 'Loading symbols...' : symbols}]";
+
     return Shrinkable(
       title: portfolio.portfolioName,
       actions: [
@@ -83,6 +115,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           onPressed: () {
             showPortfolio(context, portfolio, (newPortfolio) async {
               await ref.read(modelManagerProvider.notifier).update<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
+              ref.invalidate(portfolioLoaderProvider);
             });
           },
         ),
@@ -90,15 +123,12 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           icon: const Icon(Icons.remove_outlined),
           onPressed: () async {
             await ref.read(modelManagerProvider.notifier).delete<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
+            ref.invalidate(portfolioLoaderProvider);
           },
         ),
       ],
       expanded: true,
-      body: Column(
-        children: [
-          Text(portfolio.portfolioName, style: Theme.of(context).textTheme.titleLarge),
-        ],
-      ),
+      body: Text(details, style: Theme.of(context).textTheme.titleLarge),
     );
   }
 }
