@@ -130,6 +130,7 @@ class AssetConfig extends Cache{
 
   @override
   Map<String, dynamic> toMap() => {
+    'id:': id,
     'symbol': symbol,
     'exchange': stockExchange.code,
     'currency': currency.code,
