@@ -6,7 +6,6 @@ import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/widgets/asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../model/model_manager.dart';
 
@@ -57,6 +56,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
       setState(() {
         availableAssets = assets;
+        availableAssets.sort((left, right) => left.symbol.compareTo(right.symbol));
         availableAssets.add(AssetConfig.defaultAsset());
         if (assets.isNotEmpty) {
           selectedAsset = assets.first;
