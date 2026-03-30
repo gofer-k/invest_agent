@@ -100,6 +100,10 @@ class AssetConfig extends Cache{
     required this.stockExchange,
   }) : super.from([]);
 
+  static AssetConfig defaultAsset() => AssetConfig(id: -1, symbol: 'no symbol', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar);
+
+  bool isDefault() => id == -1;
+
   @override
   String toString() => symbol;
 

@@ -61,7 +61,8 @@ class _AssetDialogState extends ConsumerState<AssetDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final titleStr = widget.assetConfig == null ? "Add portfolio" : "Update portfolio";
+    final isNewAsset = widget.assetConfig?.isDefault() ?? true;
+    final titleStr = widget.assetConfig == isNewAsset ? "Add portfolio" : "Update portfolio";
     return AlertDialog(
       title: Text(titleStr),
       content: Column(

@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
-import 'package:invest_agent/widgets/trading_asset_dialog.dart';
+import 'package:invest_agent/widgets/asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../model/model_manager.dart';
 
@@ -56,6 +57,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
       setState(() {
         availableAssets = assets;
+        availableAssets.add(AssetConfig.defaultAsset());
         if (assets.isNotEmpty) {
           selectedAsset = assets.first;
         }
