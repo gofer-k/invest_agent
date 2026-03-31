@@ -1,17 +1,20 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod/src/framework.dart';
 
 final class LoggerRiverpod extends ProviderObserver{
   @override
   void didUpdateProvider(
-      ProviderObserverContext context, Object? oldValue, Object? newValue) {
-    print('''
+      ProviderObserverContext context, Object? previousValue, Object? newValue) {
+    if (kDebugMode) {
+      print('''
     {
     "provider": "${context.provider.name}",
-    "oldValue": "$oldValue",
+    "oldValue": "$previousValue",
     "newValue": "$newValue",
     mutation: "${context.mutation}"    
     }
     ''');
+    }
   }
 }

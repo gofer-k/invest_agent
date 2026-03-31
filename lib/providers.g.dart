@@ -33,7 +33,7 @@ final class DatabasePathProvider
   DatabasePath create() => DatabasePath();
 }
 
-String _$databasePathHash() => r'08cff6091bdd5e07bd14f0771dce9c533ebbd0de';
+String _$databasePathHash() => r'09ff5d846712c456243b5fe685109acd4161dafd';
 
 abstract class _$DatabasePath extends $AsyncNotifier<String> {
   FutureOr<String> build();
@@ -90,4 +90,4 @@ final class DatabaseHelperProvider
   }
 }
 
-String _$databaseHelperHash() => r'8a0c5635a250cee5473765c5bf1e44c8fcc36bf6';
+String _$databaseHelperHash() => r'd94759fc26391b8a5544e23e34853693cab13e57';

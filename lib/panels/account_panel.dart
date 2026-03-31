@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/user_account.dart';
-import 'package:invest_agent/model/model_manager.dart';
+import 'package:invest_agent/model/model_config.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 
 class AccountPanel extends ConsumerStatefulWidget {
@@ -22,7 +22,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(modelManagerProvider.notifier).fetch<UserAccount>(UserAccountSchema());
+      ref.read(modelConfigProvider.notifier).fetch<UserAccount>(UserAccountSchema());
     });
   }
 
@@ -36,7 +36,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
 
   Future<void> _saveAccount() async {
     if (_formKey.currentState!.validate()) {
-      final notifier = ref.read(modelManagerProvider.notifier);
+      final notifier = ref.read(modelConfigProvider.notifier);
       
       final account = UserAccount(
         name: _nameController.text,
@@ -59,7 +59,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final modelState = ref.watch(modelManagerProvider);
+    final modelState = ref.watch(modelConfigProvider);
     final accounts = modelState.getItems<UserAccount>();
 
     return Shrinkable(
@@ -119,7 +119,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
                   subtitle: Text(acc.providerData.name),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete, color: Colors.red, size: 18),
-                    onPressed: () => ref.read(modelManagerProvider.notifier).delete(UserAccountSchema(), acc),
+                    onPressed: () => ref.read(modelConfigProvider.notifier).delete(UserAccountSchema(), acc),
                   ),
                 ),
               );

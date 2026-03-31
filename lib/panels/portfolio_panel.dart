@@ -2,7 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../model/model_manager.dart';
+import '../model/model_config.dart';
 import '../model/portfolio_config.dart';
 import '../providers.dart';
 import '../widgets/portfolio_config_dialog.dart';
@@ -83,7 +83,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           icon: const Icon(Icons.add),
           onPressed: () {
             showPortfolio(context, selectedPortfolio, (newPortfolio) async {
-              await ref.read(modelManagerProvider.notifier).save<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
+              await ref.read(modelConfigProvider.notifier).save<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
               ref.invalidate(portfolioLoaderProvider);
             });
           },
@@ -114,7 +114,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           icon: const Icon(Icons.update_outlined),
           onPressed: () {
             showPortfolio(context, portfolio, (newPortfolio) async {
-              await ref.read(modelManagerProvider.notifier).update<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
+              await ref.read(modelConfigProvider.notifier).update<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
               ref.invalidate(portfolioLoaderProvider);
             });
           },
@@ -122,7 +122,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
         IconButton(
           icon: const Icon(Icons.remove_outlined),
           onPressed: () async {
-            await ref.read(modelManagerProvider.notifier).delete<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
+            await ref.read(modelConfigProvider.notifier).delete<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
             ref.invalidate(portfolioLoaderProvider);
           },
         ),

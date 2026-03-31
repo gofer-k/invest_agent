@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -14,7 +15,9 @@ class DatabasePath extends _$DatabasePath {
   @override
   FutureOr<String> build() async {
     final savedPath = await _storage.read(key: _dbPathKey);
-    print("DatabasePath.build: ${savedPath ?? _defaultDbName}");
+    if (kDebugMode) {
+      print("DatabasePath.build: ${savedPath ?? _defaultDbName}");
+    }
     return savedPath ?? _defaultDbName;
   }
 
@@ -22,7 +25,9 @@ class DatabasePath extends _$DatabasePath {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _storage.write(key: _dbPathKey, value: newPath);
-      print("DatabasePath.setPath: $newPath");
+      if (kDebugMode) {
+        print("DatabasePath.setPath: $newPath");
+      }
       return newPath;
     });
   }
@@ -33,7 +38,9 @@ Future<DatabaseHelper> databaseHelper(Ref ref) async {
   // Watch the path. Whenever setPath is called, this provider will re-evaluate.
   final path = await ref.watch(databasePathProvider.future);
 
-  print("DatabaseHelper: $path");
+  if (kDebugMode) {
+    print("DatabaseHelper: $path");
+  }
   final helper = DatabaseHelper(path);
   await helper.init();
   return helper;

@@ -9,17 +9,17 @@ import '../providers.dart';
 import 'asset_config.dart';
 import 'user_account.dart';
 
-part 'model_manager.g.dart';
+part 'model_config.g.dart';
 
 /// The state for ModelManager, holding in-memory cache of different models.
 @immutable
-class ModelManagerState {
+class ModelConfigState {
   final Map<Type, List<Cache>> cache;
 
-  const ModelManagerState({this.cache = const {}});
+  const ModelConfigState({this.cache = const {}});
 
-  ModelManagerState copyWith({Map<Type, List<Cache>>? cache}) {
-    return ModelManagerState(cache: cache ?? this.cache);
+  ModelConfigState copyWith({Map<Type, List<Cache>>? cache}) {
+    return ModelConfigState(cache: cache ?? this.cache);
   }
 
   List<T> getItems<T extends Cache>() => cache[T]?.cast<T>() ?? [];
@@ -27,7 +27,7 @@ class ModelManagerState {
 
 /// Riverpod 3.0 style (Modern Riverpod) Notifier for managing app data.
 @riverpod
-class ModelManager extends _$ModelManager {
+class ModelConfig extends _$ModelConfig {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   final Map<Type, CacheSchema> _schemas = {
@@ -37,7 +37,7 @@ class ModelManager extends _$ModelManager {
   };
 
   @override
-  ModelManagerState build() {
+  ModelConfigState build() {
     // When the database is ready, initialize the schemas and trigger initial fetches.
     ref.listen(databaseHelperProvider, (previous, next) {
       next.whenData((db) async {
@@ -56,7 +56,7 @@ class ModelManager extends _$ModelManager {
       });
     }, fireImmediately: true);
 
-    return const ModelManagerState();
+    return const ModelConfigState();
   }
 
   Future<DatabaseHelper> _getDb() async {
@@ -145,31 +145,31 @@ class ModelManager extends _$ModelManager {
 
 @riverpod
 List<AssetConfig> useAssets(Ref ref) {
-  return ref.watch(modelManagerProvider.select(
+  return ref.watch(modelConfigProvider.select(
         (s) => s.getItems<AssetConfig>(),
   ));
-  // return ref.watch(modelManagerProvider).getItems<AssetConfig>();
 }
 
 @riverpod
 List<PortfolioConfig> usePortfolios(Ref ref) {
-  return ref.watch(modelManagerProvider.select(
+  return ref.watch(modelConfigProvider.select(
         (s) => s.getItems<PortfolioConfig>(),
   ));
 }
 
 @riverpod
 List<UserAccount> userAccounts(Ref ref) {
-  return ref.watch(modelManagerProvider).getItems<UserAccount>();
+  return ref.watch(modelConfigProvider).getItems<UserAccount>();
 }
 
 @riverpod
 Future<List<AssetConfig>> assetsLoader(Ref ref) async {
-  return await ref.read(modelManagerProvider.notifier).fetchType<AssetConfig>();
+  return await ref.read(modelConfigProvider.notifier).fetchType<AssetConfig>();
 }
 
 @riverpod
 Future<List<PortfolioConfig>> portfolioLoader(Ref ref) async {
-  return await ref.read(modelManagerProvider.notifier).fetchType<PortfolioConfig>();
+  return await ref.read(modelConfigProvider.notifier).fetchType<PortfolioConfig>();
 }
+
 

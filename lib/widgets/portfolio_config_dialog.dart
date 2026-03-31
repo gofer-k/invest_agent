@@ -7,7 +7,7 @@ import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/widgets/asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
 
-import '../model/model_manager.dart';
+import '../model/model_config.dart';
 
 void showPortfolio(
   BuildContext context, PortfolioConfig? portfolio,
@@ -178,7 +178,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     showAsset(context, selectedAsset, (newAsset) async {
       if (newAsset != null) {
         // Corrected Schema
-        await ref.read(modelManagerProvider.notifier).save<AssetConfig>(
+        await ref.read(modelConfigProvider.notifier).save<AssetConfig>(
             AssetConfigSchema(), newAsset);
 
         setState(() {
