@@ -59,6 +59,19 @@ class PriceController extends _$PriceController {
     }
   }
 
+  Future<void> _updateAndSet(Future<String> Function() execBuilder) async {
+    try {
+      final db = await _getDb();
+      await db.transaction<void>((con) async {
+        final sql = await execBuilder();
+        await con.execute(sql);
+      });
+    } catch (e) {
+      debugPrint('PriceController Error: $e');
+    }
+  }
+
+
   Future<T> _queryValue<T>(Future<String> Function() queryBuilder, T defaultValue) async {
     try {
       final db = await _getDb();
@@ -93,22 +106,24 @@ class PriceController extends _$PriceController {
       _fetchAndSet(() async => schema.readAfterDate(date));
 
   Future<void> save(IndexPriceSchema schema, IndexPrice item) async {
-    await _fetchAndSet(() async => schema.saveOne(item));
-    // await _fetchAndSet(() async => schema.newestDate(item));
+    await _updateAndSet(() async => schema.saveOne(item));
   }
 
   Future<void> update(IndexPriceSchema schema, IndexPrice item) async {
-    await _fetchAndSet(() async => schema.updateOne(item));
+    await _updateAndSet(() async => schema.updateOne(item));
     // await _fetchAndSet(() async => schema.newestDate(item));;
   }
 
   Future<void> delete(IndexPriceSchema schema, IndexPrice item) async {
-    await  _fetchAndSet(() async => schema.deleteOne(item));;
-    // await  _fetchAndSet(() async => schema.newestDate(item));;
+    await  _updateAndSet(() async => schema.deleteOne(item));;
   }
 
   Future<void> deleteAll(IndexPriceSchema schema) async {
-    await _fetchAndSet(() async => schema.deleteAll);
+    await _updateAndSet(() async => schema.deleteAll);
+  }
+
+  Future<void> deleteAssetAll(IndexPriceSchema schema, IndexPrice item) async {
+    await _updateAndSet(() async => schema.deleteAssetAll(item));
   }
 
   Future<DateTime> oldestDate(IndexPriceSchema schema, IndexPrice item) =>

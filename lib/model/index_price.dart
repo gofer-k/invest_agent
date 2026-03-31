@@ -31,7 +31,15 @@ class IndexPriceSchema implements CacheSchema {
 
   @override
   String deleteOne(Cache cache) {
-    return "DELETE FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
+    return
+      '''
+      DELETE FROM $cacheName WHERE id = ${(cache as IndexPrice).id} AND
+      meta_id = ${(cache as AssetConfig).id};
+      ''';
+  }
+
+  String deleteAssetAll(Cache cache) {
+    return "DELETE FROM $cacheName WHERE meta_id = ${(cache as AssetConfig).id};";
   }
 
   @override
