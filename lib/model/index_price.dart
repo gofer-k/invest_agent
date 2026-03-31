@@ -41,9 +41,6 @@ class IndexPriceSchema implements CacheSchema {
   String readOne(Cache cache) =>
       'SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};';
 
-  String readByDate(DateTime date) =>
-      'SELECT * FROM $cacheName WHERE date = $date;';
-
   @override
   String saveOne(Cache cache) {
     final price = cache as IndexPrice;
@@ -76,6 +73,28 @@ class IndexPriceSchema implements CacheSchema {
           volume = ${price.volume}
       WHERE id = ${price.id};
     ''';
+  }
+
+  String oldestDate(IndexPrice price) => 'SELECT MIN(date) FROM $cacheName;';
+
+  String newestDate(IndexPrice price) => 'SELECT MAX(date) FROM $cacheName;';
+
+  String readDateRange(DateTime beginDate, DateTime endDate) {
+    if (beginDate.isAfter(endDate)) {
+      return 'SELECT * FROM $cacheName WHERE date BETWEEN $endDate AND $beginDate;';
+    }
+    return 'SELECT * FROM $cacheName WHERE date BETWEEN $beginDate AND $endDate;';
+  }
+
+  String readUntilDate(DateTime date) => 'SELECT * FROM $cacheName WHERE date <= $date;';
+
+  String readAfterDate(DateTime date) => 'SELECT * FROM $cacheName WHERE date > $date;';
+
+  String readCount(DateTime beginDate, DateTime endDate) {
+    if (beginDate.isAfter(endDate)) {
+      return 'SELECT COUNT(*) FROM $cacheName WHERE date BETWEEN $endDate AND $beginDate;';
+    }
+    return 'SELECT COUNT(*) FROM $cacheName WHERE date BETWEEN $beginDate AND $endDate;';
   }
 }
 
@@ -113,7 +132,7 @@ class IndexPrice extends Cache {
     try {
       return IndexPrice(
         id: item[0] as int,
-        assetId: item[2] as int,
+        assetId: item[1] as int,
         dateTime: item[2] as DateTime,
         openPrice: item[3] as double,
         closePrice: item[4] as double,
