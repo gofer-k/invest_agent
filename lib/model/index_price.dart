@@ -57,7 +57,7 @@ class IndexPriceSchema implements CacheSchema {
       VALUES (
       nextval('$cacheSequenceName'),      
       ${price.assetId},
-     '${price.dateTime}',
+     '${price.dateTime.toIso8601String()}',
      ${price.openPrice},
      ${price.highPrice},
      ${price.lowPrice},
@@ -73,7 +73,7 @@ class IndexPriceSchema implements CacheSchema {
     return '''
       UPDATE $cacheName
       SET meta_id = ${price.assetId},
-          date = '${price.dateTime}',
+          date = '${price.dateTime.toIso8601String()}',
           open = ${price.openPrice},
           high = ${price.highPrice},
           low = ${price.lowPrice},
@@ -83,26 +83,52 @@ class IndexPriceSchema implements CacheSchema {
     ''';
   }
 
-  String oldestDate(IndexPrice price) => 'SELECT MIN(date) FROM $cacheName;';
+  String oldestDate(AssetConfig asset) => 'SELECT MIN(date) FROM $cacheName WHERE meta_id = ${asset.id};';
 
-  String newestDate(IndexPrice price) => 'SELECT MAX(date) FROM $cacheName;';
+  String newestDate(AssetConfig asset) => 'SELECT MAX(date) FROM $cacheName WHERE meta_id = ${asset.id};';
 
-  String readDateRange(DateTime beginDate, DateTime endDate) {
+  String readDateRange(AssetConfig asset, DateTime beginDate, DateTime endDate) {
     if (beginDate.isAfter(endDate)) {
-      return 'SELECT * FROM $cacheName WHERE date BETWEEN $endDate AND $beginDate;';
+      return
+        '''
+        SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
+        AND date BETWEEN ${endDate.toIso8601String()}
+        AND ${beginDate.toIso8601String()};
+        ''';
     }
-    return 'SELECT * FROM $cacheName WHERE date BETWEEN $beginDate AND $endDate;';
+    return
+      '''
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
+      AND date BETWEEN ${beginDate.toIso8601String()}
+      AND ${endDate.toIso8601String()};
+      ''';
   }
 
-  String readUntilDate(DateTime date) => 'SELECT * FROM $cacheName WHERE date <= $date;';
+  String readUntilDate(AssetConfig asset, DateTime date) =>
+      '''
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date <= ${date.toIso8601String()};
+      ''';
 
-  String readAfterDate(DateTime date) => 'SELECT * FROM $cacheName WHERE date > $date;';
+  String readAfterDate(AssetConfig asset, DateTime date) =>
+    '''
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > ${date.toIso8601String()};
+    ''';
 
-  String readCount(DateTime beginDate, DateTime endDate) {
+  String readCount(AssetConfig asset, DateTime beginDate, DateTime endDate) {
     if (beginDate.isAfter(endDate)) {
-      return 'SELECT COUNT(*) FROM $cacheName WHERE date BETWEEN $endDate AND $beginDate;';
+      return
+      '''
+        SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
+        AND date BETWEEN ${endDate.toIso8601String()}
+        AND ${beginDate.toIso8601String()};
+      ''';
     }
-    return 'SELECT COUNT(*) FROM $cacheName WHERE date BETWEEN $beginDate AND $endDate;';
+    return
+      '''
+      SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
+      AND date BETWEEN ${beginDate.toIso8601String()}
+      AND ${endDate.toIso8601String()};
+      ''';
   }
 }
 
@@ -138,10 +164,11 @@ class IndexPrice extends Cache {
     }
 
     try {
+      DateTime dateTime = DateTime.parse(item[2] as String);
       return IndexPrice(
         id: item[0] as int,
         assetId: item[1] as int,
-        dateTime: item[2] as DateTime,
+        dateTime: dateTime,
         openPrice: item[3] as double,
         closePrice: item[4] as double,
         highPrice: item[5] as double,
