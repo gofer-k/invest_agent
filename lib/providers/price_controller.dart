@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:invest_agent/model/index_price.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../providers.dart';
+import 'load_database_provider.dart';
 import '../utils/database_helper.dart';
-import 'asset_config.dart';
+import '../model/asset_config.dart';
 
 part 'price_controller.g.dart';
 

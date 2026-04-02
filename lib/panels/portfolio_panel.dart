@@ -2,7 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../model/model_config.dart';
+import '../providers/model_config.dart';
 import '../model/portfolio_config.dart';
 import '../providers/load_database_provider.dart';
 import '../widgets/portfolio_config_dialog.dart';

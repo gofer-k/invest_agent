@@ -7,7 +7,7 @@ import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/widgets/asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
 
-import '../model/model_config.dart';
+import '../providers/model_config.dart';
 
 void showPortfolio(
   BuildContext context, PortfolioConfig? portfolio,

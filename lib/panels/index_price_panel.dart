@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/index_price.dart';
-import '../model/model_config.dart';
-import '../model/price_controller.dart';
+import '../providers/model_config.dart';
+import '../providers/price_controller.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class IndexPricePanel extends ConsumerStatefulWidget {

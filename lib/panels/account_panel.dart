@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/user_account.dart';
-import 'package:invest_agent/model/model_config.dart';
+import 'package:invest_agent/providers/model_config.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 
 class AccountPanel extends ConsumerStatefulWidget {
