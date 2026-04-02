@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:riverpod/src/framework.dart';
 
 final class LoggerRiverpod extends ProviderObserver{
+  const LoggerRiverpod();
+
   @override
   void didUpdateProvider(
       ProviderObserverContext context, Object? previousValue, Object? newValue) {

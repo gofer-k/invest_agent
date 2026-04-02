@@ -33,7 +33,7 @@ class LoadDatabase extends _$LoadDatabase {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<DatabaseHelper> databaseHelper(Ref ref) async {
   // Watch the path. Whenever setPath is called, this provider will re-evaluate.
   final path = await ref.watch(loadDatabaseProvider.future);
@@ -43,5 +43,14 @@ Future<DatabaseHelper> databaseHelper(Ref ref) async {
   }
   final helper = DatabaseHelper(path);
   await helper.init();
+
+  ref.onDispose(() {
+    if (kDebugMode) {
+      print("DatabaseHelper.dispose");
+    }
+    ref.invalidate(loadDatabaseProvider);
+    helper.dispose();
+  });
+
   return helper;
 }

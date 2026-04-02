@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/themes/app_themes.dart';
-import 'package:invest_agent/widgets/utils/logger_riverpod.dart';
+import 'package:invest_agent/widgets/app_launcher.dart';
+import 'package:invest_agent/providers/logger_riverpod.dart';
 
 import 'panels/invest_dashboard.dart';
 
@@ -12,7 +13,12 @@ void main() {
       observers: [
         LoggerRiverpod(),
       ],
-      child: const InvestApp(),
+      child: MaterialApp(
+        theme: AppThemes.lightTheme,
+        darkTheme: AppThemes.darkTheme,
+        themeMode: ThemeMode.system,
+        home: AppLauncher(onLoaded: (context) => const InvestDashboard()),
+      )
     ),
   );
 }
