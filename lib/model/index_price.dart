@@ -92,26 +92,26 @@ class IndexPriceSchema implements CacheSchema {
       return
         '''
         SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
-        AND date BETWEEN ${endDate.toIso8601String()}
-        AND ${beginDate.toIso8601String()};
+        AND date BETWEEN '${endDate.toIso8601String()}'
+        AND '${beginDate.toIso8601String()}';
         ''';
     }
     return
       '''
       SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
-      AND date BETWEEN ${beginDate.toIso8601String()}
-      AND ${endDate.toIso8601String()};
+      AND date BETWEEN '${beginDate.toIso8601String()}'
+      AND '${endDate.toIso8601String()}';
       ''';
   }
 
   String readUntilDate(AssetConfig asset, DateTime date) =>
       '''
-      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date <= ${date.toIso8601String()};
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date <= '${date.toIso8601String()}';
       ''';
 
   String readAfterDate(AssetConfig asset, DateTime date) =>
     '''
-      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > ${date.toIso8601String()};
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > '${date.toIso8601String()}';
     ''';
 
   String readCount(AssetConfig asset, DateTime beginDate, DateTime endDate) {
@@ -119,15 +119,15 @@ class IndexPriceSchema implements CacheSchema {
       return
       '''
         SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
-        AND date BETWEEN ${endDate.toIso8601String()}
-        AND ${beginDate.toIso8601String()};
+        AND date BETWEEN '${endDate.toIso8601String()}'
+        AND '${beginDate.toIso8601String()}';
       ''';
     }
     return
       '''
       SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
-      AND date BETWEEN ${beginDate.toIso8601String()}
-      AND ${endDate.toIso8601String()};
+      AND date BETWEEN '${beginDate.toIso8601String()}'
+      AND '${endDate.toIso8601String()}';
       ''';
   }
 }
@@ -164,20 +164,26 @@ class IndexPrice extends Cache {
     }
 
     try {
-      DateTime dateTime = DateTime.parse(item[2] as String);
+      DateTime dateTime;
+      if (item[2] is DateTime) {
+        dateTime = item[2] as DateTime;
+      } else {
+        dateTime = DateTime.parse(item[2].toString());
+      }
+      
       return IndexPrice(
         id: item[0] as int,
         assetId: item[1] as int,
         dateTime: dateTime,
-        openPrice: item[3] as double,
-        closePrice: item[4] as double,
-        highPrice: item[5] as double,
-        lowPrice: item[6] as double,
-        volume: item[7] as double,
+        openPrice: (item[3] as num).toDouble(),
+        closePrice: (item[4] as num).toDouble(),
+        highPrice: (item[5] as num).toDouble(),
+        lowPrice: (item[6] as num).toDouble(),
+        volume: (item[7] as num).toDouble(),
       );
     }
     catch (e) {
-      throw Exception("Invalidate input data");
+      throw Exception("Invalidate input data: $e");
     }
   }
 

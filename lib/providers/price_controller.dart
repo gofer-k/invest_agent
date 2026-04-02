@@ -127,14 +127,14 @@ class PriceController extends _$PriceController {
   }
 
   Future<DateTime> oldestDate(IndexPriceSchema schema, AssetConfig asset) async {
-    final val = await _queryValue(() async => schema.oldestDate(asset), null);
+    final val = await _queryValue<Object?>(() async => schema.oldestDate(asset), null);
     if (val == null) return DateTime.now();
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? DateTime.now();
   }
 
   Future<DateTime> newestDate(IndexPriceSchema schema, AssetConfig asset) async {
-    final val = await _queryValue(() async => schema.newestDate(asset), null);
+    final val = await _queryValue<Object?>(() async => schema.newestDate(asset), null);
     if (val == null) return DateTime.now();
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? DateTime.now();
