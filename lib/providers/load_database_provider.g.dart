@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'providers.dart';
+part of 'load_database_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,33 +9,33 @@ part of 'providers.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(DatabasePath)
-final databasePathProvider = DatabasePathProvider._();
+@ProviderFor(LoadDatabase)
+final loadDatabaseProvider = LoadDatabaseProvider._();
 
-final class DatabasePathProvider
-    extends $AsyncNotifierProvider<DatabasePath, String> {
-  DatabasePathProvider._()
+final class LoadDatabaseProvider
+    extends $AsyncNotifierProvider<LoadDatabase, String> {
+  LoadDatabaseProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'databasePathProvider',
+        name: r'loadDatabaseProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$databasePathHash();
+  String debugGetCreateSourceHash() => _$loadDatabaseHash();
 
   @$internal
   @override
-  DatabasePath create() => DatabasePath();
+  LoadDatabase create() => LoadDatabase();
 }
 
-String _$databasePathHash() => r'09ff5d846712c456243b5fe685109acd4161dafd';
+String _$loadDatabaseHash() => r'9be40eeb1f4dfc242663a882ebf85097b936e2f8';
 
-abstract class _$DatabasePath extends $AsyncNotifier<String> {
+abstract class _$LoadDatabase extends $AsyncNotifier<String> {
   FutureOr<String> build();
   @$mustCallSuper
   @override
@@ -90,4 +90,4 @@ final class DatabaseHelperProvider
   }
 }
 
-String _$databaseHelperHash() => r'd94759fc26391b8a5544e23e34853693cab13e57';
+String _$databaseHelperHash() => r'd8c4b9860cd5a7be0d5eaefcc2acbb66086b2145';

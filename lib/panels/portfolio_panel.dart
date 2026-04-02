@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../model/model_config.dart';
 import '../model/portfolio_config.dart';
-import '../providers.dart';
+import '../providers/load_database_provider.dart';
 import '../widgets/portfolio_config_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
@@ -38,7 +38,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final dbAsync = ref.watch(databaseHelperProvider);
+    final dbAsync = ref.watch(loadDatabaseProvider);
     final usePortfolios = ref.watch(portfolioLoaderProvider);
     final portfolios = usePortfolios.whenData((portfolios) => portfolios).value ?? [];
 

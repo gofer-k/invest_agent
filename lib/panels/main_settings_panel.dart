@@ -2,7 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/panels/portfolio_panel.dart';
-import '../providers.dart';
+import '../providers/load_database_provider.dart';
 import 'account_panel.dart';
 import 'index_price_panel.dart';
 
@@ -15,14 +15,14 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
 
   class _MainSettingsPanel extends ConsumerState<MainSettingsPanel> {
    Future<void> _pickDbPath() async {
-    final currentPath = ref.watch(databasePathProvider).value ?? 'Loading...';
+    final currentPath = ref.watch(loadDatabaseProvider).value ?? 'Loading...';
     String? result = await FilePicker.platform.saveFile(
       dialogTitle: 'Select cache Location',
       fileName: currentPath,
     );
 
     if (result != null) {
-      final pathNotifier = ref.read(databasePathProvider.notifier);
+      final pathNotifier = ref.read(loadDatabaseProvider.notifier);
       await pathNotifier.setPath(result);
     }
   }
@@ -34,7 +34,7 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = ref.watch(databasePathProvider).value ?? 'Loading...';
+    final currentPath = ref.watch(loadDatabaseProvider).value ?? 'Loading...';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),

@@ -5,7 +5,7 @@ import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../providers.dart';
+import '../providers/load_database_provider.dart';
 import 'asset_config.dart';
 import 'user_account.dart';
 
