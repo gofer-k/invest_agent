@@ -70,7 +70,7 @@ final class DatabaseHelperProvider
         argument: null,
         retry: null,
         name: r'databaseHelperProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -90,4 +90,4 @@ final class DatabaseHelperProvider
   }
 }
 
-String _$databaseHelperHash() => r'd8c4b9860cd5a7be0d5eaefcc2acbb66086b2145';
+String _$databaseHelperHash() => r'8d5f2b1dfff64d8e31d057e48fc29d11f32b65ee';

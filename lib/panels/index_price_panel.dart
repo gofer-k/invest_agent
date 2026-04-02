@@ -17,7 +17,6 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
   @override
   Widget build(BuildContext context) {
-    final priceState = ref.watch(priceControllerProvider);
     final assets = ref.watch(useAssetsProvider);
 
     return Shrinkable(

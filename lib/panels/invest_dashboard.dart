@@ -1,12 +1,13 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
-import '../model/etf_analytics_client.dart';
+import '../providers/investing_data_client.dart';
 import 'package:path/path.dart' as p;
 
 import 'etf_settings_charts.dart';
@@ -14,15 +15,14 @@ import 'request_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
 
-class InvestDashboard extends StatefulWidget {
+class InvestDashboard extends ConsumerStatefulWidget {
   const InvestDashboard({super.key});
 
   @override
-  State<InvestDashboard> createState() => _InvestDashboardState();
+  ConsumerState<InvestDashboard> createState() => _InvestDashboardState();
 }
 
-class _InvestDashboardState extends State<InvestDashboard> {
-  final ETFAnalyticsClient client = ETFAnalyticsClient();
+class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   ChartsConfiguration configurationCharts = ChartsConfiguration();
   AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
@@ -189,6 +189,7 @@ class _InvestDashboardState extends State<InvestDashboard> {
     }
 
     try {
+      final client = ref.watch(investingDataClientProvider('http://127.0.0.1:8000').notifier);
       final result = await client.runAnalysis(request);
       AnalysisRespond? receivedData;
 
