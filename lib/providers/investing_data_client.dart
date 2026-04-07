@@ -19,7 +19,6 @@ class RemoteDataException implements Exception {
 @riverpod
 class InvestingDataClient extends _$InvestingDataClient {
   late final http.Client _httpClient;
-  // final baseUri = "http://127.0.0.1:8000";
 
   @override
   void build(String baseUrl) {
@@ -30,27 +29,37 @@ class InvestingDataClient extends _$InvestingDataClient {
 
   Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
     final url = Uri.parse("$baseUrl/analytics/run");
-    return _handleResponse(await _httpClient.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(request.toJson()),
-    ));
+    try {
+      final response = await _httpClient.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(request.toJson()),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      if (e is RemoteDataException) rethrow;
+      throw RemoteDataException("Request failed: $e");
+    }
   }
 
   Future<List<Map<String, dynamic>>> runBulkAnalysis(List<AnalysisRequest> requests) async {
-    // TODO:
-    final url = Uri.parse("$baseUrl/analytics/bulk");
-    final response = await _httpClient.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(requests.map((r) => r.toJson()).toList()),
-    );
+    final url = Uri.parse("$baseUrl/marketplace/bulk"); // Updated to Marketplace endpoint
+    try {
+      final response = await _httpClient.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(requests.map((r) => r.toJson()).toList()),
+      );
 
-    final decoded = _handleResponse(response);
-    if (decoded is List) {
-      return List<Map<String, dynamic>>.from(decoded);
+      final decoded = _handleResponse(response);
+      if (decoded is List) {
+        return List<Map<String, dynamic>>.from(decoded);
+      }
+      throw RemoteDataException("Expected list response for bulk request");
+    } catch (e) {
+      if (e is RemoteDataException) rethrow;
+      throw RemoteDataException("Bulk request failed: $e");
     }
-    throw RemoteDataException("Expected list response for bulk request");
   }
 
   Stream<Map<String, dynamic>> getAnalysisStream(AnalysisRequest request) async* {
@@ -59,21 +68,26 @@ class InvestingDataClient extends _$InvestingDataClient {
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode(request.toJson());
 
-    final response = await _httpClient.send(httpRequest);
+    try {
+      final response = await _httpClient.send(httpRequest);
 
-    if (response.statusCode != 200) {
-      throw RemoteDataException(
-        "Streaming failed",
-        statusCode: response.statusCode,
-      );
+      if (response.statusCode != 200) {
+        throw RemoteDataException(
+          "Streaming failed",
+          statusCode: response.statusCode,
+        );
+      }
+
+      // 3. Process the stream line by line (NDJSON)
+      yield* response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .where((line) => line.isNotEmpty)
+          .map((line) => jsonDecode(line) as Map<String, dynamic>);
+    } catch (e) {
+      if (e is RemoteDataException) rethrow;
+      throw RemoteDataException("Stream failed: $e");
     }
-
-    // Process the stream line by line (assuming NDJSON or similar)
-    yield* response.stream
-        .transform(utf8.decoder)
-        .transform(const LineSplitter())
-        .where((line) => line.isNotEmpty)
-        .map((line) => jsonDecode(line) as Map<String, dynamic>);
   }
 
   dynamic _handleResponse(http.Response response) {

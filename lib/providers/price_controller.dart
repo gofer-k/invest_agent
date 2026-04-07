@@ -38,6 +38,7 @@ class PriceController extends _$PriceController {
   }
 
   Future<DatabaseHelper> _getDb() async {
+    if (!ref.mounted) throw Exception('Provider disposed');
     return await ref.read(databaseHelperProvider.future);
   }
 
@@ -74,6 +75,7 @@ class PriceController extends _$PriceController {
 
   Future<T> _queryValue<T>(Future<String> Function() queryBuilder, T defaultValue) async {
     try {
+      if (!ref.mounted) return defaultValue;
       final db = await _getDb();
       return await db.useConnection<T>((con) async {
         final sql = await queryBuilder();
