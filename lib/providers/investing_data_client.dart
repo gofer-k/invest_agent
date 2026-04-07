@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:invest_agent/model/user_account.dart';
 import '../model/analysis_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -21,14 +22,14 @@ class InvestingDataClient extends _$InvestingDataClient {
   late final http.Client _httpClient;
 
   @override
-  void build(String baseUrl) {
+  void build(ResourceData resource, {String? apiKey}) {
     _httpClient = http.Client();
     // Automatically close the client and cancel any pending requests when the provider is disposed
     ref.onDispose(() => _httpClient.close());
   }
 
   Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
-    final url = Uri.parse("$baseUrl/analytics/run");
+    final url = Uri.parse("${resource.baseUrl}/analytics/run");
     try {
       final response = await _httpClient.post(
         url,
@@ -43,7 +44,7 @@ class InvestingDataClient extends _$InvestingDataClient {
   }
 
   Future<List<Map<String, dynamic>>> runBulkAnalysis(List<AnalysisRequest> requests) async {
-    final url = Uri.parse("$baseUrl/marketplace/bulk"); // Updated to Marketplace endpoint
+    final url = Uri.parse("${ResourceData.localHost.baseUrl}/analytics/bulk");
     try {
       final response = await _httpClient.post(
         url,
@@ -63,7 +64,7 @@ class InvestingDataClient extends _$InvestingDataClient {
   }
 
   Stream<Map<String, dynamic>> getAnalysisStream(AnalysisRequest request) async* {
-    final url = Uri.parse("$baseUrl/analytics/stream");
+    final url = Uri.parse("${ResourceData.localHost.baseUrl}/stream");
     final httpRequest = http.Request('POST', url)
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode(request.toJson());
@@ -88,6 +89,17 @@ class InvestingDataClient extends _$InvestingDataClient {
       if (e is RemoteDataException) rethrow;
       throw RemoteDataException("Stream failed: $e");
     }
+  }
+
+  Uri _buildUri(String? path, [Map<String, String>? queryParams]) {
+    var uri = Uri.parse("${resource.baseUrl}$path");
+    var params = {...?queryParams};
+
+    if (apiKey != null) {
+      params['access_key'] = apiKey!;
+    }
+
+    return uri.replace(queryParameters: params.isEmpty ? null : params);
   }
 
   dynamic _handleResponse(http.Response response) {

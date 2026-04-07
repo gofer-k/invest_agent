@@ -16,7 +16,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
   final _nameController = TextEditingController();
   final _apiKeyController = TextEditingController();
   final _apiSecretController = TextEditingController();
-  ProviderData _selectedProvider = ProviderData.MarketPlace;
+  ResourceData _selectedProvider = ResourceData.marketStack;
 
   @override
   void initState() {
@@ -75,9 +75,9 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
                   decoration: const InputDecoration(labelText: 'Account Name', isDense: true),
                   validator: (v) => v!.isEmpty ? 'Required' : null,
                 ),
-                DropdownButtonFormField<ProviderData>(
+                DropdownButtonFormField<ResourceData>(
                   initialValue: _selectedProvider,
-                  items: ProviderData.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
+                  items: ResourceData.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
                   onChanged: (v) => setState(() => _selectedProvider = v!),
                   decoration: const InputDecoration(labelText: 'Marketplace', isDense: true),
                 ),

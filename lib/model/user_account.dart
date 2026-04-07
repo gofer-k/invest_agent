@@ -1,15 +1,18 @@
 import 'cache_schema.dart';
 
-enum ProviderData {
-  MarketPlace("MarketPlace"),
-  Binance("Investing"),
-  TradingView("TradingView");
+enum ResourceData {
+  marketStack("MarketStack", "http://api.marketstack.com/v2/", false),
+  binance("Binance", "https://accounts.binance.com/", false),
+  localHost("LocalHost", "http://127.0.0.1:8000/", true);
 
   final String name;
-  const ProviderData(this.name);
+  final String baseUrl;
+  final bool isLocal;
+  const ResourceData(this.name, this.baseUrl, this.isLocal);
 
-  static ProviderData? fromString(String? providerName) {
-    return ProviderData.values.firstWhere((e) => e.name == providerName);
+  static ResourceData? fromString(String? providerName) {
+    return ResourceData.values.firstWhere((e) => e.name == providerName,
+      orElse: () => ResourceData.localHost);
   }
 }
 
@@ -18,7 +21,7 @@ class UserAccount extends Cache {
   final String name;
   final String apiKey;
   final String apiSecret;
-  final ProviderData providerData;
+  final ResourceData providerData;
 
   UserAccount({
     this.id,
@@ -45,12 +48,12 @@ class UserAccount extends Cache {
       name: item[1] as String,
       apiKey: item[2] as String,
       apiSecret: item[3] as String,
-      providerData: ProviderData.fromString(item[4] as String) ?? ProviderData.MarketPlace,
+      providerData: ResourceData.fromString(item[4] as String) ?? ResourceData.marketStack,
     );
   }
 
   @override
-  String toString() => 'UserAccount(id: $id, name: $name, marketplace: $providerData)';
+  String toString() => 'UserAccount(id: $id, name: $name, provider: $providerData)';
 }
 
 class UserAccountSchema extends CacheSchema {
