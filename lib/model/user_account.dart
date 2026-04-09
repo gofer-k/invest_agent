@@ -1,27 +1,13 @@
+import 'package:invest_agent/model/trading_request.dart';
+
 import 'cache_schema.dart';
-
-enum ResourceData {
-  marketStack("MarketStack", "http://api.marketstack.com/v2/", false),
-  binance("Binance", "https://accounts.binance.com/", false),
-  localHost("LocalHost", "http://127.0.0.1:8000/", true);
-
-  final String name;
-  final String baseUrl;
-  final bool isLocal;
-  const ResourceData(this.name, this.baseUrl, this.isLocal);
-
-  static ResourceData? fromString(String? providerName) {
-    return ResourceData.values.firstWhere((e) => e.name == providerName,
-      orElse: () => ResourceData.localHost);
-  }
-}
 
 class UserAccount extends Cache {
   final int? id;
   final String name;
   final String apiKey;
   final String apiSecret;
-  final ResourceData providerData;
+  final ResourceUri providerData;
 
   UserAccount({
     this.id,
@@ -48,7 +34,7 @@ class UserAccount extends Cache {
       name: item[1] as String,
       apiKey: item[2] as String,
       apiSecret: item[3] as String,
-      providerData: ResourceData.fromString(item[4] as String) ?? ResourceData.marketStack,
+      providerData: ResourceUri.fromString(item[4] as String) ?? ResourceUri.marketStack,
     );
   }
 

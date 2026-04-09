@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:invest_agent/model/user_account.dart';
 import '../model/analysis_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../model/trading_request.dart';
 
 part 'investing_data_client.g.dart';
 
@@ -22,17 +23,16 @@ class InvestingDataClient extends _$InvestingDataClient {
   late final http.Client _httpClient;
 
   @override
-  void build(ResourceData resource, {String? apiKey}) {
+  void build(RemoteRequest endpoint) {
     _httpClient = http.Client();
     // Automatically close the client and cancel any pending requests when the provider is disposed
     ref.onDispose(() => _httpClient.close());
   }
 
   Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
-    final url = Uri.parse("${resource.baseUrl}/analytics/run");
     try {
       final response = await _httpClient.post(
-        url,
+        endpoint.uri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(request.toJson()),
       );
@@ -44,10 +44,9 @@ class InvestingDataClient extends _$InvestingDataClient {
   }
 
   Future<List<Map<String, dynamic>>> runBulkAnalysis(List<AnalysisRequest> requests) async {
-    final url = Uri.parse("${ResourceData.localHost.baseUrl}/analytics/bulk");
     try {
       final response = await _httpClient.post(
-        url,
+        endpoint.uri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(requests.map((r) => r.toJson()).toList()),
       );
@@ -64,8 +63,7 @@ class InvestingDataClient extends _$InvestingDataClient {
   }
 
   Stream<Map<String, dynamic>> getAnalysisStream(AnalysisRequest request) async* {
-    final url = Uri.parse("${ResourceData.localHost.baseUrl}/stream");
-    final httpRequest = http.Request('POST', url)
+    final httpRequest = http.Request('POST', endpoint.uri)
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode(request.toJson());
 
@@ -91,15 +89,23 @@ class InvestingDataClient extends _$InvestingDataClient {
     }
   }
 
-  Uri _buildUri(String? path, [Map<String, String>? queryParams]) {
-    var uri = Uri.parse("${resource.baseUrl}$path");
-    var params = {...?queryParams};
+  Future<List<Map<String, dynamic>>> getRequest() async {
+    try {
+      //TODO: implement this
+      final response = await _httpClient.get(
+        endpoint.uri,
+        headers: {"Accept": "application/json"},
+      );
 
-    if (apiKey != null) {
-      params['access_key'] = apiKey!;
+      final decoded = _handleResponse(response);
+      if (decoded is List) {
+        return List<Map<String, dynamic>>.from(decoded);
+      }
+      throw RemoteDataException("Expected list response for bulk request");
+    } catch (e) {
+      if (e is RemoteDataException) rethrow;
+      throw RemoteDataException("Bulk request failed: $e");
     }
-
-    return uri.replace(queryParameters: params.isEmpty ? null : params);
   }
 
   dynamic _handleResponse(http.Response response) {
@@ -113,21 +119,4 @@ class InvestingDataClient extends _$InvestingDataClient {
       );
     }
   }
-// Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
-  //   final url = Uri.parse("$baseUrl/analytics/run");
-  //
-  //   final response = await http.post(
-  //     url,
-  //     headers: {"Content-Type": "application/json"},
-  //     body: jsonEncode(request.toJson()),
-  //   );
-  //
-  //   if (response.statusCode != 200) {
-  //     throw Exception(
-  //       "Analysis failed: ${response.statusCode} ${response.body}",
-  //     );
-  //   }
-  //
-  //   return jsonDecode(response.body);
-  // }
 }

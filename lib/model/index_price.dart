@@ -63,7 +63,12 @@ class IndexPriceSchema implements CacheSchema {
      ${price.lowPrice},
      ${price.closePrice},
      ${price.volume}
-     );
+     ) ON CONFLICT(meta_id, date) DO UPDATE SET
+          open = excluded.open,
+          high = excluded.high,
+          low = excluded.low,
+          close = excluded.close,
+          volume = excluded.volume;
   ''';
   }
 
@@ -130,6 +135,8 @@ class IndexPriceSchema implements CacheSchema {
       AND '${endDate.toIso8601String()}';
       ''';
   }
+
+  String get allAssetDetails => 'SELECT meta_id, MIN(date), MAX(date), COUNT(*) FROM $cacheName GROUP BY meta_id;';
 }
 
 class IndexPrice extends Cache {

@@ -4,6 +4,8 @@ import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/providers/model_config.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 
+import '../model/trading_request.dart';
+
 class AccountPanel extends ConsumerStatefulWidget {
   const AccountPanel({super.key});
 
@@ -16,7 +18,7 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
   final _nameController = TextEditingController();
   final _apiKeyController = TextEditingController();
   final _apiSecretController = TextEditingController();
-  ResourceData _selectedProvider = ResourceData.marketStack;
+  ResourceUri _selectedProvider = ResourceUri.marketStack;
 
   @override
   void initState() {
@@ -75,9 +77,9 @@ class _AccountPanelState extends ConsumerState<AccountPanel> {
                   decoration: const InputDecoration(labelText: 'Account Name', isDense: true),
                   validator: (v) => v!.isEmpty ? 'Required' : null,
                 ),
-                DropdownButtonFormField<ResourceData>(
+                DropdownButtonFormField<ResourceUri>(
                   initialValue: _selectedProvider,
-                  items: ResourceData.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
+                  items: ResourceUri.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
                   onChanged: (v) => setState(() => _selectedProvider = v!),
                   decoration: const InputDecoration(labelText: 'Marketplace', isDense: true),
                 ),

@@ -1,20 +1,30 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:math';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/index_price.dart';
+import 'package:invest_agent/model/trading_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'load_database_provider.dart';
 import '../utils/database_helper.dart';
 import '../model/asset_config.dart';
+import 'investing_data_client.dart';
 
 part 'price_controller.g.dart';
 
 @immutable
 class PriceControllerState {
   final List<IndexPrice> cache;
+  final Map<int, String> assetDetails;
 
-  const PriceControllerState({this.cache = const []});
-  PriceControllerState copyWith(List<IndexPrice>? cache) {
-    return PriceControllerState(cache: cache ?? this.cache);
+  const PriceControllerState({this.cache = const [], this.assetDetails = const {}});
+  
+  PriceControllerState copyWith({List<IndexPrice>? cache, Map<int, String>? assetDetails}) {
+    return PriceControllerState(
+      cache: cache ?? this.cache,
+      assetDetails: assetDetails ?? this.assetDetails,
+    );
   }
   
   List<IndexPrice> getItems() => cache;
@@ -28,6 +38,7 @@ class PriceController extends _$PriceController {
       next.whenData((db) async {
         try {
           await db.createCache(IndexPriceSchema());
+          await refreshAllDetails();
         } catch (e) {
           debugPrint('IndexPriceManager Init Error: $e');
         }
@@ -48,11 +59,10 @@ class PriceController extends _$PriceController {
       final items = await db.useConnection<List<IndexPrice>>((con) async {
         final sql = await queryBuilder();
         final queryResults = await con.query(sql);
-        // Using IndexPrice.from directly or via a registry if you have one
         return queryResults.fetchAll().map((row) => IndexPrice.from(row)).toList();
       });
 
-      state = state.copyWith(items);
+      state = state.copyWith(cache: items);
       return items;
     } catch (e) {
       debugPrint('PriceController Error: $e');
@@ -67,11 +77,11 @@ class PriceController extends _$PriceController {
         final sql = await execBuilder();
         await con.execute(sql);
       });
+      await refreshAllDetails();
     } catch (e) {
       debugPrint('PriceController Error: $e');
     }
   }
-
 
   Future<T> _queryValue<T>(Future<String> Function() queryBuilder, T defaultValue) async {
     try {
@@ -86,6 +96,32 @@ class PriceController extends _$PriceController {
     } catch (e) {
       debugPrint('PriceController Query Error: $e');
       return defaultValue;
+    }
+  }
+
+  Future<void> refreshAllDetails() async {
+    try {
+      final db = await _getDb();
+      final schema = IndexPriceSchema();
+      final details = await db.useConnection<Map<int, String>>((con) async {
+        final results = await con.query(schema.allAssetDetails);
+        final Map<int, String> map = {};
+        for (final row in results.fetchAll()) {
+          final assetId = row[0] as int;
+          final oldest = row[1];
+          final newest = row[2];
+          final count = row[3];
+          
+          final oldestStr = oldest is DateTime ? oldest.toIso8601String().split('T')[0] : oldest.toString().split(' ')[0];
+          final newestStr = newest is DateTime ? newest.toIso8601String().split('T')[0] : newest.toString().split(' ')[0];
+          
+          map[assetId] = 'Oldest: $oldestStr, Newest: $newestStr, Count: $count';
+        }
+        return map;
+      });
+      state = state.copyWith(assetDetails: details);
+    } catch (e) {
+      debugPrint('Error refreshing all details: $e');
     }
   }
 
@@ -113,18 +149,17 @@ class PriceController extends _$PriceController {
 
   Future<void> update(IndexPriceSchema schema, IndexPrice item) async {
     await _updateAndSet(() async => schema.updateOne(item));
-    // await _fetchAndSet(() async => schema.newestDate(item));;
   }
 
   Future<void> delete(IndexPriceSchema schema, IndexPrice item) async {
-    await  _updateAndSet(() async => schema.deleteOne(item));;
+    await  _updateAndSet(() async => schema.deleteOne(item));
   }
 
   Future<void> deleteAll(IndexPriceSchema schema) async {
     await _updateAndSet(() async => schema.deleteAll);
   }
 
-  Future<void> deleteAssetAll(IndexPriceSchema schema, AssetConfig asset,) async {
+  Future<void> deleteAssetAll(IndexPriceSchema schema, AssetConfig asset) async {
     await _updateAndSet(() async => schema.deleteAssetAll(asset));
   }
 
@@ -145,19 +180,44 @@ class PriceController extends _$PriceController {
   Future<int> count(IndexPriceSchema schema, AssetConfig asset, DateTime begin, DateTime end) =>
       _queryValue(() async => schema.readCount(asset, begin, end), 0);
 
-  Future<String> assetPricesDetails(IndexPriceSchema schema, AssetConfig asset) async {
+  Future<void> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
+    final db = await _getDb();
+    final schema = IndexPriceSchema();
+    
     try {
-      final oldest = await oldestDate(schema, asset);
-      final newest = await newestDate(schema, asset);
-      final countValue = await count(schema, asset, oldest, newest);
+      final client = ref.read(investingDataClientProvider(request).notifier);
+      final responseMap = await client.getRequest();
 
-      final oldestStr = oldest.toIso8601String().split('T')[0];
-      final newestStr = newest.toIso8601String().split('T')[0];
-
-      return 'Oldest: $oldestStr, Newest: $newestStr, Count: $countValue';
+      await db.transaction((con) async {
+        for (final item in responseMap) {
+          final respond = MarketStackRespond.fromEod(item);
+          final asset = assets.firstWhere((a) => a.symbol == respond.symbol,
+              orElse: () => AssetConfig.defaultAsset());
+          if (asset.isDefault()) {
+            log("Asset not found: ${respond.symbol} in the cache" as num);
+            continue;
+          }
+          final price = IndexPrice(
+            id: 0,
+            assetId: asset.id,
+            dateTime: respond.timestamp,
+            openPrice: respond.open,
+            closePrice: respond.close,
+            highPrice: respond.high,
+            lowPrice: respond.low,
+            volume: respond.volume,
+          );
+          await con.execute(schema.saveOne(price));
+        }
+      });
     } catch (e) {
-      debugPrint('PriceController Error: $e');
-      return 'No data or error';
+      debugPrint('Error refreshing prices for ${request.resource.toString()}: $e');
     }
+    await refreshAllDetails();
   }
+}
+
+@riverpod
+Map<int, String> assetPriceDetails(Ref ref) {
+  return ref.watch(priceControllerProvider.select((s) => s.assetDetails));
 }

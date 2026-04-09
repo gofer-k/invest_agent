@@ -1,5 +1,28 @@
 import 'dart:developer';
 
+enum ResourceUri {
+  marketStack("MarketStack", "http://api.marketstack.com/v2/", false),
+  binance("Binance", "https://accounts.binance.com/", false),
+  localHost("LocalHost", "http://127.0.0.1:8000/", true);
+
+  final String name;
+  final String baseUrl;
+  final bool isLocal;
+  const ResourceUri(this.name, this.baseUrl, this.isLocal);
+
+  static ResourceUri? fromString(String? providerName) {
+    return ResourceUri.values.cast<ResourceUri?>().firstWhere(
+          (e) => e?.name == providerName,
+      orElse: () => null,
+    );
+  }
+}
+
+abstract class RemoteRequest<ResourceUri> {
+  ResourceUri get resource;
+  Uri get uri;
+}
+
 enum MarketStackType {
   eod("eod"),
   intraday("intraday"),
@@ -8,11 +31,15 @@ enum MarketStackType {
   currencies("currencies"),
   timezones("timezones");
 
-  const MarketStackType(this.type);
-  final String type;
+  const MarketStackType(this.path);
+  final String path;
 }
 
-class MarketStackRequest {
+
+class MarketStackRequest implements RemoteRequest {
+  @override
+  ResourceUri get resource => ResourceUri.marketStack;
+
   final MarketStackType type;
   final String? apiKey;
   final DateTime? fromDate;
@@ -21,7 +48,7 @@ class MarketStackRequest {
   final int? limit;
   final int? offset;
 
-  final Map<String, Object?>? params;
+  final Map<String, String>? params;
 
   MarketStackRequest({
     required this.type,
@@ -33,43 +60,45 @@ class MarketStackRequest {
     this.limit,
     this.offset});
 
-  factory MarketStackRequest.fromEod(String apiKey, DateTime fromDate, DateTime toDate, List<String> symbols, int limit, int offset) {
+  factory MarketStackRequest.fromEod({
+    required String apiKey,
+    required DateTime fromDate,
+    required List<String> symbols,
+    DateTime? toDate,
+    int? limit, int? offset}) {
     return MarketStackRequest(
       type: MarketStackType.eod,
       apiKey: apiKey,
       fromDate: fromDate,
-      toDate: toDate,
+      toDate: toDate ?? DateTime.now(),
       symbols: symbols,
       limit: limit,
       offset: offset,
     );
   }
 
-  String getUri() {
+  @override
+  Uri get uri {
     final sw = Stopwatch()..start();
     try {
-      switch (type) {
-        case MarketStackType.eod:
-          final buffer = StringBuffer('eod/?');
-          buffer.write('access_key=$apiKey');
-          buffer.write('&date_from=${_formatDate(fromDate!)}');
-          buffer.write('&date_to=${_formatDate(toDate!)}');
-          buffer.write('&symbols=${symbols!.join(',')}');
-          buffer.write('&limit=$limit');
-          buffer.write('&offset=$offset');
-          return buffer.toString();
-        case MarketStackType.intraday:
-        case MarketStackType.tickers:
-        case MarketStackType.exchanges:
-        case MarketStackType.currencies:
-        case MarketStackType.timezones:
-        throw UnimplementedError('MarketStackType $type is not implemented yet.');
-      }
-    }
-    finally {
+      final queryParams = <String, String>{
+        'access_key': apiKey!,
+        if (fromDate != null) 'date_from': _formatDate(fromDate!),
+        if (toDate != null) 'date_to': _formatDate(toDate!),
+        if (symbols != null && symbols!.isNotEmpty) 'symbols': symbols!.join(','),
+        if (limit != null) 'limit': limit.toString(),
+        if (offset != null) 'offset': offset.toString(),
+        ...?params,
+      };
+
+      return Uri.parse(resource.baseUrl).replace(
+        path: '${resource.baseUrl}${type.path}',
+        queryParameters: queryParams,
+      );
+    } finally {
       sw.stop();
       if (sw.elapsedMilliseconds > 150) {
-        log('getUri for $type took ${sw.elapsedMicroseconds}us', name: 'performance generating URI');
+        log('get uri for $type took ${sw.elapsedMicroseconds}us', name: 'performance');
       }
     }
   }
@@ -103,40 +132,6 @@ class MarketStackRespond {
     required this.currency, required this.dividend
   });
 
-  
-  /*
-  {
-  "pagination": {
-    "limit": 0,
-    "offset": 0,
-    "count": 0,
-    "total": 0
-  },
-  "data": [
-    {
-      "open": 0,
-      "high": 0,
-      "low": 0,
-      "close": 0,
-      "volume": 0,
-      "adj_high": 0,
-      "adj_low": 0,
-      "adj_close": 0,
-      "adj_open": 0,
-      "adj_volume": 0,
-      "split_factor": 0,
-      "dividend": 0,
-      "name": "string",
-      "exchange_code": "string",
-      "asset_type": "string",
-      "price_currency": "string",
-      "symbol": "string",
-      "exchange": "string",
-      "date": "string"
-    }
-  ]
-}
-   */
   factory MarketStackRespond.fromEod(Map<String, dynamic> json) {
     final sw = Stopwatch()..start();
     try {
@@ -161,4 +156,12 @@ class MarketStackRespond {
       }
     }
   }
+}
+
+class LocalRequest implements RemoteRequest {
+  @override
+  get resource => ResourceUri.localHost;
+
+  @override
+  Uri get uri => resource;
 }

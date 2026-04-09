@@ -7,7 +7,7 @@ import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
-import '../model/user_account.dart';
+import '../model/trading_request.dart';
 import '../providers/investing_data_client.dart';
 import 'package:path/path.dart' as p;
 
@@ -190,7 +190,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     }
 
     try {
-      final client = ref.watch(investingDataClientProvider(ResourceData.localHost).notifier);
+      final client = ref.watch(investingDataClientProvider(LocalRequest()).notifier);
       final result = await client.runAnalysis(request);
       AnalysisRespond? receivedData;
 
