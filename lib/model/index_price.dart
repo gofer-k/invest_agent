@@ -34,7 +34,7 @@ class IndexPriceSchema implements CacheSchema {
     return
       '''
       DELETE FROM $cacheName WHERE id = ${(cache as IndexPrice).id} AND
-      meta_id = ${(cache as AssetConfig).id};
+      meta_id = ${cache.assetId};
       ''';
   }
 
@@ -47,15 +47,15 @@ class IndexPriceSchema implements CacheSchema {
 
   @override
   String readOne(Cache cache) =>
-      'SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};';
+      'SELECT * FROM $cacheName WHERE id = ${(cache as IndexPrice).id};';
 
   @override
   String saveOne(Cache cache) {
     final price = cache as IndexPrice;
     return '''
-      INSERT INTO $cacheName 
+      INSERT INTO $cacheName
       VALUES (
-      nextval('$cacheSequenceName'),      
+      nextval('$cacheSequenceName'),
       ${price.assetId},
      '${price.dateTime.toIso8601String()}',
      ${price.openPrice},
@@ -161,7 +161,7 @@ class IndexPrice extends Cache {
 
   @override
   String toString() {
-    return '';
+    return 'IndexPrice(id: $id, assetId: $assetId, date: $dateTime, close: $closePrice)';
   }
 
   @override
@@ -179,13 +179,13 @@ class IndexPrice extends Cache {
       }
       
       return IndexPrice(
-        id: item[0] as int,
-        assetId: item[1] as int,
+        id: (item[0] as num).toInt(),
+        assetId: (item[1] as num).toInt(),
         dateTime: dateTime,
         openPrice: (item[3] as num).toDouble(),
-        closePrice: (item[4] as num).toDouble(),
-        highPrice: (item[5] as num).toDouble(),
-        lowPrice: (item[6] as num).toDouble(),
+        highPrice: (item[4] as num).toDouble(),
+        lowPrice: (item[5] as num).toDouble(),
+        closePrice: (item[6] as num).toDouble(),
         volume: (item[7] as num).toDouble(),
       );
     }

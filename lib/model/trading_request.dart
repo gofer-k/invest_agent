@@ -44,6 +44,7 @@ class MarketStackRequest implements RemoteRequest {
   final String? apiKey;
   final DateTime? fromDate;
   final DateTime? toDate;
+  final String? exchange;
   final List<String>? symbols;
   final int? limit;
   final int? offset;
@@ -58,12 +59,13 @@ class MarketStackRequest implements RemoteRequest {
     this.toDate,
     this.symbols,
     this.limit,
-    this.offset});
+    this.offset, this.exchange});
 
   factory MarketStackRequest.fromEod({
     required String apiKey,
     required DateTime fromDate,
     required List<String> symbols,
+    required String? exchange,
     DateTime? toDate,
     int? limit, int? offset}) {
     return MarketStackRequest(
@@ -71,6 +73,7 @@ class MarketStackRequest implements RemoteRequest {
       apiKey: apiKey,
       fromDate: fromDate,
       toDate: toDate ?? DateTime.now(),
+      exchange: exchange,
       symbols: symbols,
       limit: limit,
       offset: offset,
@@ -85,6 +88,7 @@ class MarketStackRequest implements RemoteRequest {
         'access_key': apiKey!,
         if (fromDate != null) 'date_from': _formatDate(fromDate!),
         if (toDate != null) 'date_to': _formatDate(toDate!),
+        if (exchange != null) 'exchange': exchange!,
         if (symbols != null && symbols!.isNotEmpty) 'symbols': symbols!.join(','),
         if (limit != null) 'limit': limit.toString(),
         if (offset != null) 'offset': offset.toString(),

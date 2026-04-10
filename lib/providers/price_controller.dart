@@ -1,5 +1,4 @@
-import 'dart:math';
-
+import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/index_price.dart';
@@ -38,9 +37,12 @@ class PriceController extends _$PriceController {
       next.whenData((db) async {
         try {
           await db.createCache(IndexPriceSchema());
-          await refreshAllDetails();
+          // if (ref.mounted) {
+            await refreshAllDetails();
+          // }
         } catch (e) {
-          debugPrint('IndexPriceManager Init Error: $e');
+          if (e.toString().contains('disposed')) return;
+          dev.log('IndexPriceManager Init Error: $e');
         }
       });
     }, fireImmediately: true);
@@ -49,7 +51,9 @@ class PriceController extends _$PriceController {
   }
 
   Future<DatabaseHelper> _getDb() async {
-    if (!ref.mounted) throw Exception('Provider disposed');
+    if (!ref.mounted) {
+      throw Exception('Provider disposed');
+    }
     return await ref.read(databaseHelperProvider.future);
   }
 
@@ -62,24 +66,46 @@ class PriceController extends _$PriceController {
         return queryResults.fetchAll().map((row) => IndexPrice.from(row)).toList();
       });
 
+      if (!ref.mounted) return items;
       state = state.copyWith(cache: items);
       return items;
     } catch (e) {
-      debugPrint('PriceController Error: $e');
+      if (e.toString().contains('disposed')) return [];
+      dev.log('PriceController Error: $e');
       return [];
     }
   }
 
-  Future<void> _updateAndSet(Future<String> Function() execBuilder) async {
+  Future<void> _updateAndSet(Future<String> Function() execBuilder, {IndexPrice? item, bool isDelete = false}) async {
     try {
       final db = await _getDb();
+      // await db.saveOne(IndexPriceSchema(), item);
       await db.transaction<void>((con) async {
         final sql = await execBuilder();
         await con.execute(sql);
       });
-      await refreshAllDetails();
+
+      if (ref.mounted) {
+        // Update cache incrementally
+        if (item != null) {
+          final currentCache = List<IndexPrice>.from(state.cache);
+          if (isDelete) {
+            currentCache.removeWhere((e) => e.id == item.id);
+          } else {
+            final index = currentCache.indexWhere((e) => e.id == item.id && item.id != 0);
+            if (index != -1) {
+              currentCache[index] = item;
+            } else {
+              // For new items (id=0), we might still want to fetchAll
+              // once to get the DB-generated ID, but for tests we can just add it.
+              currentCache.insert(0, item);
+            }
+          }
+          state = state.copyWith(cache: currentCache);
+        }
+      }
     } catch (e) {
-      debugPrint('PriceController Error: $e');
+      dev.log('PriceController Error: $e');
     }
   }
 
@@ -94,13 +120,15 @@ class PriceController extends _$PriceController {
         return (row?[0] as T?) ?? defaultValue;
       });
     } catch (e) {
-      debugPrint('PriceController Query Error: $e');
+      if (e.toString().contains('disposed')) return defaultValue;
+      dev.log('PriceController Query Error: $e');
       return defaultValue;
     }
   }
 
   Future<void> refreshAllDetails() async {
     try {
+      if (!ref.mounted) return;
       final db = await _getDb();
       final schema = IndexPriceSchema();
       final details = await db.useConnection<Map<int, String>>((con) async {
@@ -119,9 +147,13 @@ class PriceController extends _$PriceController {
         }
         return map;
       });
-      state = state.copyWith(assetDetails: details);
+
+      if (ref.mounted) {
+        state = state.copyWith(assetDetails: details);
+      }
     } catch (e) {
-      debugPrint('Error refreshing all details: $e');
+      if (e.toString().contains('disposed')) return;
+      dev.log('Error refreshing all details: $e');
     }
   }
 
@@ -144,15 +176,15 @@ class PriceController extends _$PriceController {
       _fetchAndSet(() async => schema.readAfterDate(asset, date));
 
   Future<void> save(IndexPriceSchema schema, IndexPrice item) async {
-    await _updateAndSet(() async => schema.saveOne(item));
+    await _updateAndSet(() async => schema.saveOne(item), item: item);
   }
 
   Future<void> update(IndexPriceSchema schema, IndexPrice item) async {
-    await _updateAndSet(() async => schema.updateOne(item));
+    await _updateAndSet(() async => schema.updateOne(item), item: item);
   }
 
   Future<void> delete(IndexPriceSchema schema, IndexPrice item) async {
-    await  _updateAndSet(() async => schema.deleteOne(item));
+    await  _updateAndSet(() async => schema.deleteOne(item), item: item, isDelete: true);
   }
 
   Future<void> deleteAll(IndexPriceSchema schema) async {
@@ -181,10 +213,10 @@ class PriceController extends _$PriceController {
       _queryValue(() async => schema.readCount(asset, begin, end), 0);
 
   Future<void> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
-    final db = await _getDb();
-    final schema = IndexPriceSchema();
-    
     try {
+      final db = await _getDb();
+      final schema = IndexPriceSchema();
+      
       final client = ref.read(investingDataClientProvider(request).notifier);
       final responseMap = await client.getRequest();
 
@@ -194,7 +226,7 @@ class PriceController extends _$PriceController {
           final asset = assets.firstWhere((a) => a.symbol == respond.symbol,
               orElse: () => AssetConfig.defaultAsset());
           if (asset.isDefault()) {
-            log("Asset not found: ${respond.symbol} in the cache" as num);
+            dev.log("Asset not found: ${respond.symbol} in the cache");
             continue;
           }
           final price = IndexPrice(
@@ -210,10 +242,14 @@ class PriceController extends _$PriceController {
           await con.execute(schema.saveOne(price));
         }
       });
+
+      if (ref.mounted) {
+        await refreshAllDetails();
+      }
     } catch (e) {
-      debugPrint('Error refreshing prices for ${request.resource.toString()}: $e');
+      if (e.toString().contains('disposed')) return;
+      dev.log('Error refreshing prices for ${request.resource.toString()}: $e');
     }
-    await refreshAllDetails();
   }
 }
 

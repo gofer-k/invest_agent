@@ -94,7 +94,11 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                             if (accounts.isEmpty) throw Exception('No accounts selected');
                             final apikey = await ref.read(modelConfigProvider.notifier).getAccountSecrets(accounts[0]).then((value) => value['apiKey']);
                             final fromDate = await ref.read(priceControllerProvider.notifier).newestDate(IndexPriceSchema(), asset);
-                            final request = MarketStackRequest.fromEod(apiKey: apikey!, fromDate: fromDate, symbols: [asset.symbol]);
+                            final request = MarketStackRequest.fromEod(
+                                apiKey: apikey!,
+                                fromDate: fromDate,
+                                symbols: ['${asset.symbol}${asset.stockExchange.suffix}'],
+                                exchange: asset.stockExchange.code);
 
                             await ref.read(priceControllerProvider.notifier).refreshAssetPrices([asset], request);
                             if (context.mounted) {

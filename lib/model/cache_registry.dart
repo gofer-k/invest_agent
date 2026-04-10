@@ -2,6 +2,7 @@ import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/model/user_account.dart';
 
 import 'asset_config.dart';
+import 'index_price.dart';
 
 typedef CacheFactory<T> = T Function(List<Object?> item);
 
@@ -11,6 +12,7 @@ class CacheRegistry {
     PortfolioConfig: (item) => PortfolioConfig.from(item),
     AssetConfig: (item) => AssetConfig.from(item),
     UserAccount: (item) => UserAccount.fromList(item),
+    IndexPrice: (item) => IndexPrice.from(item),
     // Add other models here:
   };
 
