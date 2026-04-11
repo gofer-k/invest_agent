@@ -14,7 +14,8 @@ import 'package:test/test.dart';
 void main() {
   setUpAll(() {
     try {
-      final ldPath = Platform.environment['LD_DUCKDB_PATH'];
+      // DUCKDB_PATH="/home/chris/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release";
+      final ldPath = Platform.environment['DUCKDB_PATH'];
       bool loaded = false;
       if (ldPath != null) {
         // Split by ':' on Linux/macOS
@@ -29,13 +30,15 @@ void main() {
       }
       if (!loaded) {
         // Fallback: Try to let the system find it in standard paths.
-        // Even if Platform.environment['LD_LIBRARY_PATH'] is null, 
+        // Even if Platform.environment['LD_LIBRARY_PATH'] is null,
         // the OS loader might still have access to it if it was inherited.
-        DynamicLibrary.open('libduckdb.so');
+        final homePath = Platform.environment['HOME'];
+        DynamicLibrary.open('$homePath/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release/libduckdb.so');
       }
     } catch (e) {
       // It might already be loaded or fail if not found anywhere
       print('Library load info: $e');
+      exit(-1);
     }
   });
 
