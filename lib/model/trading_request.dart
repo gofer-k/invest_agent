@@ -35,7 +35,6 @@ enum MarketStackType {
   final String path;
 }
 
-
 class MarketStackRequest implements RemoteRequest {
   @override
   ResourceUri get resource => ResourceUri.marketStack;
@@ -125,6 +124,7 @@ class MarketStackRespond {
   final double volume;
   final DateTime timestamp;
   final String symbol;
+  final String symbol_suffix;
   final String exchange;
   final String currency;
   final double? dividend;
@@ -132,13 +132,21 @@ class MarketStackRespond {
   MarketStackRespond({
     required this.type, required this.open, required this.high,
     required this.low, required this.close, required this.volume,
-    required this.timestamp, required this.symbol, required this.exchange,
+    required this.timestamp, required this.symbol,
+    required this.symbol_suffix, required this.exchange,
     required this.currency, required this.dividend
   });
 
   factory MarketStackRespond.fromEod(Map<String, dynamic> json) {
     final sw = Stopwatch()..start();
     try {
+      final symbolStr = json['symbol'] as String;
+      final dotIndex = symbolStr.indexOf('.');
+
+      final (symbol, suffix) = dotIndex == -1
+          ? (symbolStr, "")
+          : (symbolStr.substring(0, dotIndex), symbolStr.substring(dotIndex + 1));
+
       return MarketStackRespond(
         type: MarketStackType.eod,
         open: (json['open'] as num).toDouble(),
@@ -147,9 +155,10 @@ class MarketStackRespond {
         close: (json['close'] as num).toDouble(),
         volume: (json['volume'] as num).toDouble(),
         timestamp: DateTime.parse(json['date'] as String),
-        symbol: json['symbol'] as String,
+        symbol: symbol,
+        symbol_suffix: suffix,
         exchange: json['exchange'] as String,
-        currency: json['currency'] as String,
+        currency: json['price_currency'] as String,
         dividend: json['dividend'] == null ? null : (json['dividend'] as num).toDouble(),
       );
     }
@@ -157,6 +166,45 @@ class MarketStackRespond {
       sw.stop();
       if (sw.elapsedMilliseconds > 500) {
         log('MarketStackRespond.fromEod took ${sw.elapsedMicroseconds}us', name: 'performance generating MarketStackRespond');
+      }
+    }
+  }
+}
+
+class MarketStackManagerRespond {
+  final List<MarketStackRespond> data;
+  final int count;
+  final int offset;
+  final int limit;
+  final int total;
+
+  MarketStackManagerRespond({
+    required this.data,
+    required this.count,
+    required this.offset,
+    required this.limit,
+    required this.total
+  });
+
+  factory MarketStackManagerRespond.fromEod(Map<String, dynamic> json){
+    final sw = Stopwatch()..start();
+    try {
+      return MarketStackManagerRespond(
+          data: (json['data'] as List<dynamic>)
+              .cast<Map<String, dynamic>>()
+              .map((e) => MarketStackRespond.fromEod(e))
+              .toList(),
+          count: json['count'] as int,
+          offset: json['offset'] as int,
+          limit: json['limit'] as int,
+          total: json['total'] as int);
+    }
+    finally {
+      sw.stop();
+      if (sw.elapsedMilliseconds > 500) {
+        log(
+            'MarketStackManagerRespond.fromEod took ${sw.elapsedMicroseconds}us',
+            name: 'performance generating MarketStackManagerRespond');
       }
     }
   }
