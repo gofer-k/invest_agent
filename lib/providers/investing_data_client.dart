@@ -7,6 +7,13 @@ import '../model/trading_request.dart';
 
 part 'investing_data_client.g.dart';
 
+@riverpod
+http.Client httpClient(Ref ref) {
+  final client = http.Client();
+  ref.onDispose(() => client.close());
+  return client;
+}
+
 class RemoteDataException implements Exception {
   final String message;
   final int? statusCode;
@@ -20,14 +27,12 @@ class RemoteDataException implements Exception {
 
 @riverpod
 class InvestingDataClient extends _$InvestingDataClient {
-  late final http.Client _httpClient;
-
   @override
   void build(RemoteRequest endpoint) {
-    _httpClient = http.Client();
-    // Automatically close the client and cancel any pending requests when the provider is disposed
-    ref.onDispose(() => _httpClient.close());
+    // No initialization needed here if we use ref.watch(httpClientProvider)
   }
+
+  http.Client get _httpClient => ref.read(httpClientProvider);
 
   Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
     try {
@@ -89,22 +94,18 @@ class InvestingDataClient extends _$InvestingDataClient {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getRequest() async {
+  /// Fetches data for the current endpoint and returns the decoded JSON.
+  Future<dynamic> getRequest() async {
     try {
-      //TODO: implement this
       final response = await _httpClient.get(
         endpoint.uri,
         headers: {"Accept": "application/json"},
       );
 
-      final decoded = _handleResponse(response);
-      if (decoded is List) {
-        return List<Map<String, dynamic>>.from(decoded);
-      }
-      throw RemoteDataException("Expected list response for bulk request");
+      return _handleResponse(response);
     } catch (e) {
       if (e is RemoteDataException) rethrow;
-      throw RemoteDataException("Bulk request failed: $e");
+      throw RemoteDataException("Request failed: $e");
     }
   }
 
