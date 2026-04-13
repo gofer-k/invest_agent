@@ -78,6 +78,8 @@ class AssetConfigSchema implements CacheSchema
   }
 }
 
+typedef AssetsByExchange = Map<String, List<AssetConfig>>;
+
 class AssetConfig extends Cache{
   final int id;
   final String symbol;

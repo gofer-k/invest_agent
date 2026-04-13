@@ -12,11 +12,18 @@ import '../model/user_account.dart';
 part 'model_config.g.dart';
 
 /// The state for ModelManager, holding in-memory cache of different models.
+
+class AssetTimeRange {
+  final DateTime fromDate;
+  final DateTime toDate;
+  final AssetConfig asset;
+  const AssetTimeRange({required this.fromDate, required this.toDate, required this.asset});
+}
+
 @immutable
 class ModelConfigState {
   final Map<Type, List<Cache>> cache;
-
-  const ModelConfigState({this.cache = const {}});
+    const ModelConfigState({this.cache = const {}});
 
   ModelConfigState copyWith({Map<Type, List<Cache>>? cache}) {
     return ModelConfigState(cache: cache ?? this.cache);

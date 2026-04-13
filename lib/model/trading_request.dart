@@ -87,7 +87,7 @@ class MarketStackRequest implements RemoteRequest {
         'access_key': apiKey!,
         if (fromDate != null) 'date_from': _formatDate(fromDate!),
         if (toDate != null) 'date_to': _formatDate(toDate!),
-        if (exchange != null) 'exchange': exchange!,
+        if (exchange != null) 'exchange': ?exchange,
         if (symbols != null && symbols!.isNotEmpty) 'symbols': symbols!.join(','),
         if (limit != null) 'limit': limit.toString(),
         if (offset != null) 'offset': offset.toString(),
@@ -124,7 +124,7 @@ class MarketStackRespond {
   final double volume;
   final DateTime timestamp;
   final String symbol;
-  final String symbol_suffix;
+  final String symbolSuffix;
   final String exchange;
   final String currency;
   final double? dividend;
@@ -133,7 +133,7 @@ class MarketStackRespond {
     required this.type, required this.open, required this.high,
     required this.low, required this.close, required this.volume,
     required this.timestamp, required this.symbol,
-    required this.symbol_suffix, required this.exchange,
+    required this.symbolSuffix, required this.exchange,
     required this.currency, required this.dividend
   });
 
@@ -156,7 +156,7 @@ class MarketStackRespond {
         volume: (json['volume'] as num).toDouble(),
         timestamp: DateTime.parse(json['date'] as String),
         symbol: symbol,
-        symbol_suffix: suffix,
+        symbolSuffix: suffix,
         exchange: json['exchange'] as String,
         currency: json['price_currency'] as String,
         dividend: json['dividend'] == null ? null : (json['dividend'] as num).toDouble(),

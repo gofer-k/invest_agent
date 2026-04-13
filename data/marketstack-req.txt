@@ -1,0 +1,4 @@
+curl --request GET \
+  --url 'https://api.marketstack.com/v2/eod?access_key=1e984322e28dc63108ac9615ae4fa24f&date_from=2026-03-04&date_to=2026-04-09&exchange=XLON&symbols=SGLN.L,VWRA.L&limit=1000' \
+  --header 'Accept: application/json' -o ~/Downloads/respond.json
+  

@@ -212,7 +212,8 @@ class PriceController extends _$PriceController {
   Future<int> count(IndexPriceSchema schema, AssetConfig asset, DateTime begin, DateTime end) =>
       _queryValue(() async => schema.readCount(asset, begin, end), 0);
 
-  Future<void> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
+  Future<int> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
+    int result = 0;
     try {
       final db = await _getDb();
       final schema = IndexPriceSchema();
@@ -240,6 +241,7 @@ class PriceController extends _$PriceController {
             volume: respond.volume,
           );
           await con.execute(schema.saveOne(price));
+          result++;
         }
       });
 
@@ -247,9 +249,10 @@ class PriceController extends _$PriceController {
         await refreshAllDetails();
       }
     } catch (e) {
-      if (e.toString().contains('disposed')) return;
       dev.log('Error refreshing prices for ${request.resource.toString()}: $e');
+      return 0;
     }
+    return result;
   }
 }
 

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,15 +34,13 @@ void main() {
         DynamicLibrary.open('$homePath/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release/libduckdb.so');
       }
     } catch (e) {
-      // It might already be loaded or fail if not found anywhere
-      print('Library load info: $e');
+      log('Library load info: $e');
       exit(-1);
     }
   });
 
   group('InvestingDataClient Test', () {
     test('simulate fetch MarketStack data using InvestingDataClient', () async {
-      // 1. Mock Data based on MarketStack API structure
       final mockJsonResponse = {
         "pagination": {
           "limit": 100,
@@ -69,18 +68,10 @@ void main() {
         "total": 1
       };
 
-      // 2. Setup Mock Client
-      final mockClient = MockClient((request) async {
+      MockClient((request) async {
         return http.Response(jsonEncode(mockJsonResponse), 200);
       });
 
-      // 3. Create a ProviderContainer to test the provider
-      // We need to override the behavior to use our MockClient
-      // Since InvestingDataClient instantiates its own Client in build(),
-      // for a proper test we'd usually inject the client or use a more sophisticated override.
-      // However, for this simulation, we will assume we want to test the parsing logic
-      // integrated with the data client flow.
-      
       final request = MarketStackRequest.fromEod(
         apiKey: 'test_key',
         fromDate: DateTime(2023, 10, 27),
@@ -90,33 +81,20 @@ void main() {
 
       final container = ProviderContainer(
         overrides: [
-          // If InvestingDataClient was designed to take a client in its constructor or via another provider, 
-          // we would override it here. 
-          // Given the current implementation, we'll demonstrate how you'd call it.
         ],
       );
       addTearDown(container.dispose);
 
-      // 4. Fetch the data (In a real scenario, InvestingDataClient should probably return the model)
-      // Note: The current getRequest() in InvestingDataClient returns Future<List<Map<String, dynamic>>>
-      // and expects the endpoint.uri to be set via the 'endpoint' parameter in the build method.
-      
-      final client = container.read(investingDataClientProvider(request).notifier);
-      
-      // Since the current InvestingDataClient implementation uses its own internal http.Client(),
-      // to properly test with a MockClient we would need to modify InvestingDataClient to accept one.
-      // But we can simulate the "fetch and parse" part here.
+      container.read(investingDataClientProvider(request).notifier);
 
       final List<Map<String, dynamic>> dataList = [mockJsonResponse]; // Simulating response body
-      
-      // 5. Transform raw data to Domain Models
+
       final marketStackResponse = MarketStackManagerRespond.fromEod(dataList.first);
 
-      // 6. Assertions
       expect(marketStackResponse.data.length, 1);
       final item = marketStackResponse.data.first;
       expect(item.symbol, "AAPL");
-      expect(item.symbol_suffix, "XNAS");
+      expect(item.symbolSuffix, "XNAS");
       expect(item.close, 152.0);
     });
   });

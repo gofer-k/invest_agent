@@ -1,6 +1,11 @@
+import 'dart:developer' as dev;
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/model/user_account.dart';
 
+import '../model/asset_config.dart';
 import '../model/index_price.dart';
 import '../model/trading_request.dart';
 import '../providers/model_config.dart';
@@ -24,11 +29,6 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     final details = ref.watch(assetPriceDetailsProvider);
     // TODO: selected accounts
     final accounts = ref.watch(userAccountsProvider);
-    // final fromDate = ref.watch(fromDateProvider);
-    // final toDate = ref.watch(toDateProvider);
-    // final symbols = ref.watch(symbolsProvider);
-    // final limit = ref.watch(limitProvider);
-    // final offset = ref.watch(offsetProvider);
 
     return Shrinkable(
       title: "Index Prices",
@@ -42,24 +42,25 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                   : const Icon(Icons.refresh),
               onPressed: _isRefreshingAll ? null : () async {
                 setState(() => _isRefreshingAll = true);
+                final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
+                int refreshedNum = assetsToRefresh.length;
                 try {
-                  // final validAssets = assets.where((a) => !a.isDefault()).toList();
-                  // await ref.read(priceControllerProvider.notifier)
-                  //     .refreshAssetPrices(validAssets, MarketStackType.eod);
-                  //
-                  // if (context.mounted) {
-                  //   ScaffoldMessenger.of(context).showSnackBar(
-                  //     const SnackBar(content: Text('All asset prices updated')),
-                  //   );
-                  // }
+                  if (accounts.isEmpty) throw Exception('No accounts selected');
+
+                  refreshedNum = min(await refreshAssetPrices(accounts[0], assetsToRefresh), assetsToRefresh.length);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Updated $refreshedNum assets')),
+                    );
+                  }
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to update all assets: $e')),
+                      SnackBar(content: Text('Failed to update ${assetsToRefresh.length} assets: $e')),
                     );
                   }
                 } finally {
-                  if (mounted) setState(() => _isRefreshingAll = false);
+                  if (mounted) setState(() => _refreshingIds.clear());
                 }
               },
               label: const Text("Refresh All"),
@@ -92,15 +93,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                           setState(() => _refreshingIds.add(asset.id));
                           try {
                             if (accounts.isEmpty) throw Exception('No accounts selected');
-                            final apikey = await ref.read(modelConfigProvider.notifier).getAccountSecrets(accounts[0]).then((value) => value['apiKey']);
-                            final fromDate = await ref.read(priceControllerProvider.notifier).newestDate(IndexPriceSchema(), asset);
-                            final request = MarketStackRequest.fromEod(
-                                apiKey: apikey!,
-                                fromDate: fromDate,
-                                symbols: ['${asset.symbol}${asset.stockExchange.suffix}'],
-                                exchange: asset.stockExchange.code);
-
-                            await ref.read(priceControllerProvider.notifier).refreshAssetPrices([asset], request);
+                            await refreshAssetPrices(accounts[0], [asset]);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Updated ${asset.symbol} prices')),
@@ -146,4 +139,69 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
       ),
     );
   }
+
+  AssetsByExchange assetsByExchange(List<AssetConfig> assets) {
+    return assets.fold<Map<String, List<AssetConfig>>>({}, (map, asset) {
+      map.putIfAbsent(asset.stockExchange.code, () => []).add(asset);
+      return map;
+    });
+  }
+
+  Future<Map<DateTimeRange, List<AssetConfig>>>
+  assetsByTimeSpan(List<AssetConfig> assets) async {
+    final notifier = ref.read(priceControllerProvider.notifier);
+    final schema = IndexPriceSchema();
+    final results = await Future.wait(assets.map((asset) async {
+      // Fetch both dates in parallel for this specific asset
+      final dates = await Future.wait([
+        notifier.oldestDate(schema, asset),
+        notifier.newestDate(schema, asset),
+      ]);
+
+      final start = DateUtils.dateOnly(dates[0]);
+      final end = DateUtils.dateOnly(dates[1]);
+
+      // Ensure start is not after end to avoid DateTimeRange assertion errors
+      final validStart = start.isBefore(end) ? start : end;
+      final validEnd = start.isBefore(end) ? end : start;
+
+      return (asset: asset, range: DateTimeRange(start: validStart, end: validEnd));
+    }));
+    final Map<DateTimeRange, List<AssetConfig>> groupedAssets = {};
+    for (final result in results) {
+      groupedAssets.putIfAbsent(result.range, () => []).add(result.asset);
+    }
+    return groupedAssets;
+  }
+
+  Future<int> refreshAssetPrices(UserAccount account, List<AssetConfig> assets) async {
+    int refreshedAssets = 0;
+    final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
+    final apikey = secrets['apiKey'];
+    final groupAssetsByExchange = assetsByExchange(assets);
+
+    for (final entry in groupAssetsByExchange.entries) {
+      final exchange = entry.key;
+      final groupedAssets = entry.value;
+
+      final groupAssetsByTimeSpan = await assetsByTimeSpan(groupedAssets);
+      final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
+        return MarketStackRequest.fromEod(
+          apiKey: apikey!,
+          fromDate: e.key.start,
+          symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
+          exchange: exchange);
+      }).toList();
+
+      for (final request in bulkRequests) {
+        final num = await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
+        refreshedAssets += num;
+      }
+    }
+
+    dev.log('Refreshed assets $refreshedAssets');
+    return refreshedAssets;
+  }
+
+  Future<void> refreshAllDetails() async {}
 }

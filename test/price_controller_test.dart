@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:ffi';
 import 'dart:io';
 
@@ -37,7 +38,7 @@ void main() {
       }
     } catch (e) {
       // It might already be loaded or fail if not found anywhere
-      print('Library load info: $e');
+      dev.log('Library load info: $e');
       exit(-1);
     }
   });
@@ -72,8 +73,8 @@ void main() {
         ],
       );
       // Keep the provider alive during the test.
-      container.listen(priceControllerProvider, (_, __) {});
-      container.listen(assetPriceDetailsProvider, (_, __) {});
+      container.listen(priceControllerProvider, (_, _) {});
+      container.listen(assetPriceDetailsProvider, (_, _) {});
     });
 
     tearDown(() {
@@ -88,7 +89,7 @@ void main() {
     });
 
     test('save and fetchAll', () async {
-      final controller = await container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider.notifier);
       final price = IndexPrice(
         id: 0,
         assetId: testAsset.id,
@@ -100,7 +101,7 @@ void main() {
         volume: 1000.0,
       );
 
-      final details = await container.read(useAssetsProvider);
+      final details = container.read(useAssetsProvider);
       expect(details.firstWhere((asset) => asset.id == testAsset.id) == testAsset, isTrue);
 
       await controller.save(priceSchema, price);
@@ -252,7 +253,7 @@ void main() {
       );
 
       await controller.save(priceSchema, price);
-      final details = await container.read(assetPriceDetailsProvider);
+      final details = container.read(assetPriceDetailsProvider);
       expect(details.containsKey(testAsset.id), isTrue);
       expect(details[testAsset.id], contains(testAsset.symbol));
     });

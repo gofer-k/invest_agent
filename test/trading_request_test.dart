@@ -85,7 +85,7 @@ void main() {
         final item = respond.data.last;
         expect(item.type, MarketStackType.eod);
         expect(item.symbol, "VWRA");
-        expect(item.symbol_suffix, "L");
+        expect(item.symbolSuffix, "L");
       }
     });
 
