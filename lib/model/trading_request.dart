@@ -106,6 +106,29 @@ class MarketStackRequest implements RemoteRequest {
     }
   }
 
+  @override
+  bool operator ==(Object other) =>
+    identical(this, other) ||
+    other is MarketStackRequest &&
+      runtimeType == other.runtimeType &&
+      type == other.type &&
+      apiKey == other.apiKey &&
+      fromDate == other.fromDate &&
+      toDate == other.toDate &&
+      exchange == other.exchange &&
+      (
+          symbols == other.symbols
+          || (symbols != null && other.symbols != null
+           && symbols!.length == other.symbols!.length
+           && symbols!.every((s) => other.symbols!.contains(s))
+          )
+      );
+
+  @override
+  int get hashCode =>
+    type.hashCode ^ apiKey.hashCode ^ fromDate.hashCode ^
+    toDate.hashCode ^ exchange.hashCode ^ (symbols?.length ?? 0);
+
   String _formatDate(DateTime date) {
     // Optimization: Manual padding is often faster than DateFormat for simple cases.
     final y = date.year.toString();
