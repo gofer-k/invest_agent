@@ -16,17 +16,24 @@ part 'price_controller.g.dart';
 class PriceControllerState {
   final List<IndexPrice> cache;
   final Map<int, String> assetDetails;
-
-  const PriceControllerState({this.cache = const [], this.assetDetails = const {}});
+  final List<RemoteRequest> remoteRequests;
+  const PriceControllerState({
+    this.cache = const [],
+    this.assetDetails = const {},
+    this.remoteRequests = const []});
   
-  PriceControllerState copyWith({List<IndexPrice>? cache, Map<int, String>? assetDetails}) {
+  PriceControllerState copyWith({
+    List<IndexPrice>? cache,
+    Map<int, String>? assetDetails,
+    List<RemoteRequest>? remoteRequests}) {
     return PriceControllerState(
       cache: cache ?? this.cache,
       assetDetails: assetDetails ?? this.assetDetails,
+      remoteRequests: remoteRequests ?? this.remoteRequests,
     );
   }
-  
   List<IndexPrice> getItems() => cache;
+  List<RemoteRequest> getRemoteRequests() => remoteRequests;
 }
 
 @riverpod
@@ -38,7 +45,7 @@ class PriceController extends _$PriceController {
         try {
           await db.createCache(IndexPriceSchema());
           // if (ref.mounted) {
-            await refreshAllDetails();
+          await refreshAllDetails();
           // }
         } catch (e) {
           if (e.toString().contains('disposed')) return;
@@ -57,13 +64,17 @@ class PriceController extends _$PriceController {
     return await ref.read(databaseHelperProvider.future);
   }
 
-  Future<List<IndexPrice>> _fetchAndSet(Future<String> Function() queryBuilder) async {
+  Future<List<IndexPrice>> _fetchAndSet(
+      Future<String> Function() queryBuilder) async {
     try {
       final db = await _getDb();
       final items = await db.useConnection<List<IndexPrice>>((con) async {
         final sql = await queryBuilder();
         final queryResults = await con.query(sql);
-        return queryResults.fetchAll().map((row) => IndexPrice.from(row)).toList();
+        return queryResults
+            .fetchAll()
+            .map((row) => IndexPrice.from(row))
+            .toList();
       });
 
       if (!ref.mounted) return items;
@@ -76,7 +87,8 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<void> _updateAndSet(Future<String> Function() execBuilder, {IndexPrice? item, bool isDelete = false}) async {
+  Future<void> _updateAndSet(Future<String> Function() execBuilder,
+      {IndexPrice? item, bool isDelete = false}) async {
     try {
       final db = await _getDb();
       // await db.saveOne(IndexPriceSchema(), item);
@@ -92,7 +104,8 @@ class PriceController extends _$PriceController {
           if (isDelete) {
             currentCache.removeWhere((e) => e.id == item.id);
           } else {
-            final index = currentCache.indexWhere((e) => e.id == item.id && item.id != 0);
+            final index = currentCache.indexWhere((e) =>
+            e.id == item.id && item.id != 0);
             if (index != -1) {
               currentCache[index] = item;
             } else {
@@ -109,7 +122,8 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<T> _queryValue<T>(Future<String> Function() queryBuilder, T defaultValue) async {
+  Future<T> _queryValue<T>(Future<String> Function() queryBuilder,
+      T defaultValue) async {
     try {
       if (!ref.mounted) return defaultValue;
       final db = await _getDb();
@@ -139,11 +153,14 @@ class PriceController extends _$PriceController {
           final oldest = row[1];
           final newest = row[2];
           final count = row[3];
-          
-          final oldestStr = oldest is DateTime ? oldest.toIso8601String().split('T')[0] : oldest.toString().split(' ')[0];
-          final newestStr = newest is DateTime ? newest.toIso8601String().split('T')[0] : newest.toString().split(' ')[0];
-          
-          map[assetId] = 'Oldest: $oldestStr, Newest: $newestStr, Count: $count';
+
+          final oldestStr = oldest is DateTime ? oldest.toIso8601String().split(
+              'T')[0] : oldest.toString().split(' ')[0];
+          final newestStr = newest is DateTime ? newest.toIso8601String().split(
+              'T')[0] : newest.toString().split(' ')[0];
+
+          map[assetId] =
+          'Oldest: $oldestStr, Newest: $newestStr, Count: $count';
         }
         return map;
       });
@@ -157,22 +174,27 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<List<IndexPrice>> fetchOne(IndexPriceSchema schema, IndexPrice price) =>
+  Future<List<IndexPrice>> fetchOne(IndexPriceSchema schema,
+      IndexPrice price) =>
       _fetchAndSet(() async => schema.readOne(price));
 
   Future<List<IndexPrice>> fetchAll(IndexPriceSchema schema) =>
       _fetchAndSet(() async => schema.readAll);
 
-  Future<List<IndexPrice>> fetchDateRange(IndexPriceSchema schema, AssetConfig asset, DateTime begin, DateTime end) {
+  Future<List<IndexPrice>> fetchDateRange(IndexPriceSchema schema,
+      AssetConfig asset, DateTime begin, DateTime end) {
     final actualBegin = begin.isBefore(end) ? begin : end;
     final actualEnd = begin.isBefore(end) ? end : begin;
-    return _fetchAndSet(() async => schema.readDateRange(asset, actualBegin, actualEnd));
+    return _fetchAndSet(() async =>
+        schema.readDateRange(asset, actualBegin, actualEnd));
   }
 
-  Future<List<IndexPrice>> fetchUntilDate(IndexPriceSchema schema, AssetConfig asset, DateTime date) =>
+  Future<List<IndexPrice>> fetchUntilDate(IndexPriceSchema schema,
+      AssetConfig asset, DateTime date) =>
       _fetchAndSet(() async => schema.readUntilDate(asset, date));
 
-  Future<List<IndexPrice>> fetchAfterDate(IndexPriceSchema schema, AssetConfig asset, DateTime date) =>
+  Future<List<IndexPrice>> fetchAfterDate(IndexPriceSchema schema,
+      AssetConfig asset, DateTime date) =>
       _fetchAndSet(() async => schema.readAfterDate(asset, date));
 
   Future<void> save(IndexPriceSchema schema, IndexPrice item) async {
@@ -184,45 +206,63 @@ class PriceController extends _$PriceController {
   }
 
   Future<void> delete(IndexPriceSchema schema, IndexPrice item) async {
-    await  _updateAndSet(() async => schema.deleteOne(item), item: item, isDelete: true);
+    await _updateAndSet(() async => schema.deleteOne(item), item: item,
+        isDelete: true);
   }
 
   Future<void> deleteAll(IndexPriceSchema schema) async {
     await _updateAndSet(() async => schema.deleteAll);
   }
 
-  Future<void> deleteAssetAll(IndexPriceSchema schema, AssetConfig asset) async {
+  Future<void> deleteAssetAll(IndexPriceSchema schema,
+      AssetConfig asset) async {
     await _updateAndSet(() async => schema.deleteAssetAll(asset));
   }
 
-  Future<DateTime> oldestDate(IndexPriceSchema schema, AssetConfig asset) async {
-    final val = await _queryValue<Object?>(() async => schema.oldestDate(asset), null);
+  Future<DateTime> oldestDate(IndexPriceSchema schema,
+      AssetConfig asset) async {
+    final val = await _queryValue<Object?>(() async => schema.oldestDate(asset),
+        null);
     if (val == null) return DateTime.now();
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? DateTime.now();
   }
 
-  Future<DateTime> newestDate(IndexPriceSchema schema, AssetConfig asset) async {
-    final val = await _queryValue<Object?>(() async => schema.newestDate(asset), null);
+  Future<DateTime> newestDate(IndexPriceSchema schema,
+      AssetConfig asset) async {
+    final val = await _queryValue<Object?>(() async => schema.newestDate(asset),
+        null);
     if (val == null) return DateTime.now();
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? DateTime.now();
   }
 
-  Future<int> count(IndexPriceSchema schema, AssetConfig asset, DateTime begin, DateTime end) =>
+  Future<int> count(IndexPriceSchema schema, AssetConfig asset, DateTime begin,
+      DateTime end) =>
       _queryValue(() async => schema.readCount(asset, begin, end), 0);
 
-  Future<int> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
+  Future<int> refreshAssetPrices(List<AssetConfig> assets,
+      RemoteRequest request) async {
     int result = 0;
+
+    if (!state.remoteRequests.contains(request)) {
+      state = state.copyWith(remoteRequests: [...state.remoteRequests, request]);
+    }
+
     try {
-      final db = await _getDb();
-      final schema = IndexPriceSchema();
-      
       final client = ref.read(investingDataClientProvider(request).notifier);
       final responseMap = await client.getRequest();
+      // Check if provider was disposed during the network call
+      if (!ref.mounted || responseMap == null) return 0;
+
+      final db = await _getDb();
+      final schema = IndexPriceSchema();
 
       await db.transaction((con) async {
         for (final item in responseMap) {
+          // Stop the loop if the provider is no longer active
+          if (!ref.mounted) break;
+
           final respond = MarketStackRespond.fromEod(item);
           final asset = assets.firstWhere((a) => a.symbol == respond.symbol,
               orElse: () => AssetConfig.defaultAsset());
@@ -249,10 +289,41 @@ class PriceController extends _$PriceController {
         await refreshAllDetails();
       }
     } catch (e) {
-      dev.log('Error refreshing prices for ${request.resource.toString()}: $e');
-      return 0;
+      if (e.toString().contains('cancelled') ||
+          e.toString().contains('disposed')) {
+        dev.log('Refresh aborted for ${request.uri}');
+        return 0;
+      }
+      dev.log('Error refreshing prices: $e');
+    }
+    finally {
+      if (ref.mounted) {
+        state = state.copyWith(
+          remoteRequests: state.remoteRequests.where((r) => r != request).toList(),
+        );
+      }
     }
     return result;
+  }
+
+  RemoteRequest? getRequestForAsset(AssetConfig asset) {
+    final symbol = '${asset.symbol}${asset.stockExchange.suffix}';
+    for (final request in state.remoteRequests) {
+      if (request is MarketStackRequest) {
+        if (request.symbols?.contains(symbol) ?? false) {
+          return request;
+        }
+      }
+    }
+    return null;
+  }
+
+  void cancelRemoteRequest(RemoteRequest request) {
+    ref.invalidate(investingDataClientProvider(request));
+  }
+
+  void clearRemoteRequests() {
+    state = state.copyWith(remoteRequests: []);
   }
 }
 

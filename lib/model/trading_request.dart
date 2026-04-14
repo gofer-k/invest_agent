@@ -18,9 +18,18 @@ enum ResourceUri {
   }
 }
 
-abstract class RemoteRequest<ResourceUri> {
+abstract class RemoteRequest {
   ResourceUri get resource;
   Uri get uri;
+  
+  @override
+  bool operator ==(Object other) =>
+    identical(this, other) ||
+    other is RemoteRequest &&
+      runtimeType == other.runtimeType && resource == other.resource;
+  
+  @override
+  int get hashCode => resource.hashCode ^ resource.hashCode;
 }
 
 enum MarketStackType {
@@ -35,10 +44,10 @@ enum MarketStackType {
   final String path;
 }
 
-class MarketStackRequest implements RemoteRequest {
+class MarketStackRequest extends RemoteRequest {
   @override
   ResourceUri get resource => ResourceUri.marketStack;
-
+  
   final MarketStackType type;
   final String? apiKey;
   final DateTime? fromDate;
@@ -58,7 +67,8 @@ class MarketStackRequest implements RemoteRequest {
     this.toDate,
     this.symbols,
     this.limit,
-    this.offset, this.exchange});
+    this.offset,
+    this.exchange});
 
   factory MarketStackRequest.fromEod({
     required String apiKey,
@@ -94,8 +104,9 @@ class MarketStackRequest implements RemoteRequest {
         ...?params,
       };
 
-      return Uri.parse(resource.baseUrl).replace(
-        path: '${resource.baseUrl}${type.path}',
+      final baseUri = Uri.parse(resource.baseUrl);
+      return baseUri.replace(
+        path: '${baseUri.path}${type.path}',
         queryParameters: queryParams,
       );
     } finally {
@@ -109,8 +120,8 @@ class MarketStackRequest implements RemoteRequest {
   @override
   bool operator ==(Object other) =>
     identical(this, other) ||
+    super == other &&
     other is MarketStackRequest &&
-      runtimeType == other.runtimeType &&
       type == other.type &&
       apiKey == other.apiKey &&
       fromDate == other.fromDate &&
@@ -126,7 +137,7 @@ class MarketStackRequest implements RemoteRequest {
 
   @override
   int get hashCode =>
-    type.hashCode ^ apiKey.hashCode ^ fromDate.hashCode ^
+    super.hashCode ^ type.hashCode ^ apiKey.hashCode ^ fromDate.hashCode ^
     toDate.hashCode ^ exchange.hashCode ^ (symbols?.length ?? 0);
 
   String _formatDate(DateTime date) {
@@ -233,10 +244,12 @@ class MarketStackManagerRespond {
   }
 }
 
-class LocalRequest implements RemoteRequest {
-  @override
-  get resource => ResourceUri.localHost;
+class LocalRequest extends RemoteRequest {
+  LocalRequest();
 
   @override
-  Uri get uri => resource;
+  ResourceUri get resource => ResourceUri.localHost;
+
+  @override
+  Uri get uri => Uri.parse(resource.baseUrl);
 }

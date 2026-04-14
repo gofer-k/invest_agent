@@ -57,7 +57,7 @@ final class InvestingDataClientProvider
     extends $NotifierProvider<InvestingDataClient, void> {
   InvestingDataClientProvider._({
     required InvestingDataClientFamily super.from,
-    required RemoteRequest<dynamic> super.argument,
+    required RemoteRequest super.argument,
   }) : super(
          retry: null,
          name: r'investingDataClientProvider',
@@ -100,7 +100,7 @@ final class InvestingDataClientProvider
 }
 
 String _$investingDataClientHash() =>
-    r'c344c2d0da4216cb9eba005ec206635d2a75156e';
+    r'df820c720826d87c012e7ae2f73ff3ac89acfaa6';
 
 final class InvestingDataClientFamily extends $Family
     with
@@ -109,7 +109,7 @@ final class InvestingDataClientFamily extends $Family
           void,
           void,
           void,
-          RemoteRequest<dynamic>
+          RemoteRequest
         > {
   InvestingDataClientFamily._()
     : super(
@@ -120,7 +120,7 @@ final class InvestingDataClientFamily extends $Family
         isAutoDispose: true,
       );
 
-  InvestingDataClientProvider call(RemoteRequest<dynamic> endpoint) =>
+  InvestingDataClientProvider call(RemoteRequest endpoint) =>
       InvestingDataClientProvider._(argument: endpoint, from: this);
 
   @override
@@ -128,10 +128,10 @@ final class InvestingDataClientFamily extends $Family
 }
 
 abstract class _$InvestingDataClient extends $Notifier<void> {
-  late final _$args = ref.$arg as RemoteRequest<dynamic>;
-  RemoteRequest<dynamic> get endpoint => _$args;
+  late final _$args = ref.$arg as RemoteRequest;
+  RemoteRequest get endpoint => _$args;
 
-  void build(RemoteRequest<dynamic> endpoint);
+  void build(RemoteRequest endpoint);
   @$mustCallSuper
   @override
   void runBuild() {

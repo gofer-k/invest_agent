@@ -20,7 +20,7 @@ class IndexPricePanel extends ConsumerStatefulWidget {
 }
 
 class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
-  bool _isRefreshingAll = false;
+  bool _selectedAssets = false;
   final Set<int> _refreshingIds = {};
 
   @override
@@ -29,7 +29,6 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     final details = ref.watch(assetPriceDetailsProvider);
     // TODO: selected accounts
     final accounts = ref.watch(userAccountsProvider);
-
     return Shrinkable(
       title: "Index Prices",
       body: Column(
@@ -37,11 +36,8 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton.icon(
-              icon: _isRefreshingAll 
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.refresh),
-              onPressed: _isRefreshingAll ? null : () async {
-                setState(() => _isRefreshingAll = true);
+              icon:const Icon(Icons.refresh),
+              onPressed: () async {
                 final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
                 int refreshedNum = assetsToRefresh.length;
                 try {
@@ -60,7 +56,11 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     );
                   }
                 } finally {
-                  if (mounted) setState(() => _refreshingIds.clear());
+                  if (mounted) setState(() {
+                    // TODO: improve refresh all
+                    // _refreshingIds.clear();
+                    _selectedAssets = _refreshingIds.isNotEmpty;
+                  });
                 }
               },
               label: const Text("Refresh All"),
@@ -82,55 +82,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                   dense: true,
                   title: Text(asset.symbol),
                   subtitle: Text(detailText, style: const TextStyle(fontSize: 11)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: isRefreshing 
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.read_more, color: Colors.lightGreen, size: 18),
-                        onPressed: isRefreshing ? null : () async {
-                          setState(() => _refreshingIds.add(asset.id));
-                          try {
-                            if (accounts.isEmpty) throw Exception('No accounts selected');
-                            await refreshAssetPrices(accounts[0], [asset]);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Updated ${asset.symbol} prices')),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to update ${asset.symbol}: $e')),
-                              );
-                            }
-                          } finally {
-                            if (mounted) setState(() => _refreshingIds.remove(asset.id));
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red, size: 18),
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Confirm Delete'),
-                              content: Text('Delete all price data for ${asset.symbol}?'),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                                TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.red))),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true) {
-                            await ref.read(priceControllerProvider.notifier).deleteAssetAll(IndexPriceSchema(), asset);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
+                  trailing: _buildTrailingActions(context, asset, isRefreshing),
                 ),
               );
             },
@@ -138,6 +90,109 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
         ],
       ),
     );
+  }
+
+  Widget _buildTrailingActions(BuildContext context, AssetConfig asset, bool isRefreshing) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isRefreshing) ...[
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel, size: 18),
+            tooltip: 'Cancel Refresh',
+            onPressed: () {
+              final notifier = ref.read(priceControllerProvider.notifier);
+              final request = notifier.getRequestForAsset(asset);
+              if (request != null) {
+                notifier.cancelRemoteRequest(request);
+                dev.log('User cancelled request for ${asset.symbol}');
+              }
+              setState(() =>  _refreshingIds.remove(asset.id));
+            },
+          ),
+        ] else ...[
+          Checkbox.adaptive(value: _refreshingIds.contains(asset.id), onChanged: (value) {
+            if (value == null) return;
+            setState(() {
+              if (value == true) {
+                _refreshingIds.add(asset.id);
+              } else {
+                _refreshingIds.remove(asset.id);
+              }
+            });
+          }),
+          // IconButton(
+          //   icon: Icon(Icons.read_more, color: Colors.lightGreen, size: 18),
+          //   tooltip: 'Refresh Prices',
+          //   onPressed: () => _handleRefresh(context, asset),
+          // ),
+          IconButton(
+            icon: Icon(Icons.delete, color: colorScheme.error, size: 18),
+            tooltip: 'Delete History',
+            onPressed: () => _handleDelete(context, ref, asset),
+          ),
+        ],
+      ],
+    );
+  }
+  //
+  // Future<void> _handleRefresh(BuildContext context, AssetConfig asset) async {
+  //   final accounts = ref.read(userAccountsProvider);
+  //   if (accounts.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('No accounts selected')),
+  //     );
+  //     return;
+  //   }
+  //
+  //   setState(() => _refreshingIds.add(asset.id));
+  //   try {
+  //     await refreshAssetPrices(accounts[0], [asset]);
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Updated ${asset.symbol} prices')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Failed to update ${asset.symbol}: $e')),
+  //       );
+  //     }
+  //   } finally {
+  //     if (mounted) setState(() => _refreshingIds.remove(asset.id));
+  //   }
+  // }
+
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref, AssetConfig asset) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: Text('Delete all price data for ${asset.symbol}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(priceControllerProvider.notifier).deleteAssetAll(IndexPriceSchema(), asset);
+    }
   }
 
   AssetsByExchange assetsByExchange(List<AssetConfig> assets) {
