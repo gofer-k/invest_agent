@@ -34,6 +34,18 @@ class PriceControllerState {
   }
   List<IndexPrice> getItems() => cache;
   List<RemoteRequest> getRemoteRequests() => remoteRequests;
+  RemoteRequest? getRequestForAsset(AssetConfig asset) {
+    if (remoteRequests.isEmpty) return null;
+
+    final symbol = '${asset.symbol}${asset.stockExchange.suffix}';
+
+    for (final r in remoteRequests) {
+      if (r is MarketStackRequest && (r.symbols?.contains(symbol) ?? false)) {
+        return r;
+      }
+    }
+    return null;
+  }
 }
 
 @riverpod
@@ -241,35 +253,43 @@ class PriceController extends _$PriceController {
       DateTime end) =>
       _queryValue(() async => schema.readCount(asset, begin, end), 0);
 
-  Future<int> refreshAssetPrices(List<AssetConfig> assets,
+  Future<void> refreshAssetPrices(List<AssetConfig> assets,
       RemoteRequest request) async {
-    int result = 0;
-
+    final link = ref.keepAlive(); // Prevent disposal
     if (!state.remoteRequests.contains(request)) {
       state = state.copyWith(remoteRequests: [...state.remoteRequests, request]);
+      dev.log('New request added: ${request.uri}');
     }
 
     try {
       final client = ref.read(investingDataClientProvider(request).notifier);
       final responseMap = await client.getRequest();
+      
       // Check if provider was disposed during the network call
-      if (!ref.mounted || responseMap == null) return 0;
-
+      if (!ref.mounted || responseMap == null) {
+        dev.log('[${DateTime.now().toIso8601String()}] Refresh aborted for ${request.uri}');
+        return;
+      }
       final db = await _getDb();
       final schema = IndexPriceSchema();
 
+      // Correctly access the data list from the response
+      final List<dynamic> data = responseMap['data'] ?? [];
+
       await db.transaction((con) async {
-        for (final item in responseMap) {
+        for (final item in data) {
           // Stop the loop if the provider is no longer active
           if (!ref.mounted) break;
 
           final respond = MarketStackRespond.fromEod(item);
           final asset = assets.firstWhere((a) => a.symbol == respond.symbol,
               orElse: () => AssetConfig.defaultAsset());
+
           if (asset.isDefault()) {
             dev.log("Asset not found: ${respond.symbol} in the cache");
             continue;
           }
+
           final price = IndexPrice(
             id: 0,
             assetId: asset.id,
@@ -281,7 +301,6 @@ class PriceController extends _$PriceController {
             volume: respond.volume,
           );
           await con.execute(schema.saveOne(price));
-          result++;
         }
       });
 
@@ -291,19 +310,21 @@ class PriceController extends _$PriceController {
     } catch (e) {
       if (e.toString().contains('cancelled') ||
           e.toString().contains('disposed')) {
-        dev.log('Refresh aborted for ${request.uri}');
-        return 0;
+        dev.log('[${DateTime.now().toIso8601String()}] Refresh aborted for ${request.uri}');
+        return;
       }
-      dev.log('Error refreshing prices: $e');
+      dev.log('[${DateTime.now().toIso8601String()}] Error refreshing prices: $e');
     }
     finally {
       if (ref.mounted) {
+        // Remove completed request from the cache
         state = state.copyWith(
           remoteRequests: state.remoteRequests.where((r) => r != request).toList(),
         );
+        dev.log('[${DateTime.now().toIso8601String()}] Completed request: ${request.uri}');
       }
+      link.close(); // Allow disposal again once finished
     }
-    return result;
   }
 
   RemoteRequest? getRequestForAsset(AssetConfig asset) {

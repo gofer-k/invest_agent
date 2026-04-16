@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
 import '../model/analysis_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -119,13 +118,42 @@ class InvestingDataClient extends _$InvestingDataClient {
   Future<dynamic> getRequest() async {
     _httpClient = http.Client();
     try {
-      // final response = await _httpClient?.get(
-      //   endpoint.uri,
-      //   headers: {"Accept": "application/json"},
-      // );
-      Future.delayed(Duration(seconds: 5));
-      // return _handleResponse(response);
-      return null;
+      final response = await _httpClient?.get(
+        endpoint.uri,
+        headers: {"Accept": "application/json"},
+      );
+      return _handleResponse(response);
+      
+      // Added await to make the delay effective
+      // await Future.delayed(const Duration(seconds: 5));
+      // return _handleResponse(http.Response('''
+      // {
+      // "pagination": {
+      // "limit": 100,
+      // "offset": 0,
+      // "count": 1,
+      // "total": 1
+      // },
+      //     "data": [
+      //     {
+      //     "open": 150.0,
+      //     "high": 155.0,
+      //     "low": 149.0,
+      //     "close": 152.0,
+      //     "volume": 1000000.0,
+      //     "symbol": "AAPL.XNAS",
+      //     "exchange": "XNAS",
+      //     "price_currency": "USD",
+      //     "date": "2023-10-27T00:00:00+0000",
+      //     "dividend": 0.5
+      //     }
+      //     ],
+      //     "count": 1,
+      //     "offset": 0,
+      //     "limit": 100,
+      //     "total": 1
+      // }''',
+      //     200));
     } catch (e) {
       if (e is RemoteDataException) throw RemoteDataException("Request failed: $e");
       rethrow;

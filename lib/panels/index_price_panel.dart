@@ -1,5 +1,4 @@
 import 'dart:developer' as dev;
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +19,6 @@ class IndexPricePanel extends ConsumerStatefulWidget {
 }
 
 class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
-  bool _selectedAssets = false;
   final Set<int> _refreshingIds = {};
 
   @override
@@ -39,14 +37,13 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
               icon:const Icon(Icons.refresh),
               onPressed: () async {
                 final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
-                int refreshedNum = assetsToRefresh.length;
                 try {
                   if (accounts.isEmpty) throw Exception('No accounts selected');
 
-                  refreshedNum = min(await refreshAssetPrices(accounts[0], assetsToRefresh), assetsToRefresh.length);
+                  await refreshAssetPrices(accounts[0], assetsToRefresh);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Updated $refreshedNum assets')),
+                      SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),
                     );
                   }
                 } catch (e) {
@@ -54,13 +51,12 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Failed to update ${assetsToRefresh.length} assets: $e')),
                     );
+                    dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
                   }
                 } finally {
-                  if (mounted) setState(() {
-                    // TODO: improve refresh all
-                    // _refreshingIds.clear();
-                    _selectedAssets = _refreshingIds.isNotEmpty;
-                  });
+                  if (mounted) {
+                    setState(() => refreshAllDetails().then((_) => _refreshingIds.clear()));
+                  }
                 }
               },
               label: const Text("Refresh All"),
@@ -94,82 +90,51 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
   Widget _buildTrailingActions(BuildContext context, AssetConfig asset, bool isRefreshing) {
     final colorScheme = Theme.of(context).colorScheme;
+    final notifierAssetPrice = ref.watch(priceControllerProvider.notifier);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (isRefreshing) ...[
-          const SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          IconButton(
-            icon: const Icon(Icons.cancel, size: 18),
-            tooltip: 'Cancel Refresh',
-            onPressed: () {
-              final notifier = ref.read(priceControllerProvider.notifier);
-              final request = notifier.getRequestForAsset(asset);
-              if (request != null) {
-                notifier.cancelRemoteRequest(request);
-                dev.log('User cancelled request for ${asset.symbol}');
-              }
-              setState(() =>  _refreshingIds.remove(asset.id));
-            },
-          ),
-        ] else ...[
-          Checkbox.adaptive(value: _refreshingIds.contains(asset.id), onChanged: (value) {
-            if (value == null) return;
-            setState(() {
-              if (value == true) {
-                _refreshingIds.add(asset.id);
-              } else {
-                _refreshingIds.remove(asset.id);
-              }
-            });
-          }),
-          // IconButton(
-          //   icon: Icon(Icons.read_more, color: Colors.lightGreen, size: 18),
-          //   tooltip: 'Refresh Prices',
-          //   onPressed: () => _handleRefresh(context, asset),
-          // ),
-          IconButton(
-            icon: Icon(Icons.delete, color: colorScheme.error, size: 18),
-            tooltip: 'Delete History',
-            onPressed: () => _handleDelete(context, ref, asset),
-          ),
-        ],
+        Checkbox.adaptive(value: _refreshingIds.contains(asset.id), onChanged: (value) {
+          if (value == null) return;
+          setState(() {
+            if (value == true) {
+              _refreshingIds.add(asset.id);
+            } else {
+              _refreshingIds.remove(asset.id);
+            }
+          });
+        }),
+        Stack(alignment: Alignment.center,
+          children: [
+            if (isRefreshing)
+              const SizedBox(width: 18, height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            IconButton(
+              icon: Icon(isRefreshing ? Icons.cancel : Icons.refresh, size: 18),
+              tooltip: isRefreshing ? 'Cancel request' : 'Refresh Asset',
+              onPressed: () {
+                if (isRefreshing) {
+                  final requestedAsset = notifierAssetPrice.getRequestForAsset(asset);
+                  if (requestedAsset != null) {
+                    notifierAssetPrice.cancelRemoteRequest(requestedAsset);
+                    dev.log('[${DateTime.now().toIso8601String()}] User cancelled request for ${asset.symbol}');
+                  }
+                  setState(() =>  _refreshingIds.remove(asset.id));
+                }
+              },
+            ),
+          ]
+        ),
+        IconButton(
+          icon: Icon(Icons.delete, color: colorScheme.error, size: 18),
+          tooltip: 'Delete History',
+          onPressed: () => _handleDelete(context, ref, asset),
+        ),
       ],
     );
   }
-  //
-  // Future<void> _handleRefresh(BuildContext context, AssetConfig asset) async {
-  //   final accounts = ref.read(userAccountsProvider);
-  //   if (accounts.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('No accounts selected')),
-  //     );
-  //     return;
-  //   }
-  //
-  //   setState(() => _refreshingIds.add(asset.id));
-  //   try {
-  //     await refreshAssetPrices(accounts[0], [asset]);
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Updated ${asset.symbol} prices')),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     if (context.mounted) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Failed to update ${asset.symbol}: $e')),
-  //       );
-  //     }
-  //   } finally {
-  //     if (mounted) setState(() => _refreshingIds.remove(asset.id));
-  //   }
-  // }
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, AssetConfig asset) async {
     final confirmed = await showDialog<bool>(
@@ -229,8 +194,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     return groupedAssets;
   }
 
-  Future<int> refreshAssetPrices(UserAccount account, List<AssetConfig> assets) async {
-    int refreshedAssets = 0;
+  Future<void> refreshAssetPrices(UserAccount account, List<AssetConfig> assets) async {
     final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
     final apikey = secrets['apiKey'];
     final groupAssetsByExchange = assetsByExchange(assets);
@@ -249,13 +213,11 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
       }).toList();
 
       for (final request in bulkRequests) {
-        final num = await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
-        refreshedAssets += num;
+        await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
       }
     }
 
-    dev.log('Refreshed assets $refreshedAssets');
-    return refreshedAssets;
+    dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
   }
 
   Future<void> refreshAllDetails() async {}

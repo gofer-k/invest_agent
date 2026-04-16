@@ -29,7 +29,7 @@ abstract class RemoteRequest {
       runtimeType == other.runtimeType && resource == other.resource;
   
   @override
-  int get hashCode => resource.hashCode ^ resource.hashCode;
+  int get hashCode => Object.hash(runtimeType, resource);
 }
 
 enum MarketStackType {
@@ -97,7 +97,7 @@ class MarketStackRequest extends RemoteRequest {
         'access_key': apiKey!,
         if (fromDate != null) 'date_from': _formatDate(fromDate!),
         if (toDate != null) 'date_to': _formatDate(toDate!),
-        if (exchange != null) 'exchange': ?exchange,
+        if (exchange != null) 'exchange': exchange!,
         if (symbols != null && symbols!.isNotEmpty) 'symbols': symbols!.join(','),
         if (limit != null) 'limit': limit.toString(),
         if (offset != null) 'offset': offset.toString(),
@@ -137,11 +137,9 @@ class MarketStackRequest extends RemoteRequest {
 
   @override
   int get hashCode =>
-    super.hashCode ^ type.hashCode ^ apiKey.hashCode ^ fromDate.hashCode ^
-    toDate.hashCode ^ exchange.hashCode ^ (symbols?.length ?? 0);
+    Object.hash(super.hashCode, type, apiKey, fromDate, toDate, exchange, symbols?.length);
 
   String _formatDate(DateTime date) {
-    // Optimization: Manual padding is often faster than DateFormat for simple cases.
     final y = date.year.toString();
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
