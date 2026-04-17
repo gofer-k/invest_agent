@@ -41,7 +41,7 @@ final class PriceControllerProvider
   }
 }
 
-String _$priceControllerHash() => r'a53467531d492ace4562018dd5dd051172e3aea1';
+String _$priceControllerHash() => r'f4583d364d9d26a67051a4c3d23212a0be3fb0a7';
 
 abstract class _$PriceController extends $Notifier<PriceControllerState> {
   PriceControllerState build();

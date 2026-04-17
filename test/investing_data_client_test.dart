@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:invest_agent/model/index_price.dart';
 import 'package:invest_agent/model/trading_request.dart';
 import 'package:invest_agent/providers/investing_data_client.dart';
 

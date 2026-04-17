@@ -54,8 +54,9 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
                   }
                 } finally {
+                  refreshAllDetails();
                   if (mounted) {
-                    setState(() => refreshAllDetails().then((_) => _refreshingIds.clear()));
+                    setState(() => _refreshingIds.clear());
                   }
                 }
               },
@@ -220,5 +221,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
   }
 
-  Future<void> refreshAllDetails() async {}
+  Future<void> refreshAllDetails() async {
+    await ref.read(priceControllerProvider.notifier).refreshAllDetails();
+  }
 }

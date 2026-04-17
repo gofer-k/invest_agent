@@ -1,7 +1,5 @@
 import 'dart:developer';
 
-import 'package:path/path.dart';
-
 enum ResourceUri {
   marketStack("MarketStack", "https://api.marketstack.com/v2/", false),
   binance("Binance", "https://accounts.binance.com/", false),
@@ -99,7 +97,7 @@ class MarketStackRequest extends RemoteRequest {
         'access_key': apiKey!,
         if (fromDate != null) 'date_from': _formatDate(fromDate!),
         if (toDate != null) 'date_to': _formatDate(toDate!),
-        if (exchange != null) 'exchange': exchange!,
+        if (exchange != null) 'exchange': ?null,
         if (symbols != null && symbols!.isNotEmpty) 'symbols': symbols!.join(','),
         if (limit != null) 'limit': limit.toString(),
         if (offset != null) 'offset': offset.toString(),

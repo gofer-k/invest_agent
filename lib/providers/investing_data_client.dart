@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:http/http.dart' as http;
 import '../model/analysis_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -6,13 +7,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/trading_request.dart';
 
 part 'investing_data_client.g.dart';
-
-@riverpod
-http.Client httpClient(Ref ref) {
-  final client = http.Client();
-  ref.onDispose(() => client.close());
-  return client;
-}
 
 class RemoteDataException implements Exception {
   final String message;
@@ -27,20 +21,25 @@ class RemoteDataException implements Exception {
 
 @riverpod
 class InvestingDataClient extends _$InvestingDataClient {
-  http.Client? _httpClient;
+  late http.Client _httpClient;
 
   @override
   void build(RemoteRequest endpoint) {
+    _httpClient = http.Client();
+
+    // The provider will stay alive even if no one is watching it,
+    // until we manually let it go or the container is disposed.
+    final link = ref.keepAlive();
     ref.onDispose(() {
       // Cancelable an operation
-      _httpClient?.close();
+      dev.log('Cancelling HTTP request');
+      _httpClient.close();
     });
   }
 
   Future<Map<String, dynamic>> runAnalysis(AnalysisRequest request) async {
-    _httpClient = http.Client();
     try {
-      final response = await _httpClient?.post(
+      final response = await _httpClient.post(
         endpoint.uri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(request.toJson()),
@@ -50,16 +49,11 @@ class InvestingDataClient extends _$InvestingDataClient {
       if (e is RemoteDataException) rethrow;
       throw RemoteDataException("Request failed: $e");
     }
-    finally {
-      _httpClient?.close();
-      _httpClient = null;
-    }
   }
 
   Future<List<Map<String, dynamic>>> runBulkAnalysis(List<AnalysisRequest> requests) async {
-    _httpClient = http.Client();
     try {
-      final response = await _httpClient?.post(
+      final response = await _httpClient.post(
         endpoint.uri,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(requests.map((r) => r.toJson()).toList()),
@@ -74,51 +68,38 @@ class InvestingDataClient extends _$InvestingDataClient {
       if (e is RemoteDataException) rethrow;
       throw RemoteDataException("Bulk request failed: $e");
     }
-    finally {
-      _httpClient?.close();
-      _httpClient = null;
-    }
   }
 
   Stream<Map<String, dynamic>> getAnalysisStream(AnalysisRequest request) async* {
-    _httpClient = http.Client();
     final httpRequest = http.Request('POST', endpoint.uri)
       ..headers['Content-Type'] = 'application/json'
       ..body = jsonEncode(request.toJson());
 
     try {
-      final response = await _httpClient?.send(httpRequest);
-
-      if (response != null) {
-        if (response.statusCode != 200) {
-          throw RemoteDataException(
-            "Streaming failed",
-            statusCode: response.statusCode,
-          );
-        }
-
-        // 3. Process the stream line by line (NDJSON)
-        yield* response.stream
-            .transform(utf8.decoder)
-            .transform(const LineSplitter())
-            .where((line) => line.isNotEmpty)
-            .map((line) => jsonDecode(line) as Map<String, dynamic>);
+      final response = await _httpClient.send(httpRequest);
+      if (response.statusCode != 200) {
+        throw RemoteDataException(
+          "Streaming failed",
+          statusCode: response.statusCode,
+        );
       }
+
+      // 3. Process the stream line by line (NDJSON)
+      yield* response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .where((line) => line.isNotEmpty)
+          .map((line) => jsonDecode(line) as Map<String, dynamic>);
     } catch (e) {
       if (e is RemoteDataException) rethrow;
       throw RemoteDataException("Stream failed: $e");
-    }
-    finally {
-      _httpClient?.close();
-      _httpClient = null;
     }
   }
 
   /// Fetches data for the current endpoint and returns the decoded JSON.
   Future<dynamic> getRequest() async {
-    _httpClient = http.Client();
     try {
-      final response = await _httpClient?.get(
+      final response = await _httpClient.get(
         endpoint.uri,
         headers: {"Accept": "application/json"},
       );
@@ -157,10 +138,6 @@ class InvestingDataClient extends _$InvestingDataClient {
     } catch (e) {
       if (e is RemoteDataException) throw RemoteDataException("Request failed: $e");
       rethrow;
-    }
-    finally {
-      _httpClient?.close();
-      _httpClient = null;
     }
   }
 
