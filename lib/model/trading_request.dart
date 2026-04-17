@@ -1,7 +1,9 @@
 import 'dart:developer';
 
+import 'package:path/path.dart';
+
 enum ResourceUri {
-  marketStack("MarketStack", "http://api.marketstack.com/v2/", false),
+  marketStack("MarketStack", "https://api.marketstack.com/v2/", false),
   binance("Binance", "https://accounts.binance.com/", false),
   localHost("LocalHost", "http://127.0.0.1:8000/", true);
 
@@ -158,7 +160,7 @@ class MarketStackRespond {
   final String symbol;
   final String symbolSuffix;
   final String exchange;
-  final String currency;
+  final String? currency;
   final double? dividend;
 
   MarketStackRespond({
@@ -190,7 +192,7 @@ class MarketStackRespond {
         symbol: symbol,
         symbolSuffix: suffix,
         exchange: json['exchange'] as String,
-        currency: json['price_currency'] as String,
+        currency: json['price_currency'] == null ? null : (json['price_currency']),
         dividend: json['dividend'] == null ? null : (json['dividend'] as num).toDouble(),
       );
     }
@@ -221,15 +223,21 @@ class MarketStackManagerRespond {
   factory MarketStackManagerRespond.fromEod(Map<String, dynamic> json){
     final sw = Stopwatch()..start();
     try {
+      final pagination = json['pagination'] as Map<String, dynamic>;
+
       return MarketStackManagerRespond(
           data: (json['data'] as List<dynamic>)
               .cast<Map<String, dynamic>>()
               .map((e) => MarketStackRespond.fromEod(e))
               .toList(),
-          count: json['count'] as int,
-          offset: json['offset'] as int,
-          limit: json['limit'] as int,
-          total: json['total'] as int);
+          count: pagination['count'] as int,
+          offset: pagination['offset'] as int,
+          limit: pagination['limit'] as int,
+          total: pagination['total'] as int);
+    }
+    catch (e) {
+      log('MarketStackManagerRespond.fromEod failed: $e');
+      rethrow;
     }
     finally {
       sw.stop();
