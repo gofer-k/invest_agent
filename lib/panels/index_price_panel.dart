@@ -22,7 +22,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
   @override
   Widget build(BuildContext context) {
-    final assets = ref.watch(useAssetsProvider);
+    final assets = ref.watch(sortedAssetsProvider);
     final details = ref.watch(assetPriceDetailsProvider);
     // TODO: selected accounts
     final accounts = ref.watch(userAccountsProvider);

@@ -151,14 +151,14 @@ class ModelConfig extends _$ModelConfig {
 }
 
 @riverpod
-List<AssetConfig> useAssets(Ref ref) {
-  return ref.watch(modelConfigProvider.select(
-        (s) => s.getItems<AssetConfig>(),
-  ));
+List<AssetConfig> sortedAssets(Ref ref) {
+  final assets = ref.watch(modelConfigProvider.select(
+   (s) => s.getItems<AssetConfig>()));
+  return assets.toList()..sort((a, b) => a.symbol.compareTo(b.symbol));
 }
 
 @riverpod
-List<PortfolioConfig> usePortfolios(Ref ref) {
+List<PortfolioConfig> portfolios(Ref ref) {
   return ref.watch(modelConfigProvider.select(
         (s) => s.getItems<PortfolioConfig>(),
   ));
@@ -178,5 +178,3 @@ Future<List<AssetConfig>> assetsLoader(Ref ref) async {
 Future<List<PortfolioConfig>> portfolioLoader(Ref ref) async {
   return await ref.read(modelConfigProvider.notifier).fetchType<PortfolioConfig>();
 }
-
-

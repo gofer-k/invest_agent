@@ -139,7 +139,7 @@ final class RefreshAssetPricesProvider
 }
 
 String _$refreshAssetPricesHash() =>
-    r'12ca692006ea7cbb26d2416e03e848138751ef21';
+    r'3d34c02bde29d1563d3479a85834515e7ea17dcb';
 
 final class RefreshAssetPricesFamily extends $Family
     with

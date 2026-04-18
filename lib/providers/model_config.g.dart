@@ -66,10 +66,10 @@ abstract class _$ModelConfig extends $Notifier<ModelConfigState> {
   }
 }
 
-@ProviderFor(useAssets)
-final useAssetsProvider = UseAssetsProvider._();
+@ProviderFor(sortedAssets)
+final sortedAssetsProvider = SortedAssetsProvider._();
 
-final class UseAssetsProvider
+final class SortedAssetsProvider
     extends
         $FunctionalProvider<
           List<AssetConfig>,
@@ -77,19 +77,19 @@ final class UseAssetsProvider
           List<AssetConfig>
         >
     with $Provider<List<AssetConfig>> {
-  UseAssetsProvider._()
+  SortedAssetsProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'useAssetsProvider',
+        name: r'sortedAssetsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$useAssetsHash();
+  String debugGetCreateSourceHash() => _$sortedAssetsHash();
 
   @$internal
   @override
@@ -99,7 +99,7 @@ final class UseAssetsProvider
 
   @override
   List<AssetConfig> create(Ref ref) {
-    return useAssets(ref);
+    return sortedAssets(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -111,12 +111,12 @@ final class UseAssetsProvider
   }
 }
 
-String _$useAssetsHash() => r'7f307af66a3eaaf4da45bafad654c7fbd0295854';
+String _$sortedAssetsHash() => r'e32455484d43e8228e0f1c8d34abbf2ff9031f72';
 
-@ProviderFor(usePortfolios)
-final usePortfoliosProvider = UsePortfoliosProvider._();
+@ProviderFor(portfolios)
+final portfoliosProvider = PortfoliosProvider._();
 
-final class UsePortfoliosProvider
+final class PortfoliosProvider
     extends
         $FunctionalProvider<
           List<PortfolioConfig>,
@@ -124,19 +124,19 @@ final class UsePortfoliosProvider
           List<PortfolioConfig>
         >
     with $Provider<List<PortfolioConfig>> {
-  UsePortfoliosProvider._()
+  PortfoliosProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'usePortfoliosProvider',
+        name: r'portfoliosProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$usePortfoliosHash();
+  String debugGetCreateSourceHash() => _$portfoliosHash();
 
   @$internal
   @override
@@ -146,7 +146,7 @@ final class UsePortfoliosProvider
 
   @override
   List<PortfolioConfig> create(Ref ref) {
-    return usePortfolios(ref);
+    return portfolios(ref);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -158,7 +158,7 @@ final class UsePortfoliosProvider
   }
 }
 
-String _$usePortfoliosHash() => r'f39d42614d71a346ae15ba3d13eb4cd276d6005a';
+String _$portfoliosHash() => r'e497b6519b29cc09a7de3015f5e2f87802027c3d';
 
 @ProviderFor(userAccounts)
 final userAccountsProvider = UserAccountsProvider._();

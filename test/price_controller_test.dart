@@ -68,7 +68,7 @@ void main() {
         // Mock test caches and database
         overrides: [
           databaseHelperProvider.overrideWith((ref) => dbHelper),
-          useAssetsProvider.overrideWith((ref) => [testAsset]),
+          sortedAssetsProvider.overrideWith((ref) => [testAsset]),
           assetPriceDetailsProvider.overrideWith((ref) => {testAsset.id: testAsset.symbol}),
         ],
       );
@@ -101,7 +101,7 @@ void main() {
         volume: 1000.0,
       );
 
-      final details = container.read(useAssetsProvider);
+      final details = container.read(sortedAssetsProvider);
       expect(details.firstWhere((asset) => asset.id == testAsset.id) == testAsset, isTrue);
 
       await controller.save(priceSchema, price);

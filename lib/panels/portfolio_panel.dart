@@ -20,7 +20,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   final portfolioDetailsProvider = Provider.family<String, PortfolioConfig>((ref, portfolio) {
     // Use watch so this updates if the model manager or assets change
-    final allAssets = ref.watch(useAssetsProvider);
+    final allAssets = ref.watch(sortedAssetsProvider);
 
     final symbols = allAssets
         .where((asset) => portfolio.metaIds.contains(asset.id))
@@ -39,8 +39,8 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
   @override
   Widget build(BuildContext context) {
     final dbAsync = ref.watch(loadDatabaseProvider);
-    final usePortfolios = ref.watch(portfolioLoaderProvider);
-    final portfolios = usePortfolios.whenData((portfolios) => portfolios).value ?? [];
+    final portfolioAsync = ref.watch(portfolioLoaderProvider);
+    final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value ?? [];
 
     return Shrinkable(
       title: "Portfolios",
@@ -94,18 +94,6 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   Widget _changePortfolio(PortfolioConfig portfolio) {
     final details = ref.watch(portfolioDetailsProvider(portfolio));
-
-    // final allAssets = ref.watch(useAssetsProvider);
-    //
-    // final portfolioAssets = allAssets.where((a) => portfolio.metaIds.contains(a.id));
-    // final symbols = portfolioAssets.map((a) => a.symbol).join(', ');
-    //
-    // final weight = (portfolio.targetWeight * 100).toStringAsFixed(0);
-    // final balance = (portfolio.rebalanceThreshold * 100).toStringAsFixed(0);
-    //
-    // final details = "${portfolio.portfolioName}: [weight: $weight%], "
-    //     "[balance: $balance%], "
-    //     "[${symbols.isEmpty ? 'Loading symbols...' : symbols}]";
 
     return Shrinkable(
       title: portfolio.portfolioName,
