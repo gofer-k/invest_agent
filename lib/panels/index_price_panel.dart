@@ -2,13 +2,12 @@ import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/user_account.dart';
 
 import '../model/asset_config.dart';
 import '../model/index_price.dart';
-import '../model/trading_request.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
+import '../providers/assets_utilities.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class IndexPricePanel extends ConsumerStatefulWidget {
@@ -39,8 +38,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                 final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
                 try {
                   if (accounts.isEmpty) throw Exception('No accounts selected');
-
-                  await refreshAssetPrices(accounts[0], assetsToRefresh);
+                  ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),
@@ -54,7 +52,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
                   }
                 } finally {
-                  refreshAllDetails();
+                  ref.read(refreshAllDetailsProvider.future);
                   if (mounted) {
                     setState(() => _refreshingIds.clear());
                   }
@@ -159,69 +157,5 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     if (confirmed == true) {
       await ref.read(priceControllerProvider.notifier).deleteAssetAll(IndexPriceSchema(), asset);
     }
-  }
-
-  AssetsByExchange assetsByExchange(List<AssetConfig> assets) {
-    return assets.fold<Map<String, List<AssetConfig>>>({}, (map, asset) {
-      map.putIfAbsent(asset.stockExchange.code, () => []).add(asset);
-      return map;
-    });
-  }
-
-  Future<Map<DateTimeRange, List<AssetConfig>>>
-  assetsByTimeSpan(List<AssetConfig> assets) async {
-    final notifier = ref.read(priceControllerProvider.notifier);
-    final schema = IndexPriceSchema();
-    final results = await Future.wait(assets.map((asset) async {
-      // Fetch both dates in parallel for this specific asset
-      final dates = await Future.wait([
-        notifier.oldestDate(schema, asset),
-        notifier.newestDate(schema, asset),
-      ]);
-
-      final start = DateUtils.dateOnly(dates[0]);
-      final end = DateUtils.dateOnly(dates[1]);
-
-      // Ensure start is not after end to avoid DateTimeRange assertion errors
-      final validStart = start.isBefore(end) ? start : end;
-      final validEnd = start.isBefore(end) ? end : start;
-
-      return (asset: asset, range: DateTimeRange(start: validStart, end: validEnd));
-    }));
-    final Map<DateTimeRange, List<AssetConfig>> groupedAssets = {};
-    for (final result in results) {
-      groupedAssets.putIfAbsent(result.range, () => []).add(result.asset);
-    }
-    return groupedAssets;
-  }
-
-  Future<void> refreshAssetPrices(UserAccount account, List<AssetConfig> assets) async {
-    final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
-    final apikey = secrets['apiKey'];
-    final groupAssetsByExchange = assetsByExchange(assets);
-
-    for (final entry in groupAssetsByExchange.entries) {
-      final exchange = entry.key;
-      final groupedAssets = entry.value;
-
-      final groupAssetsByTimeSpan = await assetsByTimeSpan(groupedAssets);
-      final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
-        return MarketStackRequest.fromEod(
-          apiKey: apikey!,
-          fromDate: e.key.start,
-          symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
-          exchange: exchange);
-      }).toList();
-
-      for (final request in bulkRequests) {
-        await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
-      }
-    }
-
-    dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
-  }
-
-  Future<void> refreshAllDetails() async {
-    await ref.read(priceControllerProvider.notifier).refreshAllDetails();
   }
 }

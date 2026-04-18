@@ -1,7 +1,12 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/asset_config.dart';
 import '../model/index_price.dart';
+import '../model/trading_request.dart';
+import '../model/user_account.dart';
+import 'model_config.dart';
 import 'price_controller.dart';
 
 part 'assets_utilities.g.dart';
@@ -37,4 +42,43 @@ Future<Map<DateTimeRange, List<AssetConfig>>> assetsByTimeSpan(
     groupedAssets.putIfAbsent(result.range, () => []).add(result.asset);
   }
   return groupedAssets;
+}
+
+@riverpod
+Future<void> refreshAssetPrices(Ref ref, UserAccount account, List<AssetConfig> assets) async {
+  final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
+  final apikey = secrets['apiKey'];
+  final groupAssetsByExchange = assetsByExchange(assets);
+
+  for (final entry in groupAssetsByExchange.entries) {
+    final exchange = entry.key;
+    final groupedAssets = entry.value;
+
+    final groupAssetsByTimeSpan = await ref.read(assetsByTimeSpanProvider(groupedAssets).future);
+    final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
+      return MarketStackRequest.fromEod(
+          apiKey: apikey!,
+          fromDate: e.key.start,
+          symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
+          exchange: exchange);
+    }).toList();
+
+    for (final request in bulkRequests) {
+      await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
+    }
+  }
+
+  dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
+}
+
+@riverpod
+Future<void> refreshAllDetails(Ref ref) async {
+  await ref.read(priceControllerProvider.notifier).refreshAllDetails();
+}
+
+AssetsByExchange assetsByExchange(List<AssetConfig> assets) {
+  return assets.fold<Map<String, List<AssetConfig>>>({}, (map, asset) {
+    map.putIfAbsent(asset.stockExchange.code, () => []).add(asset);
+    return map;
+  });
 }
