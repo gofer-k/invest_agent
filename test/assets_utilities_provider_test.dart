@@ -80,11 +80,9 @@ void main() {
 
     test('groups assets by the same time span', () async {
       final controller = container.read(priceControllerProvider.notifier);
-      
       final date1 = DateTime(2023, 1, 1);
       final date2 = DateTime(2023, 1, 10);
 
-      // Add prices for asset1
       await controller.save(priceSchema, IndexPrice(
         id: 0, assetId: asset1.id, dateTime: date1,
         openPrice: 100, closePrice: 100, highPrice: 100, lowPrice: 100, volume: 100
@@ -94,7 +92,6 @@ void main() {
         openPrice: 110, closePrice: 110, highPrice: 110, lowPrice: 110, volume: 100
       ));
 
-      // Add prices for asset2 (same dates)
       await controller.save(priceSchema, IndexPrice(
         id: 0, assetId: asset2.id, dateTime: date1,
         openPrice: 150, closePrice: 150, highPrice: 150, lowPrice: 150, volume: 100
