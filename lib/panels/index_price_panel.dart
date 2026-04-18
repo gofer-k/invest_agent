@@ -55,6 +55,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                   ref.read(refreshAllDetailsProvider.future);
                   if (mounted) {
                     setState(() => _refreshingIds.clear());
+                    dev.log("Refreshed ${assetsToRefresh.length} assets");
                   }
                 }
               },

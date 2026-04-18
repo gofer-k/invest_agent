@@ -46,29 +46,39 @@ Future<Map<DateTimeRange, List<AssetConfig>>> assetsByTimeSpan(
 
 @riverpod
 Future<void> refreshAssetPrices(Ref ref, UserAccount account, List<AssetConfig> assets) async {
-  final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
-  final apikey = secrets['apiKey'];
-  final groupAssetsByExchange = assetsByExchange(assets);
+  final link = ref.keepAlive();
+  try {
+    final secrets = await ref.read(modelConfigProvider.notifier).getAccountSecrets(account);
+    if (!ref.mounted) return;
+    
+    final apikey = secrets['apiKey'];
+    final groupAssetsByExchange = assetsByExchange(assets);
 
-  for (final entry in groupAssetsByExchange.entries) {
-    final exchange = entry.key;
-    final groupedAssets = entry.value;
+    for (final entry in groupAssetsByExchange.entries) {
+      final exchange = entry.key;
+      final groupedAssets = entry.value;
 
-    final groupAssetsByTimeSpan = await ref.read(assetsByTimeSpanProvider(groupedAssets).future);
-    final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
-      return MarketStackRequest.fromEod(
-          apiKey: apikey!,
-          fromDate: e.key.start,
-          symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
-          exchange: exchange);
-    }).toList();
+      final groupAssetsByTimeSpan = await ref.read(assetsByTimeSpanProvider(groupedAssets).future);
+      if (!ref.mounted) return;
 
-    for (final request in bulkRequests) {
-      await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
+      final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
+        return MarketStackRequest.fromEod(
+            apiKey: apikey!,
+            fromDate: e.key.start,
+            symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
+            exchange: exchange);
+      }).toList();
+
+      for (final request in bulkRequests) {
+        await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
+        if (!ref.mounted) return;
+      }
     }
-  }
 
-  dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
+    dev.log( '[${DateTime.now().toIso8601String()}] Refreshed assets');
+  } finally {
+    link.close();
+  }
 }
 
 @riverpod
