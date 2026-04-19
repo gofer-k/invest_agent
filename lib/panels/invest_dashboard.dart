@@ -16,6 +16,14 @@ import 'request_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
 
+enum PanelIndex {
+  mainSettings,
+  tradeSettings,
+  request,
+  results,
+  notUsed,
+}
+
 class InvestDashboard extends ConsumerStatefulWidget {
   const InvestDashboard({super.key});
 
@@ -36,7 +44,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   String chartTitle = "";
 
   // Panel Management: null means hidden, 0: Request, 1: Results, 2: Main Settings
-  int? activePanelIndex;
+  var activePanelIndex = PanelIndex.notUsed;
 
   @override
   Widget build(BuildContext context) {
@@ -49,34 +57,25 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           // VERTICAL TASK BAR ON THE LEFT
           AppVerticalTaskBar(
             mainActions: [
+              // TAB ACTIONS MOVED TO VERTICAL BAR
               TaskBarIcon(
-                icon: Icons.play_arrow,
-                color: Colors.green,
-                tooltip: 'Run Analysis',
-                onPressed: () {
-                  // Trigger analysis logic if request is available
-                },
+                icon: Icons.settings_applications,
+                tooltip: 'Main Settings',
+                color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(PanelIndex.mainSettings),
               ),
               const Divider(height: 20, indent: 8, endIndent: 8),
-              // TAB ACTIONS MOVED TO VERTICAL BAR
               TaskBarIcon(
                 icon: Icons.settings,
                 tooltip: 'Request Settings',
-                color: activePanelIndex == 0 ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(0),
+                color: activePanelIndex == PanelIndex.request ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(PanelIndex.request),
               ),
               TaskBarIcon(
                 icon: Icons.update,
                 tooltip: 'Results Settings',
-                color: activePanelIndex == 1 ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(1),
-              ),
-              const Divider(height: 20, indent: 8, endIndent: 8),
-              TaskBarIcon(
-                icon: Icons.settings_applications,
-                tooltip: 'Main Settings',
-                color: activePanelIndex == 2 ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(2),
+                color: activePanelIndex == PanelIndex.results ? Theme.of(context).primaryColor : null,
+                onPressed: () => _togglePanel(PanelIndex.results),
               ),
             ],
             overflowActions: [
@@ -89,7 +88,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           ),
           
           // COLLAPSIBLE SIDE PANEL
-          if (activePanelIndex != null)
+          if (activePanelIndex != PanelIndex.notUsed)
             SizedBox(
               width: 350,
               child: Container(
@@ -117,7 +116,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                             tooltip: 'Hide Panel',
-                            onPressed: () => setState(() => activePanelIndex = null),
+                            onPressed: () => setState(() => activePanelIndex = PanelIndex.notUsed),
                           ),
                         ],
                       ),
@@ -140,17 +139,17 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   String _getPanelTitle() {
     switch (activePanelIndex) {
-      case 0: return 'REQUEST';
-      case 1: return 'RESULTS';
-      case 2: return 'MAIN SETTINGS';
+      case PanelIndex.request: return 'REQUEST';
+      case PanelIndex.results: return 'RESULTS';
+      case PanelIndex.mainSettings: return 'MAIN SETTINGS';
       default: return '';
     }
   }
 
-  void _togglePanel(int index) {
+  void _togglePanel(PanelIndex index) {
     setState(() {
       if (activePanelIndex == index) {
-        activePanelIndex = null; // Hide if same icon clicked
+        activePanelIndex = PanelIndex.notUsed; // Hide if same icon clicked
       } else {
         activePanelIndex = index; // Switch to new panel
       }
@@ -159,14 +158,14 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   Widget _buildActivePanel() {
     switch (activePanelIndex) {
-      case 0:
+      case PanelIndex.request:
         return RequestSettingsPanel(onRunAnalysis: _handleRunAnalysis);
-      case 1:
+      case PanelIndex.results:
         return EtfSettingsCharts(
           configurationCharts: configurationCharts,
           onConfigAnalysis: _handleConfigAnalysis,
         );
-      case 2:
+      case PanelIndex.mainSettings:
         return const MainSettingsPanel();
       default:
         return const SizedBox.shrink();
