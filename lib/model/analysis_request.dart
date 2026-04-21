@@ -8,6 +8,10 @@ enum IntervalType {
   const IntervalType(this.value);
   final String value;
 
+  factory IntervalType.fromString(String value) {
+    return IntervalType.values.firstWhere((e) => e.value == value, orElse: () => IntervalType.day);
+  }
+
   @override
   String toString() => value;
 }
@@ -28,6 +32,12 @@ class StrategyParams {
     "fast": fast,
     "slow": slow,
   };
+
+  factory StrategyParams.fromJson(Map<String, dynamic> json) => StrategyParams(
+    type: json["type"],
+    fast: json["fast"],
+    slow: json["slow"],
+  );
 }
 
 class AnalysisRequest {
@@ -60,4 +70,14 @@ class AnalysisRequest {
     "strategy": strategy?.toJson(),
     "tech_indicators": techIndicators,
   };
+
+  factory AnalysisRequest.fromJson(Map<String, dynamic> json) => AnalysisRequest(
+    symbolTicker: json["symbol_ticker"],
+    datasetSource: json["dataset_source"],
+    period: PeriodType.values.firstWhere((e) => e.toString() == json["period"], orElse: () => PeriodType.max),
+    interval: IntervalType.fromString(json["interval"]),
+    rollingWindows: (json["rolling_windows"] as List?)?.cast<int>(),
+    strategy: json["strategy"] != null ? StrategyParams.fromJson(json["strategy"]) : null,
+    techIndicators: (json["tech_indicators"] as List?)?.cast<String>(),
+  );
 }

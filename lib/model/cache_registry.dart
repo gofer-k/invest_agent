@@ -1,5 +1,6 @@
 import 'package:invest_agent/model/portfolio_config.dart';
 import 'package:invest_agent/model/user_account.dart';
+import 'package:invest_agent/model/analysis_schema.dart';
 
 import 'asset_config.dart';
 import 'index_price.dart';
@@ -13,7 +14,7 @@ class CacheRegistry {
     AssetConfig: (item) => AssetConfig.from(item),
     UserAccount: (item) => UserAccount.fromList(item),
     IndexPrice: (item) => IndexPrice.from(item),
-    // Add other models here:
+    AnalysisEntry: (item) => AnalysisEntry.from(item),
   };
 
   static T create<T>(List<Object?> item) {

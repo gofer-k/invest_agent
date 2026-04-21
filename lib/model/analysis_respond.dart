@@ -34,6 +34,13 @@ class SimpleMovingAverage extends BaseIndicatorValue {
       rollingStd: rollingStd,
       bellingersBands: BellingerBands.fromJson(dateTime, jsonMap));
   }
+
+  Map<String, dynamic> toJson() => {
+    "rolling_mean": rollingMean,
+    "rolling_std": rollingStd,
+    "window": rollingWindow,
+    ...?bellingersBands?.toJson(),
+  };
 }
 
 // Build Bellingers band charts:
@@ -69,6 +76,13 @@ class BellingerBands extends BaseIndicatorValue{
       percentBB: parseNum(jsonMap['BB_percent']),
       widthBB: parseNum(jsonMap['BB_width']));
   }
+
+  Map<String, dynamic> toJson() => {
+    "BB_lower": lowerBB,
+    "BB_upper": upperBB,
+    "BB_percent": percentBB,
+    "BB_width": widthBB,
+  };
 }
 
 class GoldenCross extends BaseIndicatorValue{
@@ -87,6 +101,10 @@ class RSI extends BaseIndicatorValue {
   final double rsi;
 
   RSI({required super.dateTime, required this.rsi});
+
+  Map<String, dynamic> toJson() => {
+    "RSI": rsi,
+  };
 }
 
 class ExponentialMovingAverage extends BaseIndicatorValue{
@@ -102,6 +120,11 @@ class ExponentialMovingAverage extends BaseIndicatorValue{
     }
     return ExponentialMovingAverage(dateTime: dateTime, ema: value, rollingWindow: rollingWindow.toInt());
   }
+
+  Map<String, dynamic> toJson() => {
+    "value": ema,
+    "window": rollingWindow,
+  };
 }
 
 // Moving Average Convergence/Divergence indicator
@@ -148,6 +171,12 @@ class MACD extends BaseIndicatorValue{
     }
     return null;
   }
+
+  Map<String, dynamic> toJson() => {
+    "value": macd,
+    "signal": signal,
+    "hist": hist,
+  };
 }
 
 enum IndicatorType {
@@ -170,11 +199,12 @@ class Indicators {
   final Map<int, ExponentialMovingAverage> ema;  // [rollingWindow -> value]
   final List<MACD> macd;
   final RSI rsi;
+  final Map<String, dynamic> other; // For extendability
 
-  Indicators(this.macd, this.sma, this.ema, this.rsi);
+  Indicators(this.macd, this.sma, this.ema, this.rsi, {this.other = const {}});
 
   static Indicators? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    final jsonSMa = jsonMap["SMA"] as List<dynamic>;
+    final jsonSMa = (jsonMap["SMA"] ?? []) as List<dynamic>;
     Map<int, SimpleMovingAverage> sma = <int, SimpleMovingAverage>{};
     for (var element in jsonSMa) {
       final jsonValues = element as Map<String, dynamic>;
@@ -184,7 +214,7 @@ class Indicators {
       }
     }
 
-    final jsonEMa = jsonMap["EMA"] as List<dynamic>;
+    final jsonEMa = (jsonMap["EMA"] ?? []) as List<dynamic>;
     Map<int, ExponentialMovingAverage> ema = <int, ExponentialMovingAverage>{};
     for (var element in jsonEMa) {
       final jsonValues = element as Map<String, dynamic>;
@@ -200,13 +230,33 @@ class Indicators {
     List<MACD> macd = [];
     final macdTypes = ["MACD_12_26", "MACD_50_200"];
     for (String macdType in macdTypes) {
-      final jsonMACD = jsonMap[macdType] as Map<String, dynamic>;
-      final macdIndicator = MACD.fromJson(dateTime, jsonMACD, macdType);
-      if (macdIndicator != null) {
-        macd.add(macdIndicator);
+      final jsonMACD = jsonMap[macdType] as Map<String, dynamic>?;
+      if (jsonMACD != null) {
+        final macdIndicator = MACD.fromJson(dateTime, jsonMACD, macdType);
+        if (macdIndicator != null) {
+          macd.add(macdIndicator);
+        }
       }
     }
-    return Indicators(macd, sma, ema, rsi);
+
+    // Capture other fields
+    final knownFields = {"SMA", "EMA", "RSI", ...macdTypes};
+    final other = Map<String, dynamic>.from(jsonMap)..removeWhere((key, value) => knownFields.contains(key));
+
+    return Indicators(macd, sma, ema, rsi, other: other);
+  }
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      "SMA": sma.values.map((e) => e.toJson()).toList(),
+      "EMA": ema.values.map((e) => e.toJson()).toList(),
+      ...rsi.toJson(),
+      ...other,
+    };
+    for (var m in macd) {
+      map[m.type.name] = m.toJson();
+    }
+    return map;
   }
 }
 
@@ -220,30 +270,32 @@ enum CandleDetectorType {
 }
 CandleDetectorType? candleDetectorTypeFromString(String value) {
   try {
-    return CandleDetectorType.values.firstWhere((e) => e.name.contains(value));
+    return CandleDetectorType.values.firstWhere((e) => e.name.contains(value.toLowerCase()), orElse: () => CandleDetectorType.doji);
   } catch (e) {
-    return null; // Return null if no match is found
+    return CandleDetectorType.doji;
   }
 }
 
 class CandleDetector {
-  final CandleDetectorType type;
+  final String typeName; // Original string for extendability
   final double? price;
   final double? strength;
-  const CandleDetector({required this.type, this.price, this.strength}) : assert(strength == null || (strength >= 0.0 && strength <= 1.0),
-  'Strength must be null or between 0.0 and 1.0');
+  const CandleDetector({required this.typeName, this.price, this.strength});
 
-  static CandleDetector? fromJson(CandleDetectorType type, jsonMap) {
-    final price = jsonMap['price'] as double?;
-    final strength = jsonMap['strength'] as double?;
-    if (strength != null && (strength < 0.0 || strength > 1.0)) {
-      return null;
-    }
-    if (price == null) {
-      return null;
-    }
-    return CandleDetector(type: type, price: price, strength: strength);
+  CandleDetectorType? get type => CandleDetectorType.values.where((e) => e.name == typeName).firstOrNull;
+
+  static CandleDetector? fromJson(String typeName, dynamic jsonMap) {
+    if (jsonMap is! Map<String, dynamic>) return null;
+    final price = parseNum(jsonMap['price']);
+    final strength = parseNum(jsonMap['strength']);
+    if (price == null) return null;
+    return CandleDetector(typeName: typeName, price: price, strength: strength);
   }
+
+  Map<String, dynamic> toJson() => {
+    "price": price,
+    "strength": strength,
+  };
 }
 
 class CandleStickItem extends BaseIndicatorValue {
@@ -252,7 +304,7 @@ class CandleStickItem extends BaseIndicatorValue {
   final double? highPrice;
   final double? lowPrice;
   final double? volume;
-  final List<CandleDetector> detectors;
+  final Map<String, CandleDetector> detectors;
 
   const CandleStickItem({required super.dateTime, this.openPrice, this.closePrice, this.highPrice, this.lowPrice, this.volume, required this.detectors});
 
@@ -261,38 +313,14 @@ class CandleStickItem extends BaseIndicatorValue {
       return null;
     }
 
-    final jsonHammer = jsonMap["hammer"] as Map<String, dynamic>;
-    final jsonInvertedHammer = jsonMap["inverted_hammer"] as Map<String, dynamic>;
-    final jsonDoji = jsonMap["doji"] as Map<String, dynamic>;
-    final jsonEngulfing = jsonMap["engulfing"] as Map<String, dynamic>;
-    final jsonHarami = jsonMap["harami"] as Map<String, dynamic>;
-    final jsonShootingStar = jsonMap["shooting_star"] as Map<String, dynamic>;
+    final detectors = <String, CandleDetector>{};
+    jsonMap.forEach((key, value) {
+      final detector = CandleDetector.fromJson(key, value);
+      if (detector != null) {
+        detectors[key] = detector;
+      }
+    });
 
-    final detectors = <CandleDetector>[];
-    final hammer = CandleDetector.fromJson(CandleDetectorType.hammer, jsonHammer);
-    if (hammer != null) {
-        detectors.add(hammer);
-    }
-    final invertedHammer = CandleDetector.fromJson(CandleDetectorType.inverted_hammer, jsonInvertedHammer);
-    if (invertedHammer != null) {
-        detectors.add(invertedHammer);
-    }
-    final doji = CandleDetector.fromJson(CandleDetectorType.doji, jsonDoji);
-    if (doji != null) {
-      detectors.add(doji);
-    }
-    final engulfing = CandleDetector.fromJson(CandleDetectorType.engulfing, jsonEngulfing);
-    if (engulfing != null) {
-      detectors.add(engulfing);
-    }
-    final harami = CandleDetector.fromJson(CandleDetectorType.harami, jsonHarami);
-    if (harami != null) {
-      detectors.add(harami);
-    }
-    final shootingStar = CandleDetector.fromJson(CandleDetectorType.shooting_star, jsonShootingStar);
-    if (shootingStar != null) {
-      detectors.add(shootingStar);
-    }
     return CandleStickItem(
       dateTime: dateTime,
       openPrice: openPrice,
@@ -302,6 +330,10 @@ class CandleStickItem extends BaseIndicatorValue {
       volume: volume,
       detectors: detectors
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return detectors.map((key, value) => MapEntry(key, value.toJson()));
   }
 }
 
@@ -502,7 +534,7 @@ class AnalysisRespond {
     minPrice = 0.0;
   }
 
-  static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
+  static AnalysisRespond? fromJsonSync(Map<String, dynamic> jsonMap) {
     final indicators = <Indicators>[];
     final candles = <CandleStickItem>[];
     final List<PriceData> priceData = [];
@@ -518,6 +550,7 @@ class AnalysisRespond {
         final lowPrice = parseNum(metaData["Low"]);
         final volume = parseNum(metaData["Volume"]);
         final volZscore = parseNum(metaData["VolumeZscore"]);
+
         if (openPrice != null && closePrice != null && highPrice != null && lowPrice != null && volume != null) {
           priceData.add(PriceData(dateTime: dateTime,
             openPrice: openPrice,
@@ -551,6 +584,28 @@ class AnalysisRespond {
     }
     return null;
   }
+
+  static Future<AnalysisRespond?> fromJson(Map<String, dynamic> jsonMap) async {
+    return fromJsonSync(jsonMap);
+  }
+
+  Map<String, dynamic> toJson() => {
+    "respond": {
+      for (var i = 0; i < priceData.length; i++)
+        priceData[i].dateTime.toIso8601String(): {
+          "metadata": {
+            "Open": priceData[i].openPrice,
+            "Close": priceData[i].closePrice,
+            "High": priceData[i].highPrice,
+            "Low": priceData[i].lowPrice,
+            "Volume": priceData[i].volume,
+            "VolumeZscore": priceData[i].volumeZscore,
+          },
+          "indicators": indicators[i].toJson(),
+          "candlestick": candles[i].toJson(),
+        }
+    }
+  };
 }
 
 double? parseNum(dynamic value) {
