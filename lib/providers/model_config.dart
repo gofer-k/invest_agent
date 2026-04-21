@@ -13,13 +13,6 @@ part 'model_config.g.dart';
 
 /// The state for ModelManager, holding in-memory cache of different models.
 
-class AssetTimeRange {
-  final DateTime fromDate;
-  final DateTime toDate;
-  final AssetConfig asset;
-  const AssetTimeRange({required this.fromDate, required this.toDate, required this.asset});
-}
-
 @immutable
 class ModelConfigState {
   final Map<Type, List<Cache>> cache;
