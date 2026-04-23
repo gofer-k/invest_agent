@@ -14,7 +14,7 @@ class IndicatorSchema implements CacheSchema {
   String get create => '''
     CREATE TABLE IF NOT EXISTS $tableName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
-      name TEXT NOT NULL,
+      name TEXT NOT NULL UNIQUE,
       type TEXT NOT NULL,
       parameters TEXT, -- JSON string
       is_enabled BOOLEAN DEFAULT TRUE
@@ -31,8 +31,16 @@ class IndicatorSchema implements CacheSchema {
   String saveOne(Cache cache) {
     final config = cache as Indicator;
     return '''
-      INSERT INTO $tableName (name, type, parameters, is_enabled)
-      VALUES ('${config.name}', '${config.type}', '${jsonEncode(config.parameters)}', ${config.isEnabled});
+      INSERT INTO $tableName 
+      VALUES (
+      nextval('$sequenceName'),
+      '${config.name}',
+      '${config.type}', 
+      '${jsonEncode(config.parameters)}',
+       ${config.isEnabled}) ON CONFLICT(name) DO UPDATE SET
+          type = excluded.type,
+          parameters = excluded.parameters,
+          is_enabled = excluded.is_enabled;
     ''';
   }
 

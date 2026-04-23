@@ -95,7 +95,7 @@ void main() {
         id: savedIndicator.id,
         name: 'New',
         type: 'SMA',
-        parameters: {'p': 1},
+        parameters: {'p': [1]},
         isEnabled: false,
       ));
 
