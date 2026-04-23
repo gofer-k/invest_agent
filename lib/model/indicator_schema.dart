@@ -2,6 +2,8 @@ import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
 
 class IndicatorSchema implements CacheSchema {
+  const IndicatorSchema();
+
   static const String tableName = "indicators";
   static const String sequenceName = "indicators_id_seq";
 
@@ -52,6 +54,14 @@ class IndicatorSchema implements CacheSchema {
 
   @override
   String get deleteAll => "DELETE FROM $tableName;";
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is IndicatorSchema && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
 }
 
 class Indicator extends Cache {
@@ -75,8 +85,9 @@ class Indicator extends Cache {
       id: item[0] as int,
       name: item[1] as String,
       type: item[2] as String,
+      // parameters: item[3] as Map<String, dynamic>,
       parameters: jsonDecode(item[3] as String),
-      isEnabled: (item[4] as int) == 1,
+      isEnabled: (item[4] as bool),
     );
   }
 

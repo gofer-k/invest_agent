@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
@@ -7,21 +5,22 @@ import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
-import '../model/trading_request.dart';
-import '../providers/investing_data_client.dart';
-import 'package:path/path.dart' as p;
 
+import 'analysis_settings_panel.dart';
 import 'etf_settings_charts.dart';
 import 'request_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
 
 enum PanelIndex {
-  mainSettings,
-  tradeSettings,
-  request,
-  results,
-  notUsed,
+  mainSettings("Main Settings"),
+  analysisSettings("Analysis Settings"),
+  request("Request"),
+  results("Results"),
+  notUsed("");
+
+  const PanelIndex(this.name);
+  final String name;
 }
 
 class InvestDashboard extends ConsumerStatefulWidget {
@@ -43,7 +42,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   double visibleMaxY = 0.0;
   String chartTitle = "";
 
-  // Panel Management: null means hidden, 0: Request, 1: Results, 2: Main Settings
   var activePanelIndex = PanelIndex.notUsed;
 
   @override
@@ -59,11 +57,17 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
             mainActions: [
               // TAB ACTIONS MOVED TO VERTICAL BAR
               TaskBarIcon(
-                icon: Icons.settings_applications,
+                icon: Icons.settings,
                 tooltip: 'Main Settings',
                 color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
                 onPressed: () => _togglePanel(PanelIndex.mainSettings),
               ),
+              const Divider(height: 20, indent: 8, endIndent: 8),
+              TaskBarIcon(icon: Icons.bar_chart,
+                tooltip: 'Analysis Settings',
+                color: Theme.of(context).primaryColor,
+                onPressed: () => _togglePanel(PanelIndex.analysisSettings)),
+              // TODO: remove below ones
               const Divider(height: 20, indent: 8, endIndent: 8),
               TaskBarIcon(
                 icon: Icons.settings,
@@ -107,8 +111,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            _getPanelTitle(),
+                          Text(activePanelIndex.name,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                           ),
                           IconButton(
@@ -137,15 +140,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     );
   }
 
-  String _getPanelTitle() {
-    switch (activePanelIndex) {
-      case PanelIndex.request: return 'REQUEST';
-      case PanelIndex.results: return 'RESULTS';
-      case PanelIndex.mainSettings: return 'MAIN SETTINGS';
-      default: return '';
-    }
-  }
-
   void _togglePanel(PanelIndex index) {
     setState(() {
       if (activePanelIndex == index) {
@@ -159,7 +153,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   Widget _buildActivePanel() {
     switch (activePanelIndex) {
       case PanelIndex.request:
-        return RequestSettingsPanel(onRunAnalysis: _handleRunAnalysis);
+        return RequestSettingsPanel(onRunAnalysis: (AnalysisRequest request) => {});
       case PanelIndex.results:
         return EtfSettingsCharts(
           configurationCharts: configurationCharts,
@@ -167,58 +161,15 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         );
       case PanelIndex.mainSettings:
         return const MainSettingsPanel();
+      case PanelIndex.analysisSettings:
+        return const AnalysisSettingsPanel();
       default:
         return const SizedBox.shrink();
     }
   }
 
   // Handle the callback from the settings panel
-  Future<void> _handleRunAnalysis(AnalysisRequest request) async {
-    setState(() {
-      isLoading = true;
-      errorMessage = null;
-    });
 
-    if (analysisRequest != null && analysisRequest!.symbolTicker == request.symbolTicker) {
-      analysisResult?.changePeriod(request.period);
-      analysisRequest = request;
-      setState(() {
-        isLoading = false;
-      });
-      return;
-    }
-
-    try {
-      final client = ref.watch(investingDataClientProvider(LocalRequest()).notifier);
-      final result = await client.runAnalysis(request);
-      AnalysisRespond? receivedData;
-
-      if (result["format"] == "gz") {
-        receivedData = await receiveCompressedAnalysisResult(result);
-      }
-      chartTitle = p.basenameWithoutExtension(request.symbolTicker);
-
-      setState(() {
-        analysisRequest = request;
-        // Only assign if we successfully got data
-        if (receivedData != null) {
-          analysisResult = receivedData;
-        }
-      });
-    } catch (e) {
-      setState(() {
-        errorMessage = e.toString();
-        log("ETF agent analysis: Error: $errorMessage");
-        isLoading = false;
-      });
-    } finally {
-      if (mounted) { // Best practice check before calling setState in async gaps
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
 
   Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
     setState(() {

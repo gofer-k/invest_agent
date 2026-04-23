@@ -1,38 +1,40 @@
 import 'package:invest_agent/model/indicator_schema.dart';
-import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../model/cache_schema.dart';
+import 'cache_notifier.dart';
 
 part 'indicator_provider.g.dart';
 
 @riverpod
 class IndicatorNotifier extends _$IndicatorNotifier {
+  static final _schema = IndicatorSchema();
+  static const _defaultDbPath = 'indicators.db';
+
+  IndicatorSchema get schema => _schema;
+  late String? _dbPath;
+  String get dbPath => _dbPath ?? _defaultDbPath;
+
   @override
-  FutureOr<List<Indicator>> build() async {
-    final helper = await ref.watch(databaseHelperProvider.future);
-    
-    // Ensure table exists (though usually done in an initialization step)
-    final schema = IndicatorSchema();
-    await helper.createCache(schema);
-    
-    return helper.fetchAll<Indicator>(schema);
+  FutureOr<List<Indicator>> build([String? cachePath]) async {
+    _dbPath = cachePath ?? _defaultDbPath;
+    return ref.watch(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).future);
   }
 
-  Future<void> addIndicator(Indicator indicator) async {
-    final helper = await ref.read(databaseHelperProvider.future);
-    await helper.saveOne(IndicatorSchema(), indicator);
-    ref.invalidateSelf();
+  Future<void> addEntry(Indicator entry) async {
+    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).addEntry(entry);
   }
 
-  Future<void> updateIndicator(Indicator indicator) async {
-    final helper = await ref.read(databaseHelperProvider.future);
-    await helper.updateOne(IndicatorSchema(), indicator);
-    ref.invalidateSelf();
+  Future<void> updateIndicator(Indicator entry) async {
+    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).updateEntry(entry);
   }
 
-  Future<void> deleteIndicator(Indicator indicator) async {
-    final helper = await ref.read(databaseHelperProvider.future);
-    await helper.deleteOne(IndicatorSchema(), indicator);
-    ref.invalidateSelf();
+  Future<void> deleteEntry(Indicator entry) async {
+    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).deleteEntry(entry);
+  }
+
+  Future<void> clearAll() async {
+    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).clearAll();
   }
 
   Future<void> toggleIndicator(Indicator indicator) async {

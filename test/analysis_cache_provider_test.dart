@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
 import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/analysis_request.dart';
-import 'package:invest_agent/providers/analysis_provider.dart';
-import 'package:invest_agent/utils/database_helper.dart';
+import 'package:invest_agent/providers/analysis_notifier.dart';
+import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:test/test.dart';
+
+import 'package:invest_agent/utils/database_helper.dart';
 
 void main() {
   setUpAll(() {
@@ -37,6 +39,7 @@ void main() {
     late ProviderContainer container;
     late DatabaseHelper dbHelper;
     final schema = AnalysisSchema();
+    const testPath = ':memory:';
 
     final testRequest = AnalysisRequest(
       symbolTicker: "AAPL",
@@ -46,26 +49,27 @@ void main() {
     );
 
     setUp(() async {
-      // Use in-memory database for testing
-      dbHelper = DatabaseHelper(":memory:");
+      dbHelper = DatabaseHelper(testPath);
       await dbHelper.init();
       await dbHelper.createCache(schema);
+      await dbHelper.deleteAll(schema);
 
       container = ProviderContainer(
         overrides: [
-          analysisDatabaseHelperProvider.overrideWith((ref) => dbHelper),
+          appCacheHelperProvider(testPath, schema).overrideWith((ref) => dbHelper),
         ],
       );
-      container.listen(analysisProvider, (_, _) {});
+      // Initialize the provider
+      container.listen(analysisProvider(testPath), (_,_){});
     });
 
     tearDown(() {
-      dbHelper.dispose();
       container.dispose();
+      dbHelper.dispose();
     });
 
     test('Initial state is empty list', () async {
-      final state = await container.read(analysisProvider.future);
+      final state = await container.read(analysisProvider(testPath).future);
       expect(state, isEmpty);
     });
 
@@ -76,36 +80,35 @@ void main() {
         createdAt: DateTime.now(),
       );
 
-      final notifier = container.read(analysisProvider.notifier);
+      final notifier = container.read(analysisProvider(testPath).notifier);
       await notifier.addEntry(entry);
 
-      final state = await container.read(analysisProvider.future);
+      final state = await container.read(analysisProvider(testPath).future);
       expect(state.length, 1);
-      expect(state.first.request?.symbolTicker, "AAPL");
+      expect((state.first).request?.symbolTicker, "AAPL");
     });
 
     test('deleteEntry removes an entry', () async {
-       final entry = AnalysisEntry(
-        id: 1,
+      final entry = AnalysisEntry(
         userId: 1,
         request: testRequest,
         createdAt: DateTime.now(),
       );
 
-      final notifier = container.read(analysisProvider.notifier);
+      final notifier = container.read(analysisProvider(testPath).notifier);
       await notifier.addEntry(entry);
       
-      var state = await container.read(analysisProvider.future);
+      var state = await container.read(analysisProvider(testPath).future);
       expect(state.length, 1);
 
       await notifier.deleteEntry(state.first);
       
-      state = await container.read(analysisProvider.future);
+      state = await container.read(analysisProvider(testPath).future);
       expect(state, isEmpty);
     });
 
     test('clearAll removes all entries', () async {
-      final notifier = container.read(analysisProvider.notifier);
+      final notifier = container.read(analysisProvider(testPath).notifier);
       
       await notifier.addEntry(AnalysisEntry(
         userId: 1, request: testRequest, createdAt: DateTime.now(),
@@ -114,12 +117,12 @@ void main() {
         userId: 1, request: testRequest, createdAt: DateTime.now(),
       ));
 
-      var state = await container.read(analysisProvider.future);
+      var state = await container.read(analysisProvider(testPath).future);
       expect(state.length, 2);
 
       await notifier.clearAll();
       
-      state = await container.read(analysisProvider.future);
+      state = await container.read(analysisProvider(testPath).future);
       expect(state, isEmpty);
     });
   });

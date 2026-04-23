@@ -89,18 +89,48 @@ class GoldenCross extends BaseIndicatorValue{
   final int? cross;
 
   GoldenCross({required super.dateTime, this.cross});
+
+  static GoldenCross? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+    return GoldenCross(
+       dateTime: dateTime,
+       cross: int.tryParse(jsonMap['golden_cross']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "golden_cross": cross,
+  };
 }
 
 class DeathCross extends BaseIndicatorValue{
   final int? cross;
 
   DeathCross({required super.dateTime, this.cross});
+
+  static GoldenCross? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+    return GoldenCross(
+      dateTime: dateTime,
+      cross: int.tryParse(jsonMap['dead_cross']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "dead_cross": cross,
+  };
 }
 
 class RSI extends BaseIndicatorValue {
   final double rsi;
 
   RSI({required super.dateTime, required this.rsi});
+
+  static RSI? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+    final value = parseNum(jsonMap['RSI']);
+    if (value == null) {
+      return null;
+    }
+    return RSI( dateTime: dateTime, rsi: value);
+  }
 
   Map<String, dynamic> toJson() => {
     "RSI": rsi,

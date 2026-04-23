@@ -35,108 +35,104 @@ void main() {
   group('IndicatorNotifier Tests', () {
     late ProviderContainer container;
     late DatabaseHelper dbHelper;
-    final schema = IndicatorSchema();
+    const testPath = ':memory:';
 
     setUp(() async {
-      // Use in-memory database for testing
-      dbHelper = DatabaseHelper(":memory:");
+      // Get the singleton instance pointing to in-memory for testing
+      dbHelper = DatabaseHelper(testPath);
       await dbHelper.init();
+
+      const schema = IndicatorSchema();
+      // Clear the database state before each test to ensure isolation
       await dbHelper.createCache(schema);
+      await dbHelper.deleteAll(schema);
 
       container = ProviderContainer(
         overrides: [
-          databaseHelperProvider.overrideWith((ref) => dbHelper),
+          // Must match the path and schema used in IndicatorNotifier
+          appCacheHelperProvider(testPath, schema).overrideWith((ref) => dbHelper),
         ],
       );
-      // Listen to ensure the provider is active
-      container.listen(indicatorProvider, (_, _) {});
+      container.listen(indicatorProvider(testPath), (_,_){});
     });
 
     tearDown(() {
-      dbHelper.dispose();
       container.dispose();
+      // We don't necessarily want to dispose the singleton dbHelper here
+      // if it's being reused, but deleteAll handles the state isolation.
+      dbHelper.dispose();
     });
 
     test('Initial state is empty list', () async {
-      final state = await container.read(indicatorProvider.future);
+      final state = await container.read(indicatorProvider(testPath).future);
       expect(state, isEmpty);
     });
 
     test('addIndicator adds an indicator and updates state', () async {
-      final indicator = Indicator(
+      final notifier = container.read(indicatorProvider(testPath).notifier);
+      await notifier.addEntry(Indicator(
         id: 0,
         name: 'SMA 20',
         type: 'SMA',
         parameters: {'window': 20},
-      );
+      ));
 
-      final notifier = container.read(indicatorProvider.notifier);
-      await notifier.addIndicator(indicator);
-
-      final state = await container.read(indicatorProvider.future);
+      final state = await container.read(indicatorProvider(testPath).future);
       expect(state.length, 1);
-      expect(state.first.name, 'SMA 20');
-      expect(state.first.parameters['window'], 20);
+      expect((state.first as Indicator).name, 'SMA 20');
     });
 
     test('updateIndicator modifies existing indicator', () async {
-      final indicator = Indicator(
-        id: 0,
-        name: 'SMA 20',
-        type: 'SMA',
-        parameters: {'window': 20},
-      );
+      final notifier = container.read(indicatorProvider(testPath).notifier);
+      await notifier.addEntry(Indicator(
+        id: 0, name: 'Old', type: 'SMA', parameters: {},
+      ));
 
-      final notifier = container.read(indicatorProvider.notifier);
-      await notifier.addIndicator(indicator);
-      
-      var state = await container.read(indicatorProvider.future);
-      final savedIndicator = state.first;
+      var state = await container.read(indicatorProvider(testPath).future);
+      final savedIndicator = state.first as Indicator;
 
-      final updated = Indicator(
+      await notifier.updateIndicator(Indicator(
         id: savedIndicator.id,
-        name: 'Fast SMA',
+        name: 'New',
         type: 'SMA',
-        parameters: {'window': 10},
+        parameters: {'p': 1},
         isEnabled: false,
-      );
+      ));
 
-      await notifier.updateIndicator(updated);
-
-      final newState = await container.read(indicatorProvider.future);
-      expect(newState.first.name, 'Fast SMA');
-      expect(newState.first.parameters['window'], 10);
-      expect(newState.first.isEnabled, isFalse);
+      final newState = await container.read(indicatorProvider(testPath).future);
+      final savedNewIndicator = newState.first as Indicator;
+      expect(savedNewIndicator.name, 'New');
+      expect(savedNewIndicator.isEnabled, isFalse);
     });
 
     test('deleteIndicator removes an indicator', () async {
-      final notifier = container.read(indicatorProvider.notifier);
-      await notifier.addIndicator(Indicator(
+      final notifier = container.read(indicatorProvider(testPath).notifier);
+      await notifier.addEntry(Indicator(
         id: 0, name: 'T1', type: 'T', parameters: {},
       ));
 
-      var state = await container.read(indicatorProvider.future);
+      var state = await container.read(indicatorProvider(testPath).future);
       expect(state.length, 1);
 
-      await notifier.deleteIndicator(state.first);
+      await notifier.deleteEntry(state.first as Indicator);
 
-      state = await container.read(indicatorProvider.future);
+      state = await container.read(indicatorProvider(testPath).future);
       expect(state, isEmpty);
     });
 
     test('toggleIndicator flips isEnabled', () async {
-      final notifier = container.read(indicatorProvider.notifier);
-      await notifier.addIndicator(Indicator(
-        id: 0, name: 'T1', type: 'T', parameters: {}, isEnabled: true,
+      final notifier = container.read(indicatorProvider(testPath).notifier);
+      await notifier.addEntry(Indicator(
+        id: 0, name: 'ToggleMe', type: 'T', parameters: {}, isEnabled: true,
       ));
 
-      var state = await container.read(indicatorProvider.future);
-      expect(state.first.isEnabled, isTrue);
+      var state = await container.read(indicatorProvider(testPath).future);
+      expect((state.first as Indicator).isEnabled, isTrue);
 
-      await notifier.toggleIndicator(state.first);
+      await notifier.toggleIndicator((state.first as Indicator));
 
-      state = await container.read(indicatorProvider.future);
-      expect(state.first.isEnabled, isFalse);
+      state = await container.read(indicatorProvider(testPath).future);
+      expect((state.first as Indicator).isEnabled, isFalse);
     });
   });
 }

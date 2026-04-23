@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -52,5 +53,20 @@ Future<DatabaseHelper> databaseHelper(Ref ref) async {
     helper.dispose();
   });
 
+  return helper;
+}
+
+@riverpod
+Future<DatabaseHelper> appCacheHelper(Ref ref, String path, CacheSchema schema) async {
+  // Use a separate database file for analysis cache
+  final helper = DatabaseHelper(path);
+  await helper.init();
+
+  // Ensure table is created
+  await helper.createCache(schema);
+
+  ref.onDispose(() {
+    helper.dispose();
+  });
   return helper;
 }
