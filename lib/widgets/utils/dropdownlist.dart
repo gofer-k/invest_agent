@@ -5,11 +5,16 @@ class DropdownList<T> extends StatefulWidget {
   final Function(T) onSelected;
   final T choiceType;
   final String? hint;
-  const DropdownList({super.key,
+  final bool isExpanded;
+
+  const DropdownList({
+    super.key,
     required this.onSelected,
     required this.choiceType,
     required this.choices,
-    this.hint});
+    this.hint,
+    this.isExpanded = false,
+  });
 
   @override
   State<DropdownList<T>> createState() => _DropdownListState<T>();
@@ -49,7 +54,7 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
       value: effectiveValue,
       icon: const Icon(Icons.arrow_downward),
       elevation: 2,
-      isExpanded: true,
+      isExpanded: widget.isExpanded,
       dropdownColor: Colors.grey.shade800,
       style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
       items: widget.choices.map<DropdownMenuItem<T>>((T value) {

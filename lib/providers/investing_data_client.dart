@@ -34,6 +34,7 @@ class InvestingDataClient extends _$InvestingDataClient {
       // Cancelable an operation
       dev.log('Cancelling HTTP request');
       _httpClient.close();
+      link.close();
     });
   }
 

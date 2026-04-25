@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 
+import '../widgets/utils/dropdownlist.dart';
+import '../widgets/utils/task_bar_icon.dart';
 import 'analysis_settings_panel.dart';
 import 'etf_settings_charts.dart';
 import 'request_settings_panel.dart';
@@ -47,96 +50,132 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // VERTICAL TASK BAR ON THE LEFT
-          AppVerticalTaskBar(
-            mainActions: [
-              // TAB ACTIONS MOVED TO VERTICAL BAR
-              TaskBarIcon(
-                icon: Icons.settings,
-                tooltip: 'Main Settings',
-                color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(PanelIndex.mainSettings),
-              ),
-              const Divider(height: 20, indent: 8, endIndent: 8),
-              TaskBarIcon(icon: Icons.bar_chart,
-                tooltip: 'Analysis Settings',
-                color: Theme.of(context).primaryColor,
-                onPressed: () => _togglePanel(PanelIndex.analysisSettings)),
-              // TODO: remove below ones
-              const Divider(height: 20, indent: 8, endIndent: 8),
-              TaskBarIcon(
-                icon: Icons.settings,
-                tooltip: 'Request Settings',
-                color: activePanelIndex == PanelIndex.request ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(PanelIndex.request),
-              ),
-              TaskBarIcon(
-                icon: Icons.update,
-                tooltip: 'Results Settings',
-                color: activePanelIndex == PanelIndex.results ? Theme.of(context).primaryColor : null,
-                onPressed: () => _togglePanel(PanelIndex.results),
-              ),
-            ],
-            overflowActions: [
-              ListTile(
-                leading: const Icon(Icons.help_outline, size: 20),
-                title: const Text('Help'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
+      appBar: AppBar(
+        toolbarHeight: 40,
+        automaticallyImplyLeading: false,
+        backgroundColor: AppTheme.of(context).barColor,
+        elevation: 0,
+        shape: Border(
+          bottom: BorderSide(
+            color: AppTheme.of(context).borderColor ?? Colors.transparent,
+            width: 1,
           ),
-          
-          // COLLAPSIBLE SIDE PANEL
-          if (activePanelIndex != PanelIndex.notUsed)
-            SizedBox(
-              width: 350,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+        ),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            Expanded(child: AppHorizontalTaskBar(
+              mainActions: [
+                TaskBarIcon(icon: Icons.maps_home_work,
+                    tooltip: 'Invest agent',
+                    color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
+                    onPressed: (){}),
+                SizedBox(width: 40,),
+                DropdownList<String>(
+                  onSelected: (String p1) {  },
+                  choiceType: 'one', choices: ["one", "two", "three"],
                 ),
-                child: Column(
-                  children: [
-                    // Panel Header with Hide Icon
-                    Container(
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      color: Theme.of(context).brightness == Brightness.dark 
-                          ? const Color(0xFF3C3F41) 
-                          : const Color(0xFFF2F2F2),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(activePanelIndex.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.remove, size: 18),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: 'Hide Panel',
-                            onPressed: () => setState(() => activePanelIndex = PanelIndex.notUsed),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(child: _buildActivePanel()),
-                  ],
+                VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
+                FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Text("Placeholder"),
                 ),
-              ),
+              ],),
             ),
-
-          // MAIN ANALYSIS PANEL
-          Expanded(
-            flex: 4,
-            child: _buildAnalysisPanel(),
-          ),
-        ],
+          ],
+        ),
       ),
+      body:
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // VERTICAL TASK BAR ON THE LEFT
+              AppVerticalTaskBar(
+                mainActions: [
+                  // TAB ACTIONS MOVED TO VERTICAL BAR
+                  TaskBarIcon(
+                    icon: Icons.settings,
+                    tooltip: 'Main Settings',
+                    color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
+                    onPressed: () => _togglePanel(PanelIndex.mainSettings),
+                  ),
+                  const Divider(height: 20, indent: 8, endIndent: 8),
+                  TaskBarIcon(icon: Icons.bar_chart,
+                      tooltip: 'Analysis Settings',
+                      color: Theme.of(context).primaryColor,
+                      onPressed: () => _togglePanel(PanelIndex.analysisSettings)),
+                  // TODO: remove below ones
+                  const Divider(height: 20, indent: 8, endIndent: 8),
+                  TaskBarIcon(
+                    icon: Icons.settings,
+                    tooltip: 'Request Settings',
+                    color: activePanelIndex == PanelIndex.request ? Theme.of(context).primaryColor : null,
+                    onPressed: () => _togglePanel(PanelIndex.request),
+                  ),
+                  TaskBarIcon(
+                    icon: Icons.update,
+                    tooltip: 'Results Settings',
+                    color: activePanelIndex == PanelIndex.results ? Theme.of(context).primaryColor : null,
+                    onPressed: () => _togglePanel(PanelIndex.results),
+                  ),
+                ],
+                overflowActions: [
+                  ListTile(
+                    leading: const Icon(Icons.help_outline, size: 20),
+                    title: const Text('Help'),
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+
+              // COLLAPSIBLE SIDE PANEL
+              if (activePanelIndex != PanelIndex.notUsed)
+                SizedBox(
+                  width: 350,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+                    ),
+                    child: Column(
+                      children: [
+                        // Panel Header with Hide Icon
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? const Color(0xFF3C3F41)
+                              : const Color(0xFFF2F2F2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(activePanelIndex.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.remove, size: 18),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                tooltip: 'Hide Panel',
+                                onPressed: () => setState(() => activePanelIndex = PanelIndex.notUsed),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(child: _buildActivePanel()),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // MAIN ANALYSIS PANEL
+              Expanded(
+                flex: 4,
+                child: _buildAnalysisPanel(),
+              ),
+            ],
+        ),
     );
   }
 

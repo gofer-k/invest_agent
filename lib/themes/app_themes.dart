@@ -20,6 +20,8 @@ class AppThemes {
         indicatorSignalColor: Colors.orange,
         indicatorRate: Colors.blueAccent,
         buttonOutlineColor: Color.fromRGBO(216, 168, 247, 1.0),
+        barColor: Color(0xFFF2F2F2),
+        borderColor: Color(0xFFC9C9C9),
       ),
     ],
   );
@@ -40,7 +42,9 @@ class AppThemes {
         bullishBarColor: Colors.green,
         bearishBarColor: Colors.red,
         indicatorSignalColor: Colors.orange,
-        indicatorRate: Colors.blueAccent
+        indicatorRate: Colors.blueAccent,
+        barColor: Color(0xFF3C3F41),
+        borderColor: Color(0xFF282828),
       ),
     ],
   );
@@ -63,6 +67,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final Color? indicatorRate;
   final Color? buttonOutlineColor;
   final EdgeInsets? paddingOverlayChart;
+  final Color? barColor;
+  final Color? borderColor;
 
   // Optional: Add a static method to easily access the extension from context
   static AppTheme of(BuildContext context) {
@@ -76,6 +82,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
     required this.tooltipDateColor,
     required this.tooltipPriceColor,
     required this.tooltipVolumeColor,
+    required this.barColor,
+    required this.borderColor,
     this.etfTitleColor,
     this.etfTitleShadowColor,
     this.indicatorSignalColor = Colors.orange,
@@ -104,6 +112,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
     Color? indicatorUpperBand,
     Color? indicatorMiddleBand,
     Color? buttonOutlineColor,
+    Color? barColor,
+    Color? borderColor,
     EdgeInsets? paddingOverlayChart,
   }) {
     return AppTheme(
@@ -122,6 +132,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorUpperBand: indicatorUpperBand,
       buttonOutlineColor: buttonOutlineColor,
       indicatorMiddleBand: indicatorMiddleBand,
+      barColor: barColor,
+      borderColor: borderColor,
     );
   }
 
@@ -146,6 +158,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorUpperBand: Color.lerp(indicatorUpperBand, other.indicatorUpperBand, t),
       indicatorMiddleBand: Color.lerp(indicatorMiddleBand, other.indicatorMiddleBand, t),
       buttonOutlineColor: Color.lerp(buttonOutlineColor, other.buttonOutlineColor, t),
+      barColor: Color.lerp(barColor, other.barColor, t),
+      borderColor: Color.lerp(borderColor, other.borderColor, t),
     );
   }
 }
