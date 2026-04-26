@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
+import '../model/asset_config.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 
+import '../providers/model_config.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/utils/dropdownlist.dart';
 import '../widgets/utils/task_bar_icon.dart';
 import 'analysis_settings_panel.dart';
@@ -46,9 +49,24 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   String chartTitle = "";
 
   var activePanelIndex = PanelIndex.notUsed;
+  AssetConfig _selectedAsset = AssetConfig.defaultAsset();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Listen to the provider to update the selected asset when data is first loaded
+    ref.listen<List<AssetConfig>>(sortedAssetsProvider, (previous, next) {
+      if (_selectedAsset.isDefault() && next.isNotEmpty) {
+        setState(() {
+          _selectedAsset = next.first;
+        });
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
@@ -66,17 +84,11 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           children: [
             Expanded(child: AppHorizontalTaskBar(
               mainActions: [
-                TaskBarIcon(icon: Icons.maps_home_work,
-                    tooltip: 'Invest agent',
-                    color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
-                    onPressed: (){}),
-                SizedBox(width: 40,),
-                DropdownList<String>(
-                  onSelected: (String p1) {  },
-                  choiceType: 'one', choices: ["one", "two", "three"],
-                ),
+                AppLogo(size: 24, color: Theme.of(context).splashColor),
+                const SizedBox(width: 24,),
+                _displayAssetsList(),
                 VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
-                FittedBox(
+                const FittedBox(
                   fit: BoxFit.fitWidth,
                   child: Text("Placeholder"),
                 ),
@@ -99,26 +111,26 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                     icon: Icons.settings,
                     tooltip: 'Main Settings',
                     color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
-                    onPressed: () => _togglePanel(PanelIndex.mainSettings),
+                    onPressed: () => _toggleVerticalPanel(PanelIndex.mainSettings),
                   ),
                   const Divider(height: 20, indent: 8, endIndent: 8),
                   TaskBarIcon(icon: Icons.bar_chart,
                       tooltip: 'Analysis Settings',
                       color: Theme.of(context).primaryColor,
-                      onPressed: () => _togglePanel(PanelIndex.analysisSettings)),
+                      onPressed: () => _toggleVerticalPanel(PanelIndex.analysisSettings)),
                   // TODO: remove below ones
                   const Divider(height: 20, indent: 8, endIndent: 8),
                   TaskBarIcon(
                     icon: Icons.settings,
                     tooltip: 'Request Settings',
                     color: activePanelIndex == PanelIndex.request ? Theme.of(context).primaryColor : null,
-                    onPressed: () => _togglePanel(PanelIndex.request),
+                    onPressed: () => _toggleVerticalPanel(PanelIndex.request),
                   ),
                   TaskBarIcon(
                     icon: Icons.update,
                     tooltip: 'Results Settings',
                     color: activePanelIndex == PanelIndex.results ? Theme.of(context).primaryColor : null,
-                    onPressed: () => _togglePanel(PanelIndex.results),
+                    onPressed: () => _toggleVerticalPanel(PanelIndex.results),
                   ),
                 ],
                 overflowActions: [
@@ -179,7 +191,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     );
   }
 
-  void _togglePanel(PanelIndex index) {
+  void _toggleVerticalPanel(PanelIndex index) {
     setState(() {
       if (activePanelIndex == index) {
         activePanelIndex = PanelIndex.notUsed; // Hide if same icon clicked
@@ -206,16 +218,26 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         return const SizedBox.shrink();
     }
   }
-
-  // Handle the callback from the settings panel
-
-
+  
+  Widget _displayAssetsList() {
+    final assets = ref.watch(sortedAssetsProvider);
+    return DropdownList<AssetConfig>(
+      onSelected: (AssetConfig asset) {
+        setState(() {
+          _selectedAsset = asset;
+        });
+      },
+      choiceType: _selectedAsset, 
+      choices: assets,
+    ); 
+  }
+  
   Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
     setState(() {
       configurationCharts = config;
     });
   }
-  
+
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
     final filePath = result["response_file"];
     final data = loadFinancialDataFromGzip(filePath);
