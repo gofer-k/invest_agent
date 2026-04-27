@@ -6,14 +6,18 @@ class DropdownList<T> extends StatefulWidget {
   final T choiceType;
   final String? hint;
   final bool isExpanded;
+  final TextStyle? textStyle;
+  final Color backgroundColor;
 
   const DropdownList({
     super.key,
     required this.onSelected,
     required this.choiceType,
     required this.choices,
+    required this.backgroundColor,
     this.hint,
     this.isExpanded = false,
+    this.textStyle,
   });
 
   @override
@@ -40,7 +44,7 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle dropdownTextStyle = TextStyle(
+    final dropdownTextStyle = widget.textStyle ?? TextStyle(
       fontSize: 18.0, // Increased font size
       color: Colors.white70, // A whitish color (you can adjust opacity or use Colors.white)
     );
@@ -55,7 +59,7 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
       icon: const Icon(Icons.arrow_downward),
       elevation: 2,
       isExpanded: widget.isExpanded,
-      dropdownColor: Colors.grey.shade800,
+      dropdownColor: widget.backgroundColor,
       style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
       items: widget.choices.map<DropdownMenuItem<T>>((T value) {
         return DropdownMenuItem(
