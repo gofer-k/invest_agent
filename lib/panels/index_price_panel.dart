@@ -8,6 +8,7 @@ import '../model/index_price.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../providers/assets_utilities.dart';
+import '../widgets/asset_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class IndexPricePanel extends ConsumerStatefulWidget {
@@ -24,43 +25,53 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
   Widget build(BuildContext context) {
     final assets = ref.watch(sortedAssetsProvider);
     final details = ref.watch(assetPriceDetailsProvider);
-    // TODO: selected accounts
     final accounts = ref.watch(userAccountsProvider);
     return Shrinkable(
       title: "Index Prices",
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton.icon(
-              icon:const Icon(Icons.refresh),
-              onPressed: () async {
-                final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
-                try {
-                  if (accounts.isEmpty) throw Exception('No accounts selected');
-                  ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to update ${assetsToRefresh.length} assets: $e')),
-                    );
-                    dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
-                  }
-                } finally {
-                  ref.read(refreshAllDetailsProvider.future);
-                  if (mounted) {
-                    setState(() => _refreshingIds.clear());
-                    dev.log("Refreshed ${assetsToRefresh.length} assets");
-                  }
-                }
-              },
-              label: const Text("Refresh All"),
-            ),
+          Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton.icon(
+                  icon:const Icon(Icons.refresh),
+                  onPressed: () async {
+                    final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
+                    try {
+                      if (accounts.isEmpty) throw Exception('No accounts selected');
+                      ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed to update ${assetsToRefresh.length} assets: $e')),
+                        );
+                        dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
+                      }
+                    } finally {
+                      ref.read(refreshAllDetailsProvider.future);
+                      if (mounted) {
+                        setState(() => _refreshingIds.clear());
+                        dev.log("Refreshed ${assetsToRefresh.length} assets");
+                      }
+                    }
+                  },
+                  label: const Text("Refresh All"),
+                ),
+              ),
+              Padding(padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleAddAsset(context, ref),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add asset'),
+                ),
+              ),
+            ],
           ),
           ListView.builder(
             shrinkWrap: true,
@@ -134,6 +145,20 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
         ),
       ],
     );
+  }
+
+  Future<void> _handleAddAsset(BuildContext context, WidgetRef ref) async {
+    showAsset(context, AssetConfig.defaultAsset(), (newAsset) async {
+      if (newAsset != null) {
+        // Corrected Schema
+        await ref.read(modelConfigProvider.notifier).save<AssetConfig>(
+            AssetConfigSchema(), newAsset);
+
+        ref.read(refreshAllDetailsProvider.future);
+        // setState(() {
+        // });
+      }
+    });
   }
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, AssetConfig asset) async {

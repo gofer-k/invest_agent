@@ -32,7 +32,7 @@ class LoadDatabase extends _$LoadDatabase {
     //TODO: Change this after testing
     //final directory = await getApplicationCacheDirectory();
 
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await getApplicationSupportDirectory();
     final dbDir = Directory('${directory.path}/cache');
     
     // Ensure the subdirectory exists
@@ -65,6 +65,17 @@ class LoadDatabase extends _$LoadDatabase {
     }
 
     return file.path;
+  }
+
+  Future<void> clearSandbox() async {
+    final directory = await getApplicationSupportDirectory();
+    final dbDir = Directory('${directory.path}/cache');
+
+    if (await dbDir.exists()) {
+      // This deletes the folder and everything inside it
+      await dbDir.delete(recursive: true);
+      print("Sandbox cleared.");
+    }
   }
 }
 
