@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -28,13 +29,41 @@ class LoadDatabase extends _$LoadDatabase {
       return cacheTYpe.key;
     }
 
-    final directory = await getApplicationDocumentsDirectory();
+    //TODO: Change this after testing
+    //final directory = await getApplicationCacheDirectory();
 
-    final file = File('${directory.path}/cache/${cacheTYpe.key}');
-    if (await file.exists()) {
-      return file.path;
+    final directory = await getApplicationDocumentsDirectory();
+    final dbDir = Directory('${directory.path}/cache');
+    
+    // Ensure the subdirectory exists
+    if (!await dbDir.exists()) {
+      await dbDir.create(recursive: true);
     }
-    await file.create(recursive: false);
+
+    final file = File('${dbDir.path}/${cacheTYpe.key}');
+    
+    // If the file doesn't exist locally, copy it from assets
+    if (!await file.exists()) {
+      if (kDebugMode) {
+        print("Database not found at ${file.path}. Copying from assets...");
+      }
+      
+      try {
+        // Load from assets (paths must match pubspec.yaml)
+        final data = await rootBundle.load('cache/${cacheTYpe.key}');
+        final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        
+        // Write to local filesystem
+        await file.writeAsBytes(bytes, flush: true);
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error copying database from assets: $e");
+        }
+        // Fallback: create empty file if asset is missing
+        await file.create();
+      }
+    }
+
     return file.path;
   }
 }
@@ -45,16 +74,15 @@ Future<DatabaseHelper> appConfig(Ref ref) async {
   final path = await ref.watch(loadDatabaseProvider(CacheKeyType.configCache).future);
 
   if (kDebugMode) {
-    print("DatabaseHelper: $path");
+    print("appConfigProvider: $path");
   }
   final helper = DatabaseHelper(path);
   await helper.init();
 
   ref.onDispose(() {
     if (kDebugMode) {
-      print("DatabaseHelper.dispose");
+      print("appConfigProvider.dispose");
     }
-  //  ref.invalidate(loadDatabaseProvider);
     helper.dispose();
   });
 
@@ -67,10 +95,17 @@ Future<DatabaseHelper> appCacheHelper(Ref ref, String path, CacheSchema schema) 
   final helper = DatabaseHelper(path);
   await helper.init();
 
+  if (kDebugMode) {
+    print("appCacheHelperProvider: $path");
+  }
+
   // Ensure table is created
   await helper.createCache(schema);
 
   ref.onDispose(() {
+    if (kDebugMode) {
+      print("appCacheHelperProvider.dispose");
+    }
     helper.dispose();
   });
   return helper;
@@ -83,17 +118,17 @@ Future<DatabaseHelper> loadPrice(Ref ref, CacheKeyType? type, bool keepAlive) as
     final path = await ref.watch(
         loadDatabaseProvider(type ?? CacheKeyType.priceCache).future);
 
+    final pathKey = type ?? CacheKeyType.priceCache.key;
     if (kDebugMode) {
-      print("DatabaseHelper[]: $path");
+      print("loadPriceProvider[$pathKey]: $path");
     }
     final helper = DatabaseHelper(path);
     await helper.init();
 
     ref.onDispose(() {
       if (kDebugMode) {
-        print("DatabaseHelper.dispose");
+        print("loadPriceProvider[$pathKey].dispose");
       }
-       // ref.invalidate(loadDatabaseProvider);
       helper.dispose();
     });
 
