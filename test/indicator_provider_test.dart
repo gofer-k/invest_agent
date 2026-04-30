@@ -79,7 +79,7 @@ void main() {
 
       final state = await container.read(indicatorProvider(testPath).future);
       expect(state.length, 1);
-      expect((state.first as Indicator).name, 'SMA 20');
+      expect((state.first).name, 'SMA 20');
     });
 
     test('updateIndicator modifies existing indicator', () async {
@@ -89,7 +89,7 @@ void main() {
       ));
 
       var state = await container.read(indicatorProvider(testPath).future);
-      final savedIndicator = state.first as Indicator;
+      final savedIndicator = state.first;
 
       await notifier.updateIndicator(Indicator(
         id: savedIndicator.id,
@@ -100,7 +100,7 @@ void main() {
       ));
 
       final newState = await container.read(indicatorProvider(testPath).future);
-      final savedNewIndicator = newState.first as Indicator;
+      final savedNewIndicator = newState.first;
       expect(savedNewIndicator.name, 'New');
       expect(savedNewIndicator.isEnabled, isFalse);
     });
@@ -114,7 +114,7 @@ void main() {
       var state = await container.read(indicatorProvider(testPath).future);
       expect(state.length, 1);
 
-      await notifier.deleteEntry(state.first as Indicator);
+      await notifier.deleteEntry(state.first);
 
       state = await container.read(indicatorProvider(testPath).future);
       expect(state, isEmpty);
@@ -127,12 +127,12 @@ void main() {
       ));
 
       var state = await container.read(indicatorProvider(testPath).future);
-      expect((state.first as Indicator).isEnabled, isTrue);
+      expect((state.first).isEnabled, isTrue);
 
-      await notifier.toggleIndicator((state.first as Indicator));
+      await notifier.toggleIndicator(state.first);
 
       state = await container.read(indicatorProvider(testPath).future);
-      expect((state.first as Indicator).isEnabled, isFalse);
+      expect((state.first).isEnabled, isFalse);
     });
   });
 }

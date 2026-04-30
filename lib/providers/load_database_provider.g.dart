@@ -10,33 +10,78 @@ part of 'load_database_provider.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(LoadDatabase)
-final loadDatabaseProvider = LoadDatabaseProvider._();
+final loadDatabaseProvider = LoadDatabaseFamily._();
 
 final class LoadDatabaseProvider
     extends $AsyncNotifierProvider<LoadDatabase, String> {
-  LoadDatabaseProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'loadDatabaseProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  LoadDatabaseProvider._({
+    required LoadDatabaseFamily super.from,
+    required CacheKeyType super.argument,
+  }) : super(
+         retry: null,
+         name: r'loadDatabaseProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$loadDatabaseHash();
 
+  @override
+  String toString() {
+    return r'loadDatabaseProvider'
+        ''
+        '($argument)';
+  }
+
   @$internal
   @override
   LoadDatabase create() => LoadDatabase();
+
+  @override
+  bool operator ==(Object other) {
+    return other is LoadDatabaseProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$loadDatabaseHash() => r'9be40eeb1f4dfc242663a882ebf85097b936e2f8';
+String _$loadDatabaseHash() => r'03d3d292eb3a07036839484c4de7cdf90e708633';
+
+final class LoadDatabaseFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          LoadDatabase,
+          AsyncValue<String>,
+          String,
+          FutureOr<String>,
+          CacheKeyType
+        > {
+  LoadDatabaseFamily._()
+    : super(
+        retry: null,
+        name: r'loadDatabaseProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  LoadDatabaseProvider call(CacheKeyType cacheTYpe) =>
+      LoadDatabaseProvider._(argument: cacheTYpe, from: this);
+
+  @override
+  String toString() => r'loadDatabaseProvider';
+}
 
 abstract class _$LoadDatabase extends $AsyncNotifier<String> {
-  FutureOr<String> build();
+  late final _$args = ref.$arg as CacheKeyType;
+  CacheKeyType get cacheTYpe => _$args;
+
+  FutureOr<String> build(CacheKeyType cacheTYpe);
   @$mustCallSuper
   @override
   void runBuild() {
@@ -49,14 +94,14 @@ abstract class _$LoadDatabase extends $AsyncNotifier<String> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
-@ProviderFor(databaseHelper)
-final databaseHelperProvider = DatabaseHelperProvider._();
+@ProviderFor(appConfig)
+final appConfigProvider = AppConfigProvider._();
 
-final class DatabaseHelperProvider
+final class AppConfigProvider
     extends
         $FunctionalProvider<
           AsyncValue<DatabaseHelper>,
@@ -64,19 +109,19 @@ final class DatabaseHelperProvider
           FutureOr<DatabaseHelper>
         >
     with $FutureModifier<DatabaseHelper>, $FutureProvider<DatabaseHelper> {
-  DatabaseHelperProvider._()
+  AppConfigProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'databaseHelperProvider',
+        name: r'appConfigProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$databaseHelperHash();
+  String debugGetCreateSourceHash() => _$appConfigHash();
 
   @$internal
   @override
@@ -86,11 +131,11 @@ final class DatabaseHelperProvider
 
   @override
   FutureOr<DatabaseHelper> create(Ref ref) {
-    return databaseHelper(ref);
+    return appConfig(ref);
   }
 }
 
-String _$databaseHelperHash() => r'8d5f2b1dfff64d8e31d057e48fc29d11f32b65ee';
+String _$appConfigHash() => r'0f0de7fb59a2914475780425a7ccf121293c5628';
 
 @ProviderFor(appCacheHelper)
 final appCacheHelperProvider = AppCacheHelperFamily._();
@@ -169,4 +214,83 @@ final class AppCacheHelperFamily extends $Family
 
   @override
   String toString() => r'appCacheHelperProvider';
+}
+
+@ProviderFor(loadPrice)
+final loadPriceProvider = LoadPriceFamily._();
+
+final class LoadPriceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DatabaseHelper>,
+          DatabaseHelper,
+          FutureOr<DatabaseHelper>
+        >
+    with $FutureModifier<DatabaseHelper>, $FutureProvider<DatabaseHelper> {
+  LoadPriceProvider._({
+    required LoadPriceFamily super.from,
+    required (CacheKeyType?, bool) super.argument,
+  }) : super(
+         retry: null,
+         name: r'loadPriceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$loadPriceHash();
+
+  @override
+  String toString() {
+    return r'loadPriceProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<DatabaseHelper> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DatabaseHelper> create(Ref ref) {
+    final argument = this.argument as (CacheKeyType?, bool);
+    return loadPrice(ref, argument.$1, argument.$2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LoadPriceProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$loadPriceHash() => r'7d95211f7dcc1d17c2b06d8c9a1d484ed7b8fc30';
+
+final class LoadPriceFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<DatabaseHelper>,
+          (CacheKeyType?, bool)
+        > {
+  LoadPriceFamily._()
+    : super(
+        retry: null,
+        name: r'loadPriceProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  LoadPriceProvider call(CacheKeyType? type, bool keepAlive) =>
+      LoadPriceProvider._(argument: (type, keepAlive), from: this);
+
+  @override
+  String toString() => r'loadPriceProvider';
 }

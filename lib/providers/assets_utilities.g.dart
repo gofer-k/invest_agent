@@ -24,7 +24,7 @@ final class AssetsByTimeSpanProvider
         $FutureProvider<Map<DateTimeRange<DateTime>, List<AssetConfig>>> {
   AssetsByTimeSpanProvider._({
     required AssetsByTimeSpanFamily super.from,
-    required List<AssetConfig> super.argument,
+    required (List<AssetConfig>, CacheKeyType?, bool?) super.argument,
   }) : super(
          retry: null,
          name: r'assetsByTimeSpanProvider',
@@ -40,7 +40,7 @@ final class AssetsByTimeSpanProvider
   String toString() {
     return r'assetsByTimeSpanProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -50,8 +50,8 @@ final class AssetsByTimeSpanProvider
 
   @override
   FutureOr<Map<DateTimeRange<DateTime>, List<AssetConfig>>> create(Ref ref) {
-    final argument = this.argument as List<AssetConfig>;
-    return assetsByTimeSpan(ref, argument);
+    final argument = this.argument as (List<AssetConfig>, CacheKeyType?, bool?);
+    return assetsByTimeSpan(ref, argument.$1, argument.$2, argument.$3);
   }
 
   @override
@@ -65,13 +65,13 @@ final class AssetsByTimeSpanProvider
   }
 }
 
-String _$assetsByTimeSpanHash() => r'068b2dd95637f6239d62f82136b88bcef4fcd39c';
+String _$assetsByTimeSpanHash() => r'843edc0e0fbeacf8fc9b792abe18b5774c91140c';
 
 final class AssetsByTimeSpanFamily extends $Family
     with
         $FunctionalFamilyOverride<
           FutureOr<Map<DateTimeRange<DateTime>, List<AssetConfig>>>,
-          List<AssetConfig>
+          (List<AssetConfig>, CacheKeyType?, bool?)
         > {
   AssetsByTimeSpanFamily._()
     : super(
@@ -82,8 +82,14 @@ final class AssetsByTimeSpanFamily extends $Family
         isAutoDispose: true,
       );
 
-  AssetsByTimeSpanProvider call(List<AssetConfig> assets) =>
-      AssetsByTimeSpanProvider._(argument: assets, from: this);
+  AssetsByTimeSpanProvider call(
+    List<AssetConfig> assets, [
+    CacheKeyType? cacheTYpe,
+    bool? keepAlive,
+  ]) => AssetsByTimeSpanProvider._(
+    argument: (assets, cacheTYpe, keepAlive),
+    from: this,
+  );
 
   @override
   String toString() => r'assetsByTimeSpanProvider';
@@ -139,7 +145,7 @@ final class RefreshAssetPricesProvider
 }
 
 String _$refreshAssetPricesHash() =>
-    r'3d34c02bde29d1563d3479a85834515e7ea17dcb';
+    r'ca87730bd7630fe22f150d2bbeb46504850aacf8';
 
 final class RefreshAssetPricesFamily extends $Family
     with
@@ -196,4 +202,4 @@ final class RefreshAllDetailsProvider
   }
 }
 
-String _$refreshAllDetailsHash() => r'b3aed5936411793ed2ca96e5d2da2731982fc4d5';
+String _$refreshAllDetailsHash() => r'e706c9c60004f635e924ea40a894903728a255d4';

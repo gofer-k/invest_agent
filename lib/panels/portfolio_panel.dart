@@ -38,7 +38,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final dbAsync = ref.watch(loadDatabaseProvider);
+    final dbAsync = ref.watch(loadDatabaseProvider(CacheKeyType.priceCache));
     final portfolioAsync = ref.watch(portfolioLoaderProvider);
     final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value ?? [];
 

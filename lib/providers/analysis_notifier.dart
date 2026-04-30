@@ -26,10 +26,6 @@ class AnalysisNotifier extends _$AnalysisNotifier {
     }
   }
 
-  Future<void> updateIndicator(AnalysisEntry entry) async {
-    await ref.read(cacheProvider<AnalysisEntry, AnalysisSchema>(_schema, dbPath).notifier).updateEntry(entry);
-  }
-
   Future<void> deleteEntry(AnalysisEntry entry) async {
     await ref.read(cacheProvider<AnalysisEntry, AnalysisSchema>(_schema, dbPath).notifier).deleteEntry(entry);
   }

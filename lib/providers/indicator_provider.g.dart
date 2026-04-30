@@ -13,7 +13,7 @@ part of 'indicator_provider.dart';
 final indicatorProvider = IndicatorNotifierFamily._();
 
 final class IndicatorNotifierProvider
-    extends $AsyncNotifierProvider<IndicatorNotifier, List<Cache>> {
+    extends $AsyncNotifierProvider<IndicatorNotifier, List<Indicator>> {
   IndicatorNotifierProvider._({
     required IndicatorNotifierFamily super.from,
     required String? super.argument,
@@ -50,15 +50,15 @@ final class IndicatorNotifierProvider
   }
 }
 
-String _$indicatorNotifierHash() => r'747f21477b20ab453521a0c348934d34b35f505a';
+String _$indicatorNotifierHash() => r'0a40042f548018be114f9c4c6f013f60c1c881ed';
 
 final class IndicatorNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           IndicatorNotifier,
-          AsyncValue<List<Cache>>,
-          List<Cache>,
-          FutureOr<List<Cache>>,
+          AsyncValue<List<Indicator>>,
+          List<Indicator>,
+          FutureOr<List<Indicator>>,
           String?
         > {
   IndicatorNotifierFamily._()
@@ -77,20 +77,20 @@ final class IndicatorNotifierFamily extends $Family
   String toString() => r'indicatorProvider';
 }
 
-abstract class _$IndicatorNotifier extends $AsyncNotifier<List<Cache>> {
+abstract class _$IndicatorNotifier extends $AsyncNotifier<List<Indicator>> {
   late final _$args = ref.$arg as String?;
   String? get cachePath => _$args;
 
-  FutureOr<List<Cache>> build([String? cachePath]);
+  FutureOr<List<Indicator>> build([String? cachePath]);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<List<Cache>>, List<Cache>>;
+    final ref = this.ref as $Ref<AsyncValue<List<Indicator>>, List<Indicator>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Cache>>, List<Cache>>,
-              AsyncValue<List<Cache>>,
+              AnyNotifier<AsyncValue<List<Indicator>>, List<Indicator>>,
+              AsyncValue<List<Indicator>>,
               Object?,
               Object?
             >;

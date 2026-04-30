@@ -90,7 +90,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
   Widget _buildTrailingActions(BuildContext context, AssetConfig asset, bool isRefreshing) {
     final colorScheme = Theme.of(context).colorScheme;
-    final notifierAssetPrice = ref.watch(priceControllerProvider.notifier);
+    final notifierAssetPrice = ref.watch(priceControllerProvider().notifier);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -156,7 +156,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     );
 
     if (confirmed == true) {
-      await ref.read(priceControllerProvider.notifier).deleteAssetAll(IndexPriceSchema(), asset);
+      await ref.read(priceControllerProvider().notifier).deleteAssetAll(IndexPriceSchema(), asset);
     }
   }
 }

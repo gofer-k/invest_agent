@@ -194,6 +194,18 @@ class IndexPrice extends Cache {
     }
   }
 
+  factory IndexPrice.of({int? assetId, DateTime? dateTime}) {
+    return IndexPrice(
+      id: 0,
+      assetId: assetId ?? 0,
+      dateTime: dateTime ?? DateTime.now(),
+      openPrice: 0.0,
+      closePrice: 0.0,
+      highPrice: 0.0,
+      lowPrice: 0.0,
+      volume: 0.0);
+  }
+
   @override
   Map<String, dynamic> toMap() => {
     'id': id,

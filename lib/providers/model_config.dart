@@ -39,7 +39,7 @@ class ModelConfig extends _$ModelConfig {
   @override
   ModelConfigState build() {
     // When the database is ready, initialize the schemas and trigger initial fetches.
-    ref.listen(databaseHelperProvider, (previous, next) {
+    ref.listen(appConfigProvider, (previous, next) {
       next.whenData((db) async {
         try {
           await db.createCache(UserAccountSchema());
@@ -60,7 +60,7 @@ class ModelConfig extends _$ModelConfig {
   }
 
   Future<DatabaseHelper> _getDb() async {
-    return await ref.read(databaseHelperProvider.future);
+    return await ref.read(appConfigProvider.future);
   }
 
   /// Loads data from the database into memory.

@@ -8,7 +8,11 @@ import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 
+import '../model/index_price.dart';
+import '../model/indicator_schema.dart';
+import '../providers/indicator_provider.dart';
 import '../providers/model_config.dart';
+import '../providers/price_controller.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/utils/dropdownlist.dart';
 import '../widgets/utils/task_bar_icon.dart';
@@ -50,6 +54,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   var activePanelIndex = PanelIndex.notUsed;
   AssetConfig _selectedAsset = AssetConfig.defaultAsset();
+  Indicator _selectedIndicator = Indicator.defaultIndicator();
 
   @override
   void initState() {
@@ -67,7 +72,15 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       }
     });
 
-    return Scaffold(
+    // ref.listen<AsyncValue<List<Indicator>>>(indicatorProvider(), (previous, next) {
+    //   if (_selectedIndicator.isDefault() && next.value != null) {
+    //     setState(() {
+    //       _selectedIndicator = next.value?.first ?? Indicator.defaultIndicator();
+    //     });
+    //   }
+    // });
+
+   return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
         automaticallyImplyLeading: false,
@@ -87,10 +100,12 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                 AppLogo(size: 24, color: Theme.of(context).splashColor),
                 const SizedBox(width: 24,),
                 _displayAssetsList(),
+                const SizedBox(width: 4,),
+                // _displayIndicatorsList(),
                 VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
-                const FittedBox(
+                FittedBox(
                   fit: BoxFit.fitWidth,
-                  child: Text("Placeholder"),
+                  child: Text("Placeholder", style: Theme.of(context).textTheme.labelLarge),
                 ),
               ],),
             ),
@@ -222,16 +237,47 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   Widget _displayAssetsList() {
     final assets = ref.watch(sortedAssetsProvider);
     return DropdownList<AssetConfig>(
+      textStyle: Theme.of(context).textTheme.labelLarge,
+      backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (AssetConfig asset) {
         setState(() {
           _selectedAsset = asset;
+          if (!_selectedAsset.isDefault()) {
+            ref.read(priceControllerProvider().notifier).fetchOne(
+                IndexPriceSchema(),
+                IndexPrice.of(
+                  assetId: _selectedAsset.id,
+                  dateTime: DateTime.now()));
+          }
         });
       },
       choiceType: _selectedAsset, 
       choices: assets,
     ); 
   }
-  
+
+  Widget _displayIndicatorsList() {
+    final indicators = ref.watch(indicatorProvider()).value ?? [];
+    return DropdownList<Indicator>(
+      textStyle: Theme.of(context).textTheme.labelLarge,
+      backgroundColor:  Colors.grey.shade600.withAlpha(128),
+      onSelected: (Indicator indicator) {
+        setState(() {
+          _selectedIndicator = indicator;
+          if (!_selectedIndicator.isDefault()) {
+            // ref.read(priceControllerProvider.notifier).fetchOne(
+            //     IndexPriceSchema(),
+            //     IndexPrice.of(
+            //         assetId: _selectedIndicator.id,
+            //         dateTime: DateTime.now()));
+          }
+        });
+      },
+      choiceType: _selectedIndicator,
+      choices: indicators,
+    );
+  }
+
   Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
     setState(() {
       configurationCharts = config;

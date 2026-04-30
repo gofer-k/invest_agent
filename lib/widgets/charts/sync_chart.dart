@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/axis_label.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
@@ -21,7 +22,7 @@ import 'package:invest_agent/widgets/utils/tooltip_overlay.dart';
 import '../../model/analysis_respond.dart';
 import 'painters/bottom_axis_painter.dart';
 
-class SyncChart extends StatefulWidget {
+class SyncChart extends ConsumerStatefulWidget {
   final TimeController controller;
   final CrosshairController? crosshairController;
   final AnalysisRequest analysisRequest;
@@ -34,10 +35,10 @@ class SyncChart extends StatefulWidget {
     this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
 
   @override
-  State<StatefulWidget> createState() => _SyncChartState();
+  ConsumerState<SyncChart> createState() => _SyncChartState();
 }
 
-class _SyncChartState extends State<SyncChart> {
+class _SyncChartState extends ConsumerState<SyncChart> {
 
   @override
   Widget build(BuildContext context) {

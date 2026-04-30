@@ -11,7 +11,7 @@ class AppLauncher extends ConsumerWidget{
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dataSource = ref.watch(loadDatabaseProvider);
+    final dataSource = ref.watch(loadDatabaseProvider(CacheKeyType.priceCache));
     return dataSource.when(
       data: (_) => onLoaded(context),
       error: (Object error, StackTrace stackTrace) {

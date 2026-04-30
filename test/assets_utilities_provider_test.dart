@@ -41,6 +41,8 @@ void main() {
     late DatabaseHelper dbHelper;
     final assetSchema = AssetConfigSchema();
     final priceSchema = IndexPriceSchema();
+    const keepAlive = true;
+    const cacheTYpe = CacheKeyType.memoryCache;
 
     final asset1 = AssetConfig(
       id: 1,
@@ -57,7 +59,7 @@ void main() {
     );
 
     setUp(() async {
-      dbHelper = DatabaseHelper(":memory:");
+      dbHelper = DatabaseHelper(cacheTYpe.key);
       await dbHelper.init();
       await dbHelper.createCache(assetSchema);
       await dbHelper.createCache(priceSchema);
@@ -66,11 +68,11 @@ void main() {
 
       container = ProviderContainer(
         overrides: [
-          databaseHelperProvider.overrideWith((ref) => dbHelper),
+          appConfigProvider.overrideWith((ref) => dbHelper),
         ],
       );
       // Keep the provider alive during the test.
-      container.listen(priceControllerProvider, (_, _) {});
+      container.listen(priceControllerProvider(cacheTYpe, keepAlive), (_, _) {});
     });
 
     tearDown(() {
@@ -79,7 +81,7 @@ void main() {
     });
 
     test('groups assets by the same time span', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final date1 = DateTime(2023, 1, 1);
       final date2 = DateTime(2023, 1, 10);
 
@@ -101,7 +103,7 @@ void main() {
         openPrice: 160, closePrice: 160, highPrice: 160, lowPrice: 160, volume: 100
       ));
 
-      final result = await container.read(assetsByTimeSpanProvider([asset1, asset2]).future);
+      final result = await container.read(assetsByTimeSpanProvider([asset1, asset2], cacheTYpe, keepAlive).future);
 
       expect(result.length, 1);
       final range = DateTimeRange(start: DateUtils.dateOnly(date1), end: DateUtils.dateOnly(date2));
@@ -111,7 +113,7 @@ void main() {
     });
 
     test('separates assets with different time spans', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       
       final date1 = DateTime(2023, 1, 1);
       final date2 = DateTime(2023, 1, 10);
@@ -137,7 +139,7 @@ void main() {
         openPrice: 170, closePrice: 170, highPrice: 170, lowPrice: 170, volume: 100
       ));
 
-      final result = await container.read(assetsByTimeSpanProvider([asset1, asset2]).future);
+      final result = await container.read(assetsByTimeSpanProvider([asset1, asset2], cacheTYpe, keepAlive).future);
 
       expect(result.length, 2);
       final range1 = DateTimeRange(start: DateUtils.dateOnly(date1), end: DateUtils.dateOnly(date2));
@@ -151,7 +153,7 @@ void main() {
     });
 
     test('filters out short time spans', () async {
-       final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       
       final date1 = DateTime(2023, 1, 1, 12, 0, 0);
       // Same day, results in 0 duration after DateUtils.dateOnly
@@ -161,7 +163,7 @@ void main() {
         openPrice: 100, closePrice: 100, highPrice: 100, lowPrice: 100, volume: 100
       ));
 
-      final result = await container.read(assetsByTimeSpanProvider([asset1]).future);
+      final result = await container.read(assetsByTimeSpanProvider([asset1], cacheTYpe, keepAlive).future);
 
       expect(result, isEmpty);
     });

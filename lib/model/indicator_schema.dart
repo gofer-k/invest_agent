@@ -74,8 +74,8 @@ class IndicatorSchema implements CacheSchema {
 
 class Indicator extends Cache {
   final int id;
-  final String name;
-  final String type; // SMA, EMA, RSI, etc.
+  final String name; // SMA, EMA, RSI, etc.
+  final String type;  // friendly name of the indicator
   final Map<String, dynamic> parameters;
   final bool isEnabled;
 
@@ -89,12 +89,13 @@ class Indicator extends Cache {
 
   @override
   factory Indicator.from(List<Object?> item) {
+    final jsonParameters = jsonDecode(item[3] as String);
     return Indicator(
       id: item[0] as int,
       name: item[1] as String,
       type: item[2] as String,
       // parameters: item[3] as Map<String, dynamic>,
-      parameters: jsonDecode(item[3] as String),
+      parameters: jsonParameters,
       isEnabled: (item[4] as bool),
     );
   }
@@ -107,4 +108,18 @@ class Indicator extends Cache {
     'parameters': parameters,
     'is_enabled': isEnabled,
   };
+
+  static Indicator defaultIndicator() {
+    return Indicator(
+      id: -1,
+      name: '',
+      type: '',
+      parameters: {},
+      isEnabled: false,
+    );
+  }
+
+  bool isDefault() {
+    return id == -1 && name == '';
+  }
 }

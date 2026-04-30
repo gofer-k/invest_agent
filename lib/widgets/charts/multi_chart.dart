@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
@@ -18,7 +19,7 @@ import 'overlay_rsi.dart';
 import 'overlay_tooltip_marker.dart';
 import 'overlay_volume.dart';
 
-class MultiChartView extends StatefulWidget {
+class MultiChartView extends ConsumerStatefulWidget {
   final List<String> chartTitle;
   final AnalysisRequest analysisRequest;
   final ChartsConfiguration chartConfig;
@@ -39,10 +40,10 @@ class MultiChartView extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => _MultiChartViewState();
+  ConsumerState<MultiChartView> createState() => _MultiChartViewState();
 }
 
-class _MultiChartViewState extends State<MultiChartView> {
+class _MultiChartViewState extends ConsumerState<MultiChartView> {
   late TimeController _chartController;
   CrosshairController? _crosshairController;
 

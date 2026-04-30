@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/panels/portfolio_panel.dart';
@@ -14,27 +13,14 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
 }
 
   class _MainSettingsPanel extends ConsumerState<MainSettingsPanel> {
-   Future<void> _pickDbPath() async {
-    final currentPath = ref.watch(loadDatabaseProvider).value ?? 'Loading...';
-    String? result = await FilePicker.platform.saveFile(
-      dialogTitle: 'Select cache Location',
-      fileName: currentPath,
-    );
-
-    if (result != null) {
-      final pathNotifier = ref.read(loadDatabaseProvider.notifier);
-      await pathNotifier.setPath(result);
-    }
-  }
-
-  Widget portfolioSection() {
+    Widget portfolioSection() {
      // TODO: add portfolio section
     return Column();
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = ref.watch(loadDatabaseProvider).value ?? 'Loading...';
+    final currentPath = ref.watch(loadDatabaseProvider(CacheKeyType.priceCache)).value ?? 'Loading...';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -48,7 +34,7 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
             title: const Text('Cache Location'),
             subtitle: Text(currentPath, style: const TextStyle(fontSize: 12)),
             trailing: const Icon(Icons.folder_open, size: 20),
-            onTap: _pickDbPath,
+            onTap: (){},
           ),
           const SizedBox(height: 24),
           AccountPanel(),

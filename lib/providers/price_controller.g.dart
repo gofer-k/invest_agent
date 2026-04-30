@@ -10,23 +10,30 @@ part of 'price_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PriceController)
-final priceControllerProvider = PriceControllerProvider._();
+final priceControllerProvider = PriceControllerFamily._();
 
 final class PriceControllerProvider
     extends $NotifierProvider<PriceController, PriceControllerState> {
-  PriceControllerProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'priceControllerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  PriceControllerProvider._({
+    required PriceControllerFamily super.from,
+    required (CacheKeyType?, bool?) super.argument,
+  }) : super(
+         retry: null,
+         name: r'priceControllerProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$priceControllerHash();
+
+  @override
+  String toString() {
+    return r'priceControllerProvider'
+        ''
+        '$argument';
+  }
 
   @$internal
   @override
@@ -39,12 +46,51 @@ final class PriceControllerProvider
       providerOverride: $SyncValueProvider<PriceControllerState>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PriceControllerProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$priceControllerHash() => r'f4583d364d9d26a67051a4c3d23212a0be3fb0a7';
+String _$priceControllerHash() => r'8b3180d79683d4a23603df703dfe5b06aaa83887';
+
+final class PriceControllerFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          PriceController,
+          PriceControllerState,
+          PriceControllerState,
+          PriceControllerState,
+          (CacheKeyType?, bool?)
+        > {
+  PriceControllerFamily._()
+    : super(
+        retry: null,
+        name: r'priceControllerProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PriceControllerProvider call([CacheKeyType? type, bool? keepAlive]) =>
+      PriceControllerProvider._(argument: (type, keepAlive), from: this);
+
+  @override
+  String toString() => r'priceControllerProvider';
+}
 
 abstract class _$PriceController extends $Notifier<PriceControllerState> {
-  PriceControllerState build();
+  late final _$args = ref.$arg as (CacheKeyType?, bool?);
+  CacheKeyType? get type => _$args.$1;
+  bool? get keepAlive => _$args.$2;
+
+  PriceControllerState build([CacheKeyType? type, bool? keepAlive]);
   @$mustCallSuper
   @override
   void runBuild() {
@@ -57,7 +103,7 @@ abstract class _$PriceController extends $Notifier<PriceControllerState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
 
@@ -105,4 +151,4 @@ final class AssetPriceDetailsProvider
   }
 }
 
-String _$assetPriceDetailsHash() => r'd034f0471d39132e97ebe417738117f74b327eff';
+String _$assetPriceDetailsHash() => r'5ea1b099f694a8627470eaf7ac8812f06dcf63fa';

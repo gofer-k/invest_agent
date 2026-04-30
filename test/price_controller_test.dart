@@ -48,7 +48,8 @@ void main() {
     late DatabaseHelper dbHelper;
     final assetSchema = AssetConfigSchema();
     final priceSchema = IndexPriceSchema();
-
+    const cacheTYpe = CacheKeyType.memoryCache;
+    const keepAlive = true;
     final testAsset = AssetConfig(
       id: 1,
       symbol: "SAP",
@@ -57,7 +58,8 @@ void main() {
     );
 
     setUp(() async {
-      dbHelper = DatabaseHelper(":memory:");
+
+      dbHelper = DatabaseHelper(cacheTYpe.key);
       await dbHelper.init();
       // Setup tables
       await dbHelper.createCache(assetSchema);
@@ -67,13 +69,13 @@ void main() {
       container = ProviderContainer.test(
         // Mock test caches and database
         overrides: [
-          databaseHelperProvider.overrideWith((ref) => dbHelper),
+          // loadPriceProvider(CacheKeyType.memoryCache, false).overrideWith((ref) => dbHelper),
           sortedAssetsProvider.overrideWith((ref) => [testAsset]),
           assetPriceDetailsProvider.overrideWith((ref) => {testAsset.id: testAsset.symbol}),
         ],
       );
       // Keep the provider alive during the test.
-      container.listen(priceControllerProvider, (_, _) {});
+      container.listen(priceControllerProvider(cacheTYpe, keepAlive), (_, _) {});
       container.listen(assetPriceDetailsProvider, (_, _) {});
     });
 
@@ -83,13 +85,13 @@ void main() {
     });
 
     test('Initial state is empty', () {
-      final state = container.read(priceControllerProvider);
+      final state = container.read(priceControllerProvider(cacheTYpe, keepAlive));
       expect(state.cache, isEmpty);
       expect(state.assetDetails, isEmpty);
     });
 
     test('save and fetchAll', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final price = IndexPrice(
         id: 0,
         assetId: testAsset.id,
@@ -113,7 +115,7 @@ void main() {
     });
 
     test('fetchDateRange', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final p1 = IndexPrice(
         id: 1,
         assetId: testAsset.id,
@@ -151,7 +153,7 @@ void main() {
     });
 
     test('update price', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final price = IndexPrice(
         id: 1,
         assetId: testAsset.id,
@@ -177,14 +179,14 @@ void main() {
       );
 
       await controller.update(priceSchema, updatedPrice);
-      items = await controller.fetchAll(priceSchema);
+      final updatedItems = await controller.fetchAll(priceSchema);
 
-      expect(items.first.closePrice, 115.0);
-      expect(items.first.volume, 2000.0);
+      expect(updatedItems.where((elem) => elem.id == updatedPrice.id).first.closePrice, updatedPrice.closePrice);
+      expect(updatedItems.where((elem) => elem.id == updatedPrice.id).first.volume, updatedPrice.volume);
     });
 
     test('delete price', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final price = IndexPrice(
         id: 0,
         assetId: testAsset.id,
@@ -206,7 +208,7 @@ void main() {
     });
 
     test('oldestDate and newestDate', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(CacheKeyType.memoryCache, true).notifier);
       final p1 = IndexPrice(
         id: 0,
         assetId: testAsset.id,
@@ -240,7 +242,7 @@ void main() {
     });
 
     test('assetPriceDetails updates after save', () async {
-      final controller = container.read(priceControllerProvider.notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final price = IndexPrice(
         id: 1,
         assetId: testAsset.id,

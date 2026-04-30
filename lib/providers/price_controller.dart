@@ -51,8 +51,9 @@ class PriceControllerState {
 @riverpod
 class PriceController extends _$PriceController {
   @override
-  PriceControllerState build() {
-    ref.listen(databaseHelperProvider, (previous, next) {
+  // Opt-in to test-only mode.
+  PriceControllerState build([CacheKeyType? type, bool? keepAlive]) {
+    ref.listen(loadPriceProvider(type, keepAlive ?? false), (previous, next) {
       next.whenData((db) async {
         try {
           await db.createCache(IndexPriceSchema());
@@ -73,7 +74,7 @@ class PriceController extends _$PriceController {
     if (!ref.mounted) {
       throw Exception('Provider disposed');
     }
-    return await ref.read(databaseHelperProvider.future);
+    return await ref.read(loadPriceProvider(type, keepAlive ?? false).future);
   }
 
   Future<List<IndexPrice>> _fetchAndSet(
@@ -350,5 +351,5 @@ class PriceController extends _$PriceController {
 
 @riverpod
 Map<int, String> assetPriceDetails(Ref ref) {
-  return ref.watch(priceControllerProvider.select((s) => s.assetDetails));
+  return ref.watch(priceControllerProvider().select((s) => s.assetDetails));
 }

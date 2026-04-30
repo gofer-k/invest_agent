@@ -6,6 +6,7 @@ import '../model/asset_config.dart';
 import '../model/index_price.dart';
 import '../model/trading_request.dart';
 import '../model/user_account.dart';
+import 'load_database_provider.dart';
 import 'model_config.dart';
 import 'price_controller.dart';
 
@@ -13,8 +14,8 @@ part 'assets_utilities.g.dart';
 
 @riverpod
 Future<Map<DateTimeRange, List<AssetConfig>>> assetsByTimeSpan(
-    Ref ref, List<AssetConfig> assets) async {
-  final notifier = ref.watch(priceControllerProvider.notifier);
+    Ref ref, List<AssetConfig> assets, [CacheKeyType? cacheTYpe, bool? keepAlive]) async {
+  final notifier = ref.watch(priceControllerProvider(cacheTYpe, keepAlive).notifier);
   final schema = IndexPriceSchema();
   
   final results = await Future.wait(assets.map((asset) async {
@@ -70,7 +71,7 @@ Future<void> refreshAssetPrices(Ref ref, UserAccount account, List<AssetConfig> 
       }).toList();
 
       for (final request in bulkRequests) {
-        await ref.read(priceControllerProvider.notifier).refreshAssetPrices(groupedAssets, request);
+        await ref.read(priceControllerProvider().notifier).refreshAssetPrices(groupedAssets, request);
         if (!ref.mounted) return;
       }
     }
@@ -83,7 +84,7 @@ Future<void> refreshAssetPrices(Ref ref, UserAccount account, List<AssetConfig> 
 
 @riverpod
 Future<void> refreshAllDetails(Ref ref) async {
-  await ref.read(priceControllerProvider.notifier).refreshAllDetails();
+  await ref.read(priceControllerProvider().notifier).refreshAllDetails();
 }
 
 AssetsByExchange assetsByExchange(List<AssetConfig> assets) {

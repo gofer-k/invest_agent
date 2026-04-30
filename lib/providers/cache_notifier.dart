@@ -23,6 +23,11 @@ class CacheNotifier<T extends Cache, TSchema extends CacheSchema> extends _$Cach
     return helper.fetchAll<T>(_schema);
   }
 
+  Future<List<T>> fetchAll() async {
+    final helper = await ref.read(appCacheHelperProvider(_dbPath, schema).future);
+    return helper.fetchAll<T>(_schema);
+  }
+
   Future<void> addEntry(T entry) async {
     final helper = await ref.read(appCacheHelperProvider(_dbPath, schema).future);
     await helper.saveOne(_schema, entry);

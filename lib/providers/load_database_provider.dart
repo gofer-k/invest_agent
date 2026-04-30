@@ -1,43 +1,48 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:path_provider/path_provider.dart';
 
 part 'load_database_provider.g.dart';
 
-const String _dbPathKey = 'persistent_db_path';
-const String _defaultDbName = 'cache.db';
+enum CacheKeyType {
+  configCache("cache.db"),
+  priceCache("cache.db"),
+  analysisCache("analysis.db"),
+  memoryCache(":memory:");
+
+  const CacheKeyType(this.key);
+  final String key;
+}
 
 @riverpod
 class LoadDatabase extends _$LoadDatabase {
-  final _storage = const FlutterSecureStorage();
 
   @override
-  FutureOr<String> build() async {
-    final savedPath = await _storage.read(key: _dbPathKey);
-    if (kDebugMode) {
-      print("LoadDatabase.build: ${savedPath ?? _defaultDbName}");
+  FutureOr<String> build(CacheKeyType cacheTYpe) async {
+    // Test propose or using runtime cache
+    if (cacheTYpe == CacheKeyType.memoryCache) {
+      return cacheTYpe.key;
     }
-    return savedPath ?? _defaultDbName;
-  }
 
-  Future<void> setPath(String newPath) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await _storage.write(key: _dbPathKey, value: newPath);
-      if (kDebugMode) {
-        print("LoadDatabase.setPath: $newPath");
-      }
-      return newPath;
-    });
+    final directory = await getApplicationDocumentsDirectory();
+
+    final file = File('${directory.path}/cache/${cacheTYpe.key}');
+    if (await file.exists()) {
+      return file.path;
+    }
+    await file.create(recursive: false);
+    return file.path;
   }
 }
 
 @Riverpod(keepAlive: true)
-Future<DatabaseHelper> databaseHelper(Ref ref) async {
+Future<DatabaseHelper> appConfig(Ref ref) async {
   // Watch the path. Whenever setPath is called, this provider will re-evaluate.
-  final path = await ref.watch(loadDatabaseProvider.future);
+  final path = await ref.watch(loadDatabaseProvider(CacheKeyType.configCache).future);
 
   if (kDebugMode) {
     print("DatabaseHelper: $path");
@@ -49,7 +54,7 @@ Future<DatabaseHelper> databaseHelper(Ref ref) async {
     if (kDebugMode) {
       print("DatabaseHelper.dispose");
     }
-    ref.invalidate(loadDatabaseProvider);
+  //  ref.invalidate(loadDatabaseProvider);
     helper.dispose();
   });
 
@@ -69,4 +74,32 @@ Future<DatabaseHelper> appCacheHelper(Ref ref, String path, CacheSchema schema) 
     helper.dispose();
   });
   return helper;
+}
+
+@riverpod
+Future<DatabaseHelper> loadPrice(Ref ref, CacheKeyType? type, bool keepAlive) async {
+  final link = keepAlive ? ref.keepAlive() : null;
+  try {
+    final path = await ref.watch(
+        loadDatabaseProvider(type ?? CacheKeyType.priceCache).future);
+
+    if (kDebugMode) {
+      print("DatabaseHelper[]: $path");
+    }
+    final helper = DatabaseHelper(path);
+    await helper.init();
+
+    ref.onDispose(() {
+      if (kDebugMode) {
+        print("DatabaseHelper.dispose");
+      }
+       // ref.invalidate(loadDatabaseProvider);
+      helper.dispose();
+    });
+
+    return helper;
+  }
+  finally {
+    link?.close();
+  }
 }
