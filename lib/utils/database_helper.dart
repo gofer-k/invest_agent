@@ -8,16 +8,16 @@ import '../model/cache_schema.dart';
 /// A helper class to manage DuckDB connections with support for concurrency.
 class DatabaseHelper {
   // Singleton
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
+  // static final DatabaseHelper _instance = DatabaseHelper._internal();
   Database? _db;
   final List<Connection> _cons = [];
   final Set<Connection> _inUse = {};
   final List<Completer<Connection>> _waiters = [];
   
-  String? _cacheFile;
-  int _maxConnections = 5;
-  bool _readOnly = false;
-  Map<String, String> _customSettings = {};
+  final String cacheFile;
+  final int maxConnections;
+  final bool readOnly;
+  final Map<String, String> customSettings;
 
   Future<void>? _initFuture;
 
@@ -26,22 +26,28 @@ class DatabaseHelper {
   /// [readOnly] allows opening the database even if another process (like DBeaver) has it open,
   /// provided that process is also in read-only mode or you only need to read.
   /// [settings] allows passing custom DuckDB configurations (e.g., {'threads': '4', 'access_mode': 'READ_ONLY'}).
-  factory DatabaseHelper(String cacheFile, {
-    int maxConnections = 5, 
-    bool readOnly = false,
-    Map<String, String>? settings,
-  }) {
-    if (_instance._cacheFile != cacheFile || _instance._readOnly != readOnly) {
-      _instance.dispose();
-      _instance._cacheFile = cacheFile;
-      _instance._readOnly = readOnly;
-    }
-    _instance._maxConnections = maxConnections;
-    _instance._customSettings = settings ?? {};
-    return _instance;
-  }
+  // factor DatabaseHelper(this._cacheFile, {
+  //   int maxConnections = 5,
+  //   bool readOnly = false,
+  //   Map<String, String>? settings,
+  // }) {
+  //   if (_instance._cacheFile != cacheFile || _instance._readOnly != readOnly) {
+  //     _instance.dispose();
+  //     _instance._cacheFile = cacheFile;
+  //     _instance._readOnly = readOnly;
+  //   }
+  //   _instance._maxConnections = maxConnections;
+  //   _instance._customSettings = settings ?? {};
+  //   return _instance;
+  // }
+  //
+  // DatabaseHelper._internal();
 
-  DatabaseHelper._internal();
+  DatabaseHelper({required this.cacheFile,
+    this.maxConnections = 5,
+    this.readOnly = false,
+    this.customSettings = const {},
+  });
 
   Future<void> init() async {
     if (_db != null) return;
@@ -53,14 +59,12 @@ class DatabaseHelper {
 
   Future<void> _doInit() async {
     try {
-      if (_cacheFile == null) throw Exception("Cache file not set");
-      
-      final config = Map<String, String>.from(_customSettings);
-      if (_readOnly) {
+      final config = Map<String, String>.from(customSettings);
+      if (readOnly) {
         config['access_mode'] = 'READ_ONLY';
       }
 
-      _db = await duckdb.open(_cacheFile!, settings: config);
+      _db = await duckdb.open(cacheFile, settings: config);
       
       // Pre-warm with at least one connection
       final conn = await duckdb.connect(_db!);
@@ -92,7 +96,7 @@ class DatabaseHelper {
 
   /// Executes multiple operations within a single database transaction.
   Future<T> transaction<T>(Future<T> Function(Connection con) action) async {
-    if (_readOnly) throw StateError('Cannot start a transaction in read-only mode.');
+    if (readOnly) throw StateError('Cannot start a transaction in read-only mode.');
     
     return useConnection((con) async {
       await con.execute('BEGIN TRANSACTION');
@@ -117,7 +121,7 @@ class DatabaseHelper {
     }
 
     // 2. If no idle connection and we haven't reached max, create a new one
-    if (_cons.length < _maxConnections) {
+    if (_cons.length < maxConnections) {
       try {
         final newConn = await duckdb.connect(_db!);
         _cons.add(newConn);

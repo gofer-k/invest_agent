@@ -50,7 +50,7 @@ final class LoadDatabaseProvider
   }
 }
 
-String _$loadDatabaseHash() => r'03d3d292eb3a07036839484c4de7cdf90e708633';
+String _$loadDatabaseHash() => r'0b3a8b8ec698c2e5dfa4581e748ae36684fc8963';
 
 final class LoadDatabaseFamily extends $Family
     with
@@ -135,7 +135,7 @@ final class AppConfigProvider
   }
 }
 
-String _$appConfigHash() => r'0f0de7fb59a2914475780425a7ccf121293c5628';
+String _$appConfigHash() => r'050103cfa2eea44aafd848f5c7afd6abdda02c3e';
 
 @ProviderFor(appCacheHelper)
 final appCacheHelperProvider = AppCacheHelperFamily._();
@@ -192,7 +192,7 @@ final class AppCacheHelperProvider
   }
 }
 
-String _$appCacheHelperHash() => r'606faac88e5b7b9ad2170f8e802f9bf539b05267';
+String _$appCacheHelperHash() => r'516d51cff51de7b8c3393eaf1f6cd5e022811876';
 
 final class AppCacheHelperFamily extends $Family
     with
@@ -271,7 +271,7 @@ final class LoadPriceProvider
   }
 }
 
-String _$loadPriceHash() => r'7d95211f7dcc1d17c2b06d8c9a1d484ed7b8fc30';
+String _$loadPriceHash() => r'37008ebd697813fd82ca1c8c030783a47c608fb8';
 
 final class LoadPriceFamily extends $Family
     with

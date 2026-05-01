@@ -119,6 +119,14 @@ class Indicator extends Cache {
     );
   }
 
+  Indicator copyWith(bool isEnabled) => Indicator(
+    id: this.id,
+    name: this.name,
+    type: this.type,
+    parameters: this.parameters,
+    isEnabled: isEnabled,
+  );
+
   bool isDefault() {
     return id == -1 && name == '';
   }

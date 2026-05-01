@@ -31,25 +31,33 @@ class CacheNotifier<T extends Cache, TSchema extends CacheSchema> extends _$Cach
   Future<void> addEntry(T entry) async {
     final helper = await ref.read(appCacheHelperProvider(_dbPath, schema).future);
     await helper.saveOne(_schema, entry);
-    ref.invalidateSelf();
+    if (ref.mounted) {
+      ref.invalidateSelf();
+    }
   }
 
   Future<void> updateEntry(T entry) async {
       final helper = await ref.read(appCacheHelperProvider(_dbPath, _schema).future);
       await helper.updateOne(_schema, entry);
-      ref.invalidateSelf();
+      if (ref.mounted) {
+        ref.invalidateSelf();
+      }
   }
 
   Future<void> deleteEntry(T entry) async {
     final helper = await ref.read(appCacheHelperProvider(_dbPath, _schema).future);
     await helper.deleteOne(_schema, entry);
-    ref.invalidateSelf();
+    if (ref.mounted) {
+      ref.invalidateSelf();
+    }
   }
 
   Future<void> clearAll() async {
     final helper = await ref.read(appCacheHelperProvider(_dbPath, _schema).future);
     await helper.deleteAll(_schema);
-    ref.invalidateSelf();
+    if (ref.mounted) {
+      ref.invalidateSelf();
+    }
   }
 }
 

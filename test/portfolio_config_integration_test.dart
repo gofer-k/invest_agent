@@ -12,7 +12,7 @@ void main() {
     late List<AssetConfig> assets;
 
     setUp(() async {
-      dbHelper = DatabaseHelper(":memory:");
+      dbHelper = DatabaseHelper(cacheFile: ":memory:");
       await dbHelper.init();
       await dbHelper.createCache(schema);
       await dbHelper.createCache(assetSchema);

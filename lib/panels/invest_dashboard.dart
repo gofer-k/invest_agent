@@ -11,6 +11,7 @@ import '../model/analysis_respond.dart';
 import '../model/index_price.dart';
 import '../model/indicator_schema.dart';
 import '../providers/indicator_provider.dart';
+import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../widgets/app_logo.dart';
@@ -71,16 +72,16 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         });
       }
     });
+    //TODO: Fix display of indicators
+    ref.listen<List<Indicator>>(sortedIndicatorsProvider, (previous, next) {
+      if (_selectedIndicator.isDefault() && next.isNotEmpty) {
+        setState(() {
+          _selectedIndicator = next.first;
+        });
+      }
+    });
 
-    // ref.listen<AsyncValue<List<Indicator>>>(indicatorProvider(), (previous, next) {
-    //   if (_selectedIndicator.isDefault() && next.value != null) {
-    //     setState(() {
-    //       _selectedIndicator = next.value?.first ?? Indicator.defaultIndicator();
-    //     });
-    //   }
-    // });
-
-   return Scaffold(
+    return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
         automaticallyImplyLeading: false,
@@ -101,7 +102,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                 const SizedBox(width: 24,),
                 _displayAssetsList(),
                 const SizedBox(width: 4,),
-                // _displayIndicatorsList(),
+                _displayIndicatorsList(),
                 VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
                 FittedBox(
                   fit: BoxFit.fitWidth,
@@ -257,7 +258,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   }
 
   Widget _displayIndicatorsList() {
-    final indicators = ref.watch(indicatorProvider()).value ?? [];
+    final indicators = ref.watch(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
     return DropdownList<Indicator>(
       textStyle: Theme.of(context).textTheme.labelLarge,
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
@@ -265,6 +266,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         setState(() {
           _selectedIndicator = indicator;
           if (!_selectedIndicator.isDefault()) {
+            //TODO:: load and display indicator's data
             // ref.read(priceControllerProvider.notifier).fetchOne(
             //     IndexPriceSchema(),
             //     IndexPrice.of(
@@ -273,8 +275,10 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           }
         });
       },
-      choiceType: _selectedIndicator,
-      choices: indicators,
+      choiceType: indicators.contains(_selectedIndicator)
+          ? _selectedIndicator
+          : (indicators.isNotEmpty ? indicators.first : _selectedIndicator),
+        choices: indicators,
     );
   }
 

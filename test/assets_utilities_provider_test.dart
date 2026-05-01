@@ -59,7 +59,7 @@ void main() {
     );
 
     setUp(() async {
-      dbHelper = DatabaseHelper(cacheTYpe.key);
+      dbHelper = DatabaseHelper(cacheFile: cacheTYpe.key);
       await dbHelper.init();
       await dbHelper.createCache(assetSchema);
       await dbHelper.createCache(priceSchema);
@@ -68,9 +68,11 @@ void main() {
 
       container = ProviderContainer(
         overrides: [
+          loadPriceProvider(cacheTYpe, keepAlive).overrideWith((ref) => dbHelper),
           appConfigProvider.overrideWith((ref) => dbHelper),
         ],
       );
+      await container.read(loadPriceProvider(cacheTYpe, keepAlive).future);
       // Keep the provider alive during the test.
       container.listen(priceControllerProvider(cacheTYpe, keepAlive), (_, _) {});
     });

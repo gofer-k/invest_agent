@@ -1,65 +1,102 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'cache_notifier.dart';
+import 'load_database_provider.dart';
 part 'indicator_provider.g.dart';
 
-// @immutable
-// class IndicatorNotifierState {
-//   final Map<int, List<Indicator>> cache;
-//   const IndicatorNotifierState({this.cache = const {}});
-//
-//   IndicatorNotifierState copyWith({Map<int, List<Indicator>>? cache}) {
-//     return IndicatorNotifierState(cache: cache ?? this.cache);
-//   }
-//
-//   List<T> getItems<T extends Cache>() => cache[]?.cast<T>() ?? [];
-// }
+@immutable
+class IndicatorNotifierState {
+  final List<Indicator> cache;
+  const IndicatorNotifierState({this.cache = const []});
+
+  IndicatorNotifierState copyWith({List<Indicator>? cache}) {
+    return IndicatorNotifierState(cache: cache ?? this.cache);
+  }
+
+  List<Indicator> getItems() => cache;
+}
 
 @riverpod
 class IndicatorNotifier extends _$IndicatorNotifier {
   static final _schema = IndicatorSchema();
-  static const _defaultDbPath = 'indicators.db';
 
   IndicatorSchema get schema => _schema;
-  late String? _dbPath;
-  String get dbPath => _dbPath ?? _defaultDbPath;
+  late String _dbPath;
+  String get dbPath => _dbPath;
+
+  Future<String> _getDbPath() async {
+    return await ref.read(loadDatabaseProvider(type ?? CacheKeyType.analysisCache).future);
+  }
 
   @override
-  FutureOr<List<Indicator>> build([String? cachePath]) async {
-    _dbPath = cachePath ?? _defaultDbPath;
-    // return await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).future);
-    return ref.watch(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).future);
+  IndicatorNotifierState build([CacheKeyType? type, bool? keepAlive]) {
+    if (keepAlive == true) ref.keepAlive();
+
+    final pathAsync = ref.watch(loadDatabaseProvider(type ?? CacheKeyType.analysisCache));
+
+    // Use AsyncValue to check if we have a valid path
+    return pathAsync.maybeWhen(
+      data: (path) {
+        _dbPath = path;
+        final cacheAsync = ref.watch(cacheProvider<Indicator, IndicatorSchema>(_schema, path));
+        return IndicatorNotifierState(cache: cacheAsync.value ?? const []);
+      },
+      orElse: () {
+        _dbPath = "";
+        return const IndicatorNotifierState();
+      },
+    );
   }
 
   Future<List<Indicator>> fetchAll() async {
-    return await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).fetchAll();
+    await _getDbPath();
+    final items = await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).fetchAll();
+    if (!ref.mounted) return items;
+    state = state.copyWith(cache: items);
+    return items;
   }
 
   Future<void> addEntry(Indicator entry) async {
-    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).addEntry(entry);
+    // Just perform the mutation. The reactive 'watch' above handles the UI update.
+    await _getDbPath();
+    final notifier = ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, _dbPath).notifier);
+    await notifier.addEntry(entry);
+    await fetchAll();
   }
 
   Future<void> updateIndicator(Indicator entry) async {
-    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).updateEntry(entry);
+    await _getDbPath();
+    final notifier = ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier);
+    await notifier.updateEntry(entry);
+    await fetchAll();
   }
 
   Future<void> deleteEntry(Indicator entry) async {
-    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).deleteEntry(entry);
+    await _getDbPath();
+    final notifier =  ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier);
+    await notifier.deleteEntry(entry);
+    await fetchAll();
   }
 
   Future<void> clearAll() async {
-    await ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier).clearAll();
+    await _getDbPath();
+    final notifier =ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier);
+    await notifier.clearAll();
+    await fetchAll();
   }
 
   Future<void> toggleIndicator(Indicator indicator) async {
-    final updated = Indicator(
-      id: indicator.id,
-      name: indicator.name,
-      type: indicator.type,
-      parameters: indicator.parameters,
-      isEnabled: !indicator.isEnabled,
-    );
+    final updated = indicator.copyWith(!indicator.isEnabled);
     await updateIndicator(updated);
   }
+}
+
+@riverpod
+List<Indicator> sortedIndicators(Ref ref) {
+  final assets = ref.watch(indicatorProvider().select(
+          (s) => s.getItems()));
+  return assets.toList()..sort((a, b) => a.name.compareTo(b.name));
 }

@@ -58,7 +58,7 @@ final class PriceControllerProvider
   }
 }
 
-String _$priceControllerHash() => r'8b3180d79683d4a23603df703dfe5b06aaa83887';
+String _$priceControllerHash() => r'23949761cdb3c37227367a66d7141f23faaa9cf8';
 
 final class PriceControllerFamily extends $Family
     with
@@ -108,7 +108,7 @@ abstract class _$PriceController extends $Notifier<PriceControllerState> {
 }
 
 @ProviderFor(assetPriceDetails)
-final assetPriceDetailsProvider = AssetPriceDetailsProvider._();
+final assetPriceDetailsProvider = AssetPriceDetailsFamily._();
 
 final class AssetPriceDetailsProvider
     extends
@@ -118,19 +118,26 @@ final class AssetPriceDetailsProvider
           Map<int, String>
         >
     with $Provider<Map<int, String>> {
-  AssetPriceDetailsProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'assetPriceDetailsProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  AssetPriceDetailsProvider._({
+    required AssetPriceDetailsFamily super.from,
+    required (CacheKeyType?, bool?) super.argument,
+  }) : super(
+         retry: null,
+         name: r'assetPriceDetailsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$assetPriceDetailsHash();
+
+  @override
+  String toString() {
+    return r'assetPriceDetailsProvider'
+        ''
+        '$argument';
+  }
 
   @$internal
   @override
@@ -139,7 +146,8 @@ final class AssetPriceDetailsProvider
 
   @override
   Map<int, String> create(Ref ref) {
-    return assetPriceDetails(ref);
+    final argument = this.argument as (CacheKeyType?, bool?);
+    return assetPriceDetails(ref, argument.$1, argument.$2);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -149,6 +157,34 @@ final class AssetPriceDetailsProvider
       providerOverride: $SyncValueProvider<Map<int, String>>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AssetPriceDetailsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$assetPriceDetailsHash() => r'5ea1b099f694a8627470eaf7ac8812f06dcf63fa';
+String _$assetPriceDetailsHash() => r'8fd74c6bfef1b299b756feae7132dd878c2a74c4';
+
+final class AssetPriceDetailsFamily extends $Family
+    with $FunctionalFamilyOverride<Map<int, String>, (CacheKeyType?, bool?)> {
+  AssetPriceDetailsFamily._()
+    : super(
+        retry: null,
+        name: r'assetPriceDetailsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AssetPriceDetailsProvider call([CacheKeyType? type, bool? keepAlive]) =>
+      AssetPriceDetailsProvider._(argument: (type, keepAlive), from: this);
+
+  @override
+  String toString() => r'assetPriceDetailsProvider';
+}

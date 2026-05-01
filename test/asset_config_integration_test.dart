@@ -9,7 +9,7 @@ void main() {
     final schema = AssetConfigSchema();
 
     setUp(() async {
-      dbHelper = DatabaseHelper(":memory:");
+      dbHelper = DatabaseHelper(cacheFile: ":memory:");
       await dbHelper.init();
       await dbHelper.createCache(schema);
     });

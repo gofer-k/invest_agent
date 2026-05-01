@@ -49,7 +49,7 @@ void main() {
     );
 
     setUp(() async {
-      dbHelper = DatabaseHelper(testPath);
+      dbHelper = DatabaseHelper(cacheFile: testPath);
       await dbHelper.init();
       await dbHelper.createCache(schema);
       await dbHelper.deleteAll(schema);

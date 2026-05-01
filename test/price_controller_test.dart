@@ -58,8 +58,7 @@ void main() {
     );
 
     setUp(() async {
-
-      dbHelper = DatabaseHelper(cacheTYpe.key);
+      dbHelper = DatabaseHelper(cacheFile: cacheTYpe.key);
       await dbHelper.init();
       // Setup tables
       await dbHelper.createCache(assetSchema);
@@ -67,16 +66,16 @@ void main() {
       await dbHelper.saveOne(assetSchema, testAsset);
 
       container = ProviderContainer.test(
-        // Mock test caches and database
         overrides: [
-          // loadPriceProvider(CacheKeyType.memoryCache, false).overrideWith((ref) => dbHelper),
+          loadPriceProvider(cacheTYpe, keepAlive).overrideWith((ref) => dbHelper),
           sortedAssetsProvider.overrideWith((ref) => [testAsset]),
-          assetPriceDetailsProvider.overrideWith((ref) => {testAsset.id: testAsset.symbol}),
         ],
       );
-      // Keep the provider alive during the test.
+      
+      // Ensure provider is initialized and database is ready
+      await container.read(loadPriceProvider(cacheTYpe, keepAlive).future);
+      
       container.listen(priceControllerProvider(cacheTYpe, keepAlive), (_, _) {});
-      container.listen(assetPriceDetailsProvider, (_, _) {});
     });
 
     tearDown(() {
@@ -87,6 +86,7 @@ void main() {
     test('Initial state is empty', () {
       final state = container.read(priceControllerProvider(cacheTYpe, keepAlive));
       expect(state.cache, isEmpty);
+      // assetDetails should be empty initially unless refreshAllDetails is called
       expect(state.assetDetails, isEmpty);
     });
 
@@ -103,9 +103,6 @@ void main() {
         volume: 1000.0,
       );
 
-      final details = container.read(sortedAssetsProvider);
-      expect(details.firstWhere((asset) => asset.id == testAsset.id) == testAsset, isTrue);
-
       await controller.save(priceSchema, price);
       final items = await controller.fetchAll(priceSchema);
 
@@ -117,25 +114,25 @@ void main() {
     test('fetchDateRange', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final p1 = IndexPrice(
-        id: 1,
+        id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 2),
         openPrice: 100.0,
         closePrice: 101.0,
         highPrice: 102.0,
         lowPrice: 99.0,
-        volume: 000.0,
+        volume: 800.0,
       );
 
       final p2 = IndexPrice(
-      id: 2,
-      assetId: testAsset.id,
-      dateTime: DateTime(2023, 1, 5),
-      openPrice: 105.0,
-      closePrice: 106.0,
-      highPrice: 107.0,
-      lowPrice: 104.0,
-      volume: 1100.0,
+        id: 0,
+        assetId: testAsset.id,
+        dateTime: DateTime(2023, 1, 5),
+        openPrice: 105.0,
+        closePrice: 106.0,
+        highPrice: 107.0,
+        lowPrice: 104.0,
+        volume: 1100.0,
       );
 
       await controller.save(priceSchema, p1);
@@ -154,8 +151,9 @@ void main() {
 
     test('update price', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
+      // Save initial price first to ensure we have something to update
       final price = IndexPrice(
-        id: 1,
+        id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
         openPrice: 100.0,
@@ -164,15 +162,17 @@ void main() {
         lowPrice: 95.0,
         volume: 1000.0,
       );
-
       await controller.save(priceSchema, price);
-      var items = await controller.fetchAll(priceSchema);
+      
+      final savedItems = await controller.fetchAll(priceSchema);
+      final savedPrice = savedItems.first;
+
       final updatedPrice = IndexPrice(
-        id: 1,
+        id: savedPrice.id,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
         openPrice: 100.0,
-        closePrice: 115.0, // updated
+        closePrice: 115.0,
         highPrice: 120.0,
         lowPrice: 95.0,
         volume: 2000.0,
@@ -181,8 +181,8 @@ void main() {
       await controller.update(priceSchema, updatedPrice);
       final updatedItems = await controller.fetchAll(priceSchema);
 
-      expect(updatedItems.where((elem) => elem.id == updatedPrice.id).first.closePrice, updatedPrice.closePrice);
-      expect(updatedItems.where((elem) => elem.id == updatedPrice.id).first.volume, updatedPrice.volume);
+      expect(updatedItems.firstWhere((elem) => elem.id == updatedPrice.id).closePrice, updatedPrice.closePrice);
+      expect(updatedItems.firstWhere((elem) => elem.id == updatedPrice.id).volume, updatedPrice.volume);
     });
 
     test('delete price', () async {
@@ -208,7 +208,7 @@ void main() {
     });
 
     test('oldestDate and newestDate', () async {
-      final controller = container.read(priceControllerProvider(CacheKeyType.memoryCache, true).notifier);
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final p1 = IndexPrice(
         id: 0,
         assetId: testAsset.id,
@@ -238,13 +238,14 @@ void main() {
 
       expect(oldest.year, 2023);
       expect(oldest.month, 1);
+      expect(newest.year, 2023);
       expect(newest.month, 2);
     });
 
-    test('assetPriceDetails updates after save', () async {
+    test('assetPriceDetails updates after refreshAllDetails', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       final price = IndexPrice(
-        id: 1,
+        id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
         openPrice: 100.0,
@@ -255,9 +256,12 @@ void main() {
       );
 
       await controller.save(priceSchema, price);
-      final details = container.read(assetPriceDetailsProvider);
+      await controller.refreshAllDetails();
+      
+      // final details = container.read(assetPriceDetailsProvider);
+      final details = container.read(assetPriceDetailsProvider(cacheTYpe, keepAlive));
       expect(details.containsKey(testAsset.id), isTrue);
-      expect(details[testAsset.id], contains(testAsset.symbol));
+      expect(details[testAsset.id], contains('2023-01-01'));
     });
   });
 }

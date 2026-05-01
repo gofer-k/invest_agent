@@ -58,7 +58,7 @@ final class CacheNotifierProvider<T extends Cache, TSchema extends CacheSchema>
   }
 }
 
-String _$cacheNotifierHash() => r'966cef715cb06007d90c1db63a0a4aee8fbdfe4d';
+String _$cacheNotifierHash() => r'5c2adae075362583cc59f23c81ed7bcd6c589e01';
 
 final class CacheNotifierFamily extends $Family {
   CacheNotifierFamily._()

@@ -13,10 +13,10 @@ part of 'indicator_provider.dart';
 final indicatorProvider = IndicatorNotifierFamily._();
 
 final class IndicatorNotifierProvider
-    extends $AsyncNotifierProvider<IndicatorNotifier, List<Indicator>> {
+    extends $NotifierProvider<IndicatorNotifier, IndicatorNotifierState> {
   IndicatorNotifierProvider._({
     required IndicatorNotifierFamily super.from,
-    required String? super.argument,
+    required (CacheKeyType?, bool?) super.argument,
   }) : super(
          retry: null,
          name: r'indicatorProvider',
@@ -32,12 +32,20 @@ final class IndicatorNotifierProvider
   String toString() {
     return r'indicatorProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
   @override
   IndicatorNotifier create() => IndicatorNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(IndicatorNotifierState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<IndicatorNotifierState>(value),
+    );
+  }
 
   @override
   bool operator ==(Object other) {
@@ -50,16 +58,16 @@ final class IndicatorNotifierProvider
   }
 }
 
-String _$indicatorNotifierHash() => r'0a40042f548018be114f9c4c6f013f60c1c881ed';
+String _$indicatorNotifierHash() => r'f57ddd356fe1004469a233f13815af3084e6b24a';
 
 final class IndicatorNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           IndicatorNotifier,
-          AsyncValue<List<Indicator>>,
-          List<Indicator>,
-          FutureOr<List<Indicator>>,
-          String?
+          IndicatorNotifierState,
+          IndicatorNotifierState,
+          IndicatorNotifierState,
+          (CacheKeyType?, bool?)
         > {
   IndicatorNotifierFamily._()
     : super(
@@ -70,30 +78,74 @@ final class IndicatorNotifierFamily extends $Family
         isAutoDispose: true,
       );
 
-  IndicatorNotifierProvider call([String? cachePath]) =>
-      IndicatorNotifierProvider._(argument: cachePath, from: this);
+  IndicatorNotifierProvider call([CacheKeyType? type, bool? keepAlive]) =>
+      IndicatorNotifierProvider._(argument: (type, keepAlive), from: this);
 
   @override
   String toString() => r'indicatorProvider';
 }
 
-abstract class _$IndicatorNotifier extends $AsyncNotifier<List<Indicator>> {
-  late final _$args = ref.$arg as String?;
-  String? get cachePath => _$args;
+abstract class _$IndicatorNotifier extends $Notifier<IndicatorNotifierState> {
+  late final _$args = ref.$arg as (CacheKeyType?, bool?);
+  CacheKeyType? get type => _$args.$1;
+  bool? get keepAlive => _$args.$2;
 
-  FutureOr<List<Indicator>> build([String? cachePath]);
+  IndicatorNotifierState build([CacheKeyType? type, bool? keepAlive]);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<List<Indicator>>, List<Indicator>>;
+    final ref =
+        this.ref as $Ref<IndicatorNotifierState, IndicatorNotifierState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Indicator>>, List<Indicator>>,
-              AsyncValue<List<Indicator>>,
+              AnyNotifier<IndicatorNotifierState, IndicatorNotifierState>,
+              IndicatorNotifierState,
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
+
+@ProviderFor(sortedIndicators)
+final sortedIndicatorsProvider = SortedIndicatorsProvider._();
+
+final class SortedIndicatorsProvider
+    extends
+        $FunctionalProvider<List<Indicator>, List<Indicator>, List<Indicator>>
+    with $Provider<List<Indicator>> {
+  SortedIndicatorsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'sortedIndicatorsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$sortedIndicatorsHash();
+
+  @$internal
+  @override
+  $ProviderElement<List<Indicator>> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  List<Indicator> create(Ref ref) {
+    return sortedIndicators(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<Indicator> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<Indicator>>(value),
+    );
+  }
+}
+
+String _$sortedIndicatorsHash() => r'e1564a91141b2a29cf4e957d021163f46f990cad';
