@@ -4,6 +4,7 @@ import 'package:invest_agent/panels/portfolio_panel.dart';
 import '../providers/load_database_provider.dart';
 import 'account_panel.dart';
 import 'index_price_panel.dart';
+import 'indicators_panel.dart';
 
 class MainSettingsPanel extends ConsumerStatefulWidget {
   const MainSettingsPanel({super.key});
@@ -39,6 +40,7 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
           const SizedBox(height: 24),
           AccountPanel(),
           IndexPricePanel(),
+          IndicatorsPanel(),
           PortfolioPanel()
         ],
       ),
