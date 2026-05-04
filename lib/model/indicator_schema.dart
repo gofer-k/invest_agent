@@ -109,6 +109,9 @@ class Indicator extends Cache {
     'is_enabled': isEnabled,
   };
 
+  @override
+  String toString() => name;
+
   static Indicator defaultIndicator() {
     return Indicator(
       id: -1,

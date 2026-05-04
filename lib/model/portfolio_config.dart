@@ -162,4 +162,7 @@ class PortfolioConfig implements Cache{
   'target_weight': targetWeight,
   'rebalance_threshold': rebalanceThreshold,
   };
+
+  @override
+  String toString() => portfolioName;
 }
