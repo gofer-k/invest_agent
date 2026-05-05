@@ -27,13 +27,15 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   late final TextEditingController controllerName;
   late final TextEditingController controllerType;
   late Map<String, dynamic> parameters = {};
+  bool addingParameter = false;
 
   @override
   void initState() {
     super.initState();
-    controllerName = TextEditingController(text: widget.indicator?.toString() ?? '');
+    controllerName = TextEditingController(text: widget.indicator?.name ?? '');
     controllerType = TextEditingController(text: widget.indicator?.type ?? '');
-    parameters = widget.indicator?.parameters ?? {};
+    // Ensure parameters is a mutable copy
+    parameters = Map<String, dynamic>.from(widget.indicator?.parameters ?? {});
   }
 
   @override
@@ -46,22 +48,27 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Indicator ${widget.indicator.toString()}"),
+      title: Text("Indicator ${widget.indicator?.name ?? 'New'}"),
       content: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
           child: Column(
-        // mainAxisSize: MainAxisSize.min,
             children: [
               _editIndicatorName(controllerName, "Input indicator name", "Indicator name"),
               const SizedBox(height: 8),
               _editIndicatorName(controllerType, "Input type: e.g. Moving Average", "Indicator type"),
               const SizedBox(height: 16),
-              Text("Parameters", style: Theme.of(context).textTheme.headlineSmall),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Add parameter'),
-                onPressed: () => _handleAddParameter(context, ref),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Parameters", style: Theme.of(context).textTheme.headlineSmall),
+                  IconButton(
+                    icon: Icon(addingParameter ? Icons.close : Icons.add),
+                    onPressed: () => setState(() => addingParameter = !addingParameter),
+                  ),
+                ],
               ),
+              if (addingParameter) _handleAddParameter(context),
+              const SizedBox(height: 8),
               for (var parameter in parameters.entries)
                 Shrinkable(
                   expanded: true,
@@ -76,12 +83,12 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                   ],
                   body: _buildIndicatorParameter(context, parameter),
                ),
-                const SizedBox(height: 8),
+               // const SizedBox(height: 8),
             ],
           ),
         ),
         actions: [
-          BackButton(onPressed: () => Navigator.of(context).pop()),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
           ElevatedButton(onPressed: () {
             final name = controllerName.text.trim();
             if (name.isEmpty) return;
@@ -100,69 +107,119 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
 
   Widget _editIndicatorName(TextEditingController controller, String hint, String label) {
     return TextField(
-      controller: controllerName,
+      controller: controller,
       decoration: InputDecoration(labelText: label, hintText: hint,
         border: const OutlineInputBorder(),
       ),
       keyboardType: TextInputType.text,
-      textAlign: TextAlign.end,
     );
   }
 
   Widget _buildIndicatorParameter(BuildContext context, MapEntry<String, dynamic> parameter) {
     if (parameter.value is List) {
-      final inputType = parameter.value is List<num> ? TextInputType.numberWithOptions() : TextInputType.text;
+      final list = parameter.value as List;
       return Column(
         children: [
-          Wrap(spacing: 8,
-            children: (parameter.value as List).map<Widget>((w) =>
-              Chip(label: Text("$w"),
-                onDeleted: () {
-                  setState(() => parameter.value.remove(w));
-                },
-              )
+          Wrap(
+            spacing: 8,
+            children: list.map<Widget>((item) =>
+                Chip(
+                  label: Text("$item"),
+                  onDeleted: () {
+                    // REMOVE ONLY THE VALUE FROM THE LIST
+                    setState(() {
+                      list.remove(item);
+                    });
+                  },
+                )
             ).toList(),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-
-                  decoration: InputDecoration(labelText: "Add ${parameter.key}"),
-                    keyboardType: inputType,
-                    onSubmitted: (v) {
-                      final parsed = num.tryParse(v);
-                      if (parsed != null) {
-                        setState(() => parameter.value.add(parsed));
-                      }
-                    },
-                ),
-              ),
-            ],
+          TextField(
+            decoration: InputDecoration(labelText: "Add to ${parameter.key}"),
+            onSubmitted: (v) {
+              if (v.trim().isEmpty) return;
+              final parsed = num.tryParse(v) ?? v.trim();
+              setState(() => list.add(parsed));
+            },
           ),
-        ]
+        ],
       );
     }
-    return
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: TextField(
-          controller: TextEditingController(text: parameter.value.toString()),
-          decoration: InputDecoration(labelText: "Value for ${parameter.key}"),
-          keyboardType: parameter.value is num ? TextInputType.numberWithOptions() : TextInputType.text,
-          onChanged: (v) {
-            final parsed = num.tryParse(v);
-            if (parsed != null) {
-              parameters[parameter.key] = parsed;
-            } else {
-              parameters[parameter.key] = v.trim();
-            }
-          },
-        ),
-      );
+
+    // Single value editor
+    return TextField(
+      controller: TextEditingController(text: parameter.value.toString()),
+      decoration: InputDecoration(labelText: "Value for ${parameter.key}"),
+      onChanged: (v) {
+        parameters[parameter.key] = num.tryParse(v) ?? v.trim();
+      },
+    );
   }
 
-  void _handleAddParameter(BuildContext context, WidgetRef ref) {
-
+  Widget _handleAddParameter(BuildContext context) {
+    return TextField(
+      decoration: const InputDecoration(
+        labelText: "New parameter name",
+        hintText: "Enter name and press Enter",
+        border: OutlineInputBorder(),
+      ),
+      autofocus: true,
+      onSubmitted: (v) {
+        if (v.trim().isNotEmpty) {
+          setState(() {
+            // Initialize as an empty mutable list
+            parameters[v.trim()] = [];
+            addingParameter = false;
+          });
+        }
+      },
+    );
   }
+  // Widget _handleAddParameter(BuildContext context) {
+  //   final nameController = TextEditingController();
+  //   return Column(
+  //       children: [
+  //         TextField(
+  //           controller: nameController,
+  //           decoration: const InputDecoration(
+  //             labelText: "New parameter name",
+  //             border: OutlineInputBorder(),
+  //             hintText: "e.g. Periods, Source, etc.",
+  //           ),
+  //           autofocus: true,
+  //           onSubmitted: (v) {
+  //             final name = v.trim();
+  //             if (name.isNotEmpty) {
+  //               setState(() {
+  //                 // Initialize as an empty list so it uses the List UI
+  //                 parameters[name] = [];
+  //                 addingParameter = false;
+  //               });
+  //             }
+  //           },
+  //         ),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.end,
+  //           children: [
+  //             TextButton(
+  //               onPressed: () => setState(() => addingParameter = false),
+  //               child: const Text("Cancel"),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () {
+  //                 final name = nameController.text.trim();
+  //                 if (name.isNotEmpty) {
+  //                   setState(() {
+  //                     parameters[name] = [];
+  //                     addingParameter = false;
+  //                   });
+  //                 }
+  //               },
+  //               child: const Text("Add"),
+  //             ),
+  //           ],
+  //         ),
+  //       ]
+  //   );
+  // }
 }

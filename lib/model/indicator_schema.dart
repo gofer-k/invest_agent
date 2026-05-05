@@ -22,7 +22,7 @@ class IndicatorSchema implements CacheSchema {
   ''';
 
   @override
-  String get readAll => "SELECT * FROM $tableName;";
+  String get readAll => "SELECT * FROM $tableName ORDER BY name;";
 
   @override
   String readOne(Cache cache) => "SELECT * FROM $tableName WHERE id = ${(cache as Indicator).id};";

@@ -46,7 +46,11 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
   }
 
   void _handleAddIndicator(BuildContext context, WidgetRef ref) {
-
+    showIndicator(context, null, (newIndicator) {
+      if (newIndicator != null) {
+        ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).addEntry(newIndicator);
+      }
+    });
   }
 
   Widget _buildTrailingActions(BuildContext context, Indicator indicator) {
@@ -58,7 +62,7 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
           onPressed: (){
             showIndicator(context, indicator, (newIndicator) {
               if (newIndicator != null) {
-                ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).addEntry(newIndicator);
+                ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).updateIndicator(newIndicator);
               }
             });
         }),
