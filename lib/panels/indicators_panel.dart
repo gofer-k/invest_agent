@@ -5,6 +5,7 @@ import 'package:invest_agent/widgets/utils/shrinkable.dart';
 
 import '../providers/indicator_provider.dart';
 import '../providers/load_database_provider.dart';
+import '../widgets/indicator_config_dialog.dart';
 
 class IndicatorsPanel extends ConsumerStatefulWidget {
   const IndicatorsPanel({super.key});
@@ -53,9 +54,13 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+          icon: Icon(Icons.edit),
           onPressed: (){
-
+            showIndicator(context, indicator, (newIndicator) {
+              if (newIndicator != null) {
+                ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).addEntry(newIndicator);
+              }
+            });
         }),
         IconButton(
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),

@@ -123,14 +123,38 @@ class Indicator extends Cache {
   }
 
   Indicator copyWith(bool isEnabled) => Indicator(
-    id: this.id,
-    name: this.name,
-    type: this.type,
-    parameters: this.parameters,
+    id: id,
+    name: name,
+    type: type,
+    parameters: parameters,
     isEnabled: isEnabled,
   );
 
   bool isDefault() {
     return id == -1 && name == '';
+  }
+
+  List<Object?> decodeList(String key) {
+    return jsonDecode(parameters[key]);
+  }
+
+  List<num> decodeNumberedList(String key) {
+    final list = jsonDecode(parameters[key]);
+    if (list is List) {
+      return list.map((e) => e as num).toList();
+    }
+    return [];
+  }
+
+  List<String> decodeStringList(String key) {
+    final list = jsonDecode(parameters[key]);
+    if (list is List) {
+      return list.map((e) => e as String).toList();
+    }
+    return [];
+  }
+
+  void encodeList(String key, List<Object?> list) {
+    parameters[key] = jsonEncode(list);
   }
 }
