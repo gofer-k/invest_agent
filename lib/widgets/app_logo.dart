@@ -8,7 +8,7 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logoColor = color ?? Theme.of(context).primaryColor;
+    final logoColor = color ?? Theme.of(context).splashColor;
     
     return SizedBox(
       width: size,

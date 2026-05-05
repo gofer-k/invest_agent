@@ -98,7 +98,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           children: [
             Expanded(child: AppHorizontalTaskBar(
               mainActions: [
-                AppLogo(size: 24, color: Theme.of(context).splashColor),
+                AppLogo(size: 24, color: AppTheme.of(context).indicatorRate),
                 const SizedBox(width: 24,),
                 _displayAssetsList(),
                 const SizedBox(width: 4,),
@@ -126,26 +126,26 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                   TaskBarIcon(
                     icon: Icons.settings,
                     tooltip: 'Main Settings',
-                    color: activePanelIndex == PanelIndex.mainSettings ? Theme.of(context).primaryColor : null,
+                    color: activePanelIndex == PanelIndex.mainSettings ? AppTheme.of(context).taskHighlightColor : null,
                     onPressed: () => _toggleVerticalPanel(PanelIndex.mainSettings),
                   ),
                   const Divider(height: 20, indent: 8, endIndent: 8),
                   TaskBarIcon(icon: Icons.bar_chart,
                       tooltip: 'Analysis Settings',
-                      color: Theme.of(context).primaryColor,
+                      color: activePanelIndex == PanelIndex.analysisSettings ? AppTheme.of(context).taskHighlightColor : null,
                       onPressed: () => _toggleVerticalPanel(PanelIndex.analysisSettings)),
                   // TODO: remove below ones
                   const Divider(height: 20, indent: 8, endIndent: 8),
                   TaskBarIcon(
                     icon: Icons.settings,
                     tooltip: 'Request Settings',
-                    color: activePanelIndex == PanelIndex.request ? Theme.of(context).primaryColor : null,
+                    color: activePanelIndex == PanelIndex.request ? AppTheme.of(context).taskHighlightColor : null,
                     onPressed: () => _toggleVerticalPanel(PanelIndex.request),
                   ),
                   TaskBarIcon(
                     icon: Icons.update,
                     tooltip: 'Results Settings',
-                    color: activePanelIndex == PanelIndex.results ? Theme.of(context).primaryColor : null,
+                    color: activePanelIndex == PanelIndex.results ? AppTheme.of(context).taskHighlightColor : null,
                     onPressed: () => _toggleVerticalPanel(PanelIndex.results),
                   ),
                 ],

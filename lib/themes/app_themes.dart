@@ -22,6 +22,8 @@ class AppThemes {
         buttonOutlineColor: Color.fromRGBO(216, 168, 247, 1.0),
         barColor: Color(0xFFF2F2F2),
         borderColor: Color(0xFFC9C9C9),
+        taskFadedColor: Color(0xE44DFFF9),
+        taskHighlightColor: Color(0x444DFFFF),
       ),
     ],
   );
@@ -45,6 +47,8 @@ class AppThemes {
         indicatorRate: Colors.blueAccent,
         barColor: Color(0xFF3C3F41),
         borderColor: Color(0xFF282828),
+        taskFadedColor: Color(0x444DFFFF),
+        taskHighlightColor: Color(0xE44DFFF9),
       ),
     ],
   );
@@ -69,6 +73,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final EdgeInsets? paddingOverlayChart;
   final Color? barColor;
   final Color? borderColor;
+  final Color? taskFadedColor;
+  final Color? taskHighlightColor;
 
   // Optional: Add a static method to easily access the extension from context
   static AppTheme of(BuildContext context) {
@@ -84,6 +90,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
     required this.tooltipVolumeColor,
     required this.barColor,
     required this.borderColor,
+    required this.taskFadedColor,
+    required this.taskHighlightColor,
     this.etfTitleColor,
     this.etfTitleShadowColor,
     this.indicatorSignalColor = Colors.orange,
@@ -114,6 +122,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
     Color? buttonOutlineColor,
     Color? barColor,
     Color? borderColor,
+    Color? taskFadedColor,
+    Color? taskHighlightColor,
     EdgeInsets? paddingOverlayChart,
   }) {
     return AppTheme(
@@ -134,6 +144,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
       indicatorMiddleBand: indicatorMiddleBand,
       barColor: barColor,
       borderColor: borderColor,
+      taskFadedColor: taskFadedColor,
+      taskHighlightColor: taskHighlightColor,
     );
   }
 
@@ -160,6 +172,8 @@ class AppTheme extends ThemeExtension<AppTheme> {
       buttonOutlineColor: Color.lerp(buttonOutlineColor, other.buttonOutlineColor, t),
       barColor: Color.lerp(barColor, other.barColor, t),
       borderColor: Color.lerp(borderColor, other.borderColor, t),
+      taskFadedColor: Color.lerp(taskFadedColor, other.taskFadedColor, t),
+      taskHighlightColor: Color.lerp(taskHighlightColor, other.taskHighlightColor, t),
     );
   }
 }
