@@ -157,4 +157,10 @@ class Indicator extends Cache {
   void encodeList(String key, List<Object?> list) {
     parameters[key] = jsonEncode(list);
   }
+
+  bool isMainChart() {
+    return parameters["main_chart"] ?? false;
+  }
+
+
 }

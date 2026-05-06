@@ -60,6 +60,18 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Text("Main chart", style: Theme.of(context).textTheme.labelLarge),
+                  Switch(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    value: parameters["main_chart"] ?? false,
+                    onChanged: (bool value) => setState(() => parameters["main_chart"] = value)),
+                  Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
+                ]
+              ),
+              const Divider(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Text("Parameters", style: Theme.of(context).textTheme.headlineSmall),
                   IconButton(
                     icon: Icon(addingParameter ? Icons.close : Icons.add),
@@ -71,7 +83,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               const SizedBox(height: 8),
               for (var parameter in parameters.entries)
                 Shrinkable(
-                  expanded: true,
+                  expanded: false,
                   title: parameter.key,
                   actions: [
                     IconButton(
