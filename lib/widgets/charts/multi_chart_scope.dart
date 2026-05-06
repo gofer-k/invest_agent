@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../model/analysis_respond.dart';
 import '../../model/charts_configuration.dart';
+import '../../model/multi_chart_config.dart';
 import '../../utils/chart_point.dart';
 import 'controllers/crosshair_controller.dart';
 import 'controllers/time_controller.dart';

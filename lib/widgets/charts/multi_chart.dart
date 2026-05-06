@@ -6,6 +6,7 @@ import 'package:invest_agent/model/charts_configuration.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
+import '../../model/multi_chart_config.dart';
 import '../../themes/app_themes.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_bellinger_band.dart';
@@ -101,7 +102,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     );
   }
 
-  Widget _buildChart(MultiChart chart) {
+  Widget _buildChart(MultiChartConfig chart) {
     return SyncChart(
       controller: _chartController,
       crosshairController: _crosshairController,

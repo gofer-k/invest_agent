@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/utils/dropdown.dart';
 import '../model/charts_configuration.dart';
+import '../model/multi_chart_config.dart';
 
 void showConfigurationChart(
-    BuildContext context, MultiChart? chart,
-    Function(MultiChart newMultiChart) onSave) {
+    BuildContext context, MultiChartConfig? chart,
+    Function(MultiChartConfig newMultiChart) onSave) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -14,8 +15,8 @@ void showConfigurationChart(
 }
 
 class ChartConfigDialog extends StatefulWidget {
-  final Function(MultiChart newMultiChart) onSave;
-  final MultiChart? chart;
+  final Function(MultiChartConfig newMultiChart) onSave;
+  final MultiChartConfig? chart;
 
   const ChartConfigDialog({super.key, required this.onSave, required this.chart});
 
@@ -122,7 +123,7 @@ class _ChartConfigDialogState extends State<ChartConfigDialog> {
         ElevatedButton(
           onPressed: () {
             multiTitle = controller.text;
-            final newChart = MultiChart(title: multiTitle, mainChart: selectedMainChart,
+            final newChart = MultiChartConfig(title: multiTitle, mainChart: selectedMainChart,
               overlayCharts: selectedOverlayCharts);
             if (ChartsConfiguration.validate(newChart)) {
               widget.onSave(newChart);

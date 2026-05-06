@@ -1,40 +1,9 @@
 import 'package:invest_agent/model/analysis_period.dart';
 
-enum MainChartType {
-  candlestickPrice("Candlestick",),
-  linePrice("Line"),
-  macd("MACD"),
-  volume("Volume"),
-  rsi("RSI");
-
-  const MainChartType(this.name);
-  final String name;
-}
-
-enum SupplementChart {
-  bb("BB - Bollinger Bands"),
-  deathCross("DC - Death cross"),
-  goldenCross("GC - Golden cross"),
-  ema("EMA - exp. moving average"),
-  emaSignal("EMA signal"),
-  obv("OBV - on balance volume"),
-  sma("MA - moving average");
-  const SupplementChart(this.name);
-  final String name;
-}
-
-class MultiChart {
-  final String title;
-  final MainChartType mainChart;
-  final List<SupplementChart> overlayCharts;
-  const MultiChart({required this.title, this.mainChart = MainChartType.linePrice, this.overlayCharts = const[]});
-  void removeOverlayChart(SupplementChart suppChart) {
-    overlayCharts.remove(suppChart);
-  }
-}
+import 'multi_chart_config.dart';
 
 class ChartsConfiguration {
-  final List<MultiChart> multiCharts;
+  final List<MultiChartConfig> multiCharts;
   final PeriodType periodType;
 
   static const Map<MainChartType, List<SupplementChart>> _profileRules = {
@@ -53,9 +22,9 @@ class ChartsConfiguration {
   };
 
   ChartsConfiguration({this.periodType = PeriodType.year,
-    this.multiCharts = const [MultiChart(title: "Price")]});
+    this.multiCharts = const [MultiChartConfig(title: "Price")]});
 
-  static bool validate(MultiChart chart) {
+  static bool validate(MultiChartConfig chart) {
     final availableSuppCharts = _profileRules[chart.mainChart];
     if (availableSuppCharts != null) {
       return chart.overlayCharts.every((suppChart) => availableSuppCharts.contains(suppChart));
@@ -63,13 +32,13 @@ class ChartsConfiguration {
     return true;
   }
 
-  void addChart(MultiChart newChart) {
+  void addChart(MultiChartConfig newChart) {
     if (ChartsConfiguration.validate(newChart)) {
       multiCharts.add(newChart);
     }
   }
 
-  void removeChart(MultiChart chart) {
+  void removeChart(MultiChartConfig chart) {
     multiCharts.remove(chart);
   }
 }
