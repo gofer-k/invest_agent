@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../model/analysis_respond.dart';
 import '../../model/charts_configuration.dart';
-import '../../model/multi_chart_config.dart';
+import '../../model/multi_chart_schema.dart';
 import '../../utils/chart_point.dart';
 import 'controllers/crosshair_controller.dart';
 import 'controllers/time_controller.dart';
 
+// TODO:  candidate to removal
 class ChartContext {
   final MainChartType chartTYpe;
   final List<ChartPoint> chartPoints;
@@ -51,6 +52,8 @@ class MultiChartScope extends InheritedWidget {
         MainChartType.rsi =>
             results.getRsi().map((item) =>
                 ChartPoint(value: item.rsi, dateTime: item.dateTime)).toList(),
+        // TODO: Handle this case.
+        MainChartType.bars => throw UnimplementedError(),
       };
       initializedContexts.add(ChartContext(chartTYpe: chart.mainChart,
           chartPoints: chartPoints,
@@ -66,7 +69,9 @@ class MultiChartScope extends InheritedWidget {
       MainChartType.linePrice => (startDate, endDate) => results.getMaxPrice(startDate, endDate),
       MainChartType.macd => (startDate, endDate) => results.getMaxMACD(MACDType.MACD_12_26, startDate, endDate),
       MainChartType.volume => (startDate, endDate) => results.getMaxVolume(startDate, endDate),
-      MainChartType.rsi => (startDate, endDate) => results.getMaxRsi(startDate, endDate)
+      MainChartType.rsi => (startDate, endDate) => results.getMaxRsi(startDate, endDate),
+      // TODO: Handle this case.
+      MainChartType.bars => throw UnimplementedError(),
      };
   }
 
@@ -76,7 +81,9 @@ class MultiChartScope extends InheritedWidget {
       MainChartType.linePrice => (startDate, endDate) => results.getMinPrice(startDate, endDate),
       MainChartType.macd => (startDate, endDate) =>  results.getMinMACD(MACDType.MACD_12_26, startDate, endDate),
       MainChartType.volume => (startDate, endDate) => results.getMinVolume(startDate, endDate),
-      MainChartType.rsi => (startDate, endDate) => results.getMinRsi(startDate, endDate)
+      MainChartType.rsi => (startDate, endDate) => results.getMinRsi(startDate, endDate),
+      // TODO: Handle this case.
+      MainChartType.bars => throw UnimplementedError(),
     };
   }
   

@@ -6,7 +6,7 @@ import 'package:invest_agent/model/charts_configuration.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import '../../model/multi_chart_config.dart';
+import '../../model/multi_chart_schema.dart';
 import '../../themes/app_themes.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_bellinger_band.dart';
@@ -129,6 +129,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       MainChartType.macd => OverlayMacd(data: widget.results.getMacd(MACDType.MACD_12_26)),
       MainChartType.volume => OverlayVolume(data: widget.results.getPriceData(widget.prefixDomain,  _chartController.visibleStart, _chartController.visibleEnd)),
       MainChartType.rsi => OverlayRsi(data: widget.results.getRsi()),
+      // TODO: Handle this case.
+      MainChartType.bars => throw UnimplementedError(),
     };
   }
 
@@ -167,7 +169,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       MainChartType.linePrice => widget.results.getMaxPrice(startDate, endDate),
       MainChartType.macd => widget.results.getMaxMACD(MACDType.MACD_12_26, startDate, endDate),
       MainChartType.volume => widget.results.getMaxVolume(startDate, endDate),
-      MainChartType.rsi => widget.results.getMaxRsi(startDate, endDate)
+      MainChartType.rsi => widget.results.getMaxRsi(startDate, endDate),
+      // TODO: Handle this case.
+      MainChartType.bars => throw UnimplementedError()
     };
   }
 
@@ -177,7 +181,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       MainChartType.linePrice => widget.results.getMinPrice(startDate, endDate),
       MainChartType.macd => widget.results.getMinMACD(MACDType.MACD_12_26, startDate, endDate),
       MainChartType.volume => widget.results.getMinVolume(startDate, endDate),
-      MainChartType.rsi => widget.results.getMinRsi(startDate, endDate)
+      MainChartType.rsi => widget.results.getMinRsi(startDate, endDate),
+      // TODO: Handle this case.
+      MainChartType.bars => throw UnimplementedError(),
     };
   }
 }

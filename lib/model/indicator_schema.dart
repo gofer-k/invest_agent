@@ -89,15 +89,18 @@ class Indicator extends Cache {
 
   @override
   factory Indicator.from(List<Object?> item) {
-    final jsonParameters = jsonDecode(item[3] as String);
-    return Indicator(
-      id: item[0] as int,
-      name: item[1] as String,
-      type: item[2] as String,
-      // parameters: item[3] as Map<String, dynamic>,
-      parameters: jsonParameters,
-      isEnabled: (item[4] as bool),
-    );
+    if (item.length < 5) {
+      final jsonParameters = jsonDecode(item[3] as String);
+      return Indicator(
+        id: item[0] as int,
+        name: item[1] as String,
+        type: item[2] as String,
+        // parameters: item[3] as Map<String, dynamic>,
+        parameters: jsonParameters,
+        isEnabled: (item[4] as bool),
+      );
+    }
+    return defaultIndicator();
   }
 
   @override
