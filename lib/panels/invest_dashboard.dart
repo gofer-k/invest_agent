@@ -19,8 +19,6 @@ import '../widgets/app_logo.dart';
 import '../widgets/utils/dropdownlist.dart';
 import '../widgets/utils/task_bar_icon.dart';
 import 'analysis_settings_panel.dart';
-import 'etf_settings_charts.dart';
-import 'request_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
 
@@ -140,20 +138,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                       tooltip: 'Analysis Settings',
                       color: activePanelIndex == PanelIndex.analysisSettings ? AppTheme.of(context).taskHighlightColor : null,
                       onPressed: () => _toggleVerticalPanel(PanelIndex.analysisSettings)),
-                  // TODO: remove below ones
-                  const Divider(height: 20, indent: 8, endIndent: 8),
-                  TaskBarIcon(
-                    icon: Icons.settings,
-                    tooltip: 'Request Settings',
-                    color: activePanelIndex == PanelIndex.request ? AppTheme.of(context).taskHighlightColor : null,
-                    onPressed: () => _toggleVerticalPanel(PanelIndex.request),
-                  ),
-                  TaskBarIcon(
-                    icon: Icons.update,
-                    tooltip: 'Results Settings',
-                    color: activePanelIndex == PanelIndex.results ? AppTheme.of(context).taskHighlightColor : null,
-                    onPressed: () => _toggleVerticalPanel(PanelIndex.results),
-                  ),
                 ],
                 overflowActions: [
                   ListTile(
@@ -225,13 +209,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   Widget _buildSettingsActivePanel() {
     switch (activePanelIndex) {
-      case PanelIndex.request:
-        return RequestSettingsPanel(onRunAnalysis: (AnalysisRequest request) => {});
-      case PanelIndex.results:
-        return EtfSettingsCharts(
-          configurationCharts: configurationCharts,
-          onConfigAnalysis: _handleConfigAnalysis,
-        );
       case PanelIndex.mainSettings:
         return const MainSettingsPanel();
       case PanelIndex.analysisSettings:
@@ -306,12 +283,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           : periods.first,
       choices: periods,
     );
-  }
-
-  Future<void> _handleConfigAnalysis(ChartsConfiguration config) async {
-    setState(() {
-      configurationCharts = config;
-    });
   }
 
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {

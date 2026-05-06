@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
-import '../model/multi_chart_config.dart';
+import '../model/multi_chart_schema.dart';
 import '../widgets/chart_config_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 

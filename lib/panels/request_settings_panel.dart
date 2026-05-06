@@ -1,6 +1,5 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:invest_agent/widgets/utils/rolling_list.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 import 'package:path/path.dart' as p;
 
@@ -112,77 +111,6 @@ class _RequestSettingsPanelState extends State<RequestSettingsPanel> {
             ],
           ),
         ),
-        Shrinkable(title: "Interval: ($selectedInterval)",
-          body: RollingList<IntervalType>(values: intervals, initialValue: intervals.first,
-            onChanged: (IntervalType v) => setState(() => selectedInterval = v))),
-        Shrinkable(title: "Rolling Windows",
-          body: Column(
-            children: [
-              Wrap(
-                spacing: 8,
-                children: rollingWindows
-                    .map((w) =>
-                    Chip(
-                      label: Text("$w"),
-                      onDeleted: () {
-                        setState(() => rollingWindows.remove(w));
-                      },
-                    ))
-                    .toList(),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: const InputDecoration(
-                        labelText: "Add rolling window",
-                      ),
-                      keyboardType: TextInputType.number,
-                      onSubmitted: (v) {
-                        final parsed = int.tryParse(v);
-                        if (parsed != null) {
-                          setState(() => rollingWindows.add(parsed));
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ]
-        )),
-        Shrinkable(title: "Technical Indicators",
-          body: Column(
-            children: [
-              Wrap(spacing: 8,
-                children: analysisIndicators.map((w) =>
-                    Chip(
-                      label: Text(w),
-                      onDeleted: () {
-                        setState(() => analysisIndicators.remove(w));
-                      },
-                    )).toList(),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                        controller: _indicatorController,
-                        decoration: const InputDecoration(labelText: "Add indicator"),
-                        keyboardType: TextInputType.name,
-                        onSubmitted: (indicator) {
-                          if (indicator.isNotEmpty) {
-                            setState(() => analysisIndicators.add(indicator));
-                            _indicatorController.clear();
-                          }
-
-                        }),
-                  ),
-                ],
-              ),
-            ],
-          )
-        ),
-        const SizedBox(height: 30),
         Center(
           widthFactor: 4.0,
           heightFactor: 2.0,
