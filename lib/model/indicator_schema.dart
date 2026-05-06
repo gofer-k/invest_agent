@@ -101,7 +101,7 @@ class Indicator extends Cache {
   }
 
   @override
-  Map<String, dynamic> toMap() => {
+  Map<String, dynamic> toMap() =>   {
     'id': id,
     'name': name,
     'type': type,
@@ -132,30 +132,6 @@ class Indicator extends Cache {
 
   bool isDefault() {
     return id == -1 && name == '';
-  }
-
-  List<Object?> decodeList(String key) {
-    return jsonDecode(parameters[key]);
-  }
-
-  List<num> decodeNumberedList(String key) {
-    final list = jsonDecode(parameters[key]);
-    if (list is List) {
-      return list.map((e) => e as num).toList();
-    }
-    return [];
-  }
-
-  List<String> decodeStringList(String key) {
-    final list = jsonDecode(parameters[key]);
-    if (list is List) {
-      return list.map((e) => e as String).toList();
-    }
-    return [];
-  }
-
-  void encodeList(String key, List<Object?> list) {
-    parameters[key] = jsonEncode(list);
   }
 
   bool isMainChart() {
