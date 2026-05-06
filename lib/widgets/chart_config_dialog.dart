@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/utils/dropdown.dart';
-import '../model/charts_configuration.dart';
-import '../model/multi_chart_config.dart';
+import '../model/multi_chart_schema.dart';
 
 void showConfigurationChart(
     BuildContext context, MultiChartConfig? chart,
@@ -25,17 +24,11 @@ class ChartConfigDialog extends StatefulWidget {
 }
 
 class _ChartConfigDialogState extends State<ChartConfigDialog> {
-  late String _multiTitle;
-  String get multiTitle => _multiTitle;
-  set multiTitle(String value) => _multiTitle = value;
+  late String multiTitle;
 
-  late MainChartType _selectedMainChart;
-  MainChartType get selectedMainChart => _selectedMainChart;
-  set selectedMainChart(MainChartType value) => _selectedMainChart = value;
+  late MainChartType selectedMainChart;
 
-  late List<SupplementChart> _selectedOverlayCharts;
-  List<SupplementChart> get selectedOverlayCharts => _selectedOverlayCharts;
-  set selectedOverlayCharts(List<SupplementChart> value) =>  _selectedOverlayCharts = value;
+  late List<SupplementChart> selectedOverlayCharts;
 
   late final TextEditingController controller;
   SupplementChart overlayChart = SupplementChart.sma;
@@ -123,17 +116,18 @@ class _ChartConfigDialogState extends State<ChartConfigDialog> {
         ElevatedButton(
           onPressed: () {
             multiTitle = controller.text;
-            final newChart = MultiChartConfig(title: multiTitle, mainChart: selectedMainChart,
-              overlayCharts: selectedOverlayCharts);
-            if (ChartsConfiguration.validate(newChart)) {
-              widget.onSave(newChart);
-              Navigator.of(context).pop();
-            }
-            else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Invalid chart configuration")),
-              );
-            }
+            // TODO: move to multi chart provider
+            // final newChart = MultiChartConfig(title: multiTitle, mainChart: selectedMainChart,
+            //   overlayCharts: selectedOverlayCharts, id: null);
+            // if (ChartsConfiguration.validate(newChart)) {
+            //   widget.onSave(newChart);
+            //   Navigator.of(context).pop();
+            // }
+            // else {
+            //   ScaffoldMessenger.of(context).showSnackBar(
+            //     const SnackBar(content: Text("Invalid chart configuration")),
+            //   );
+            // }
           },
           child: const Text("Save"),
         ),
