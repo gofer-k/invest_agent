@@ -35,7 +35,7 @@ enum ChartType {
   final String name;
 }
 
-class ChartConfig {
+class ChartConfig extends Cache {
   final int id;
   final bool mainChart;
   final bool visible;
@@ -50,7 +50,7 @@ class ChartConfig {
     this.visible = true,
     this.indicator,
     this.drawingData = const[]
-  });
+  }) : super.from([]);
 
   factory ChartConfig.from(List<Object?> item) {
     final jsonIndicator  = Indicator.from(item[4] as List<Object?>);
@@ -73,6 +73,17 @@ class ChartConfig {
     "indicator": indicator?.toMap() ?? {},
     "drawing_data": drawingData.map((e) => e.toMap()).toList(),
   };
+
+  @override
+  String toString() => drawingType.name;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ChartConfig && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
 }
 
 class MultiChartConfigSchema extends CacheSchema {
