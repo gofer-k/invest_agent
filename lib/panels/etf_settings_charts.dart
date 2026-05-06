@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
-import '../model/analysis_period.dart';
-import '../themes/app_themes.dart';
+import '../model/multi_chart_config.dart';
 import '../widgets/chart_config_dialog.dart';
-import '../widgets/utils/rolling_list.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class EtfSettingsCharts extends StatefulWidget {
@@ -16,18 +14,11 @@ class EtfSettingsCharts extends StatefulWidget {
 }
 
 class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
-  List<PeriodType> periods = PeriodType.values.toList();
-  late PeriodType _selectedPeriod;
-  PeriodType get selectedPeriod => _selectedPeriod;
-  set selectedPeriod(PeriodType value) {
-    _selectedPeriod = value;
-  }
-  late List<MultiChart> multiChart;
+  late List<MultiChartConfig> multiChart;
 
   @override
   void initState() {
     super.initState();
-    selectedPeriod = widget.configurationCharts.periodType;
     multiChart = List.from(widget.configurationCharts.multiCharts);
   }
   
@@ -37,11 +28,6 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Shrinkable(title: "Period: ($selectedPeriod)",
-            body: RollingList<PeriodType>(values: periods, initialValue: PeriodType.year,
-                onChanged: (PeriodType v) => setState(() => selectedPeriod = v))
-        ),
-        const SizedBox(height: 8),
         Row(mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
@@ -93,29 +79,10 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
                       )
                     ).toList(),
                   ),
-                // IconButton(icon: Icon(Icons.remove_outlined), onPressed: (){
-                //    setState(() {
-                //      multiChart.remove(chart);
-                //    });
-                // }),
               ],
             ),
           ),
-        const SizedBox(height: 30),
-        Center(
-          widthFactor: 4.0,
-          heightFactor: 2.0,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                side: BorderSide(width: 1.0, color: AppTheme.of(context).buttonOutlineColor?? Colors.deepPurpleAccent)),
-            onPressed: _updateAnalysis,
-            child: const Text("Update Analysis", style: TextStyle(fontSize: 20)),
-          ),
-        ),
       ],
     );
-  }
-  void _updateAnalysis() {
-    widget.onConfigAnalysis(ChartsConfiguration(periodType: selectedPeriod, multiCharts: multiChart));
   }
 }

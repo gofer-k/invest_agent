@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
+import '../model/analysis_period.dart';
 import '../model/asset_config.dart';
 import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
@@ -56,6 +57,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   var activePanelIndex = PanelIndex.notUsed;
   AssetConfig _selectedAsset = AssetConfig.defaultAsset();
   Indicator _selectedIndicator = Indicator.defaultIndicator();
+  PeriodType _selectedPeriod = PeriodType.year;
 
   @override
   void initState() {
@@ -103,6 +105,10 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                 _displayAssetsList(),
                 const SizedBox(width: 4,),
                 _displayIndicatorsList(),
+                const SizedBox(width: 4,),
+                _displayPeriodList(),
+              ],
+              overflowActions: [
                 VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
                 FittedBox(
                   fit: BoxFit.fitWidth,
@@ -191,7 +197,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                             ],
                           ),
                         ),
-                        Expanded(child: _buildActivePanel()),
+                        Expanded(child: _buildSettingsActivePanel()),
                       ],
                     ),
                   ),
@@ -217,7 +223,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     });
   }
 
-  Widget _buildActivePanel() {
+  Widget _buildSettingsActivePanel() {
     switch (activePanelIndex) {
       case PanelIndex.request:
         return RequestSettingsPanel(onRunAnalysis: (AnalysisRequest request) => {});
@@ -242,6 +248,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (AssetConfig asset) {
         setState(() {
+          // TODO: display selected asset price
           _selectedAsset = asset;
           if (!_selectedAsset.isDefault()) {
             ref.read(priceControllerProvider().notifier).fetchOne(
@@ -279,6 +286,25 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           ? _selectedIndicator
           : (indicators.isNotEmpty ? indicators.first : _selectedIndicator),
         choices: indicators,
+    );
+  }
+
+  Widget _displayPeriodList() {
+    final periods = PeriodType.values.toList();
+    return DropdownList<PeriodType>(
+      textStyle: Theme.of(context).textTheme.labelLarge,
+      backgroundColor:  Colors.grey.shade600.withAlpha(128),
+      onSelected: (PeriodType period) {
+        setState(() {
+          _selectedPeriod = period;
+            //TODO:: change charts period
+          // widget.onConfigAnalysis(ChartsConfiguration(periodType: selectedPeriod, multiCharts: multiChart));
+        });
+      },
+      choiceType: periods.contains(_selectedPeriod)
+          ? _selectedPeriod
+          : periods.first,
+      choices: periods,
     );
   }
 
