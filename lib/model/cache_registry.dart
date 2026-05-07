@@ -18,7 +18,6 @@ class CacheRegistry {
     IndexPrice: (item) => IndexPrice.from(item),
     AnalysisEntry: (item) => AnalysisEntry.from(item),
     Indicator: (item) => Indicator.from(item),
-    ChartConfig: (item) => ChartConfig.from(item),
     MultiChartConfig: (item) => MultiChartConfig.from(item),
   };
 

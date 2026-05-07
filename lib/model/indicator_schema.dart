@@ -89,18 +89,27 @@ class Indicator extends Cache {
 
   @override
   factory Indicator.from(List<Object?> item) {
-    if (item.length < 5) {
+    if (item.length >= 5) {
       final jsonParameters = jsonDecode(item[3] as String);
       return Indicator(
         id: item[0] as int,
         name: item[1] as String,
         type: item[2] as String,
-        // parameters: item[3] as Map<String, dynamic>,
         parameters: jsonParameters,
         isEnabled: (item[4] as bool),
       );
     }
     return defaultIndicator();
+  }
+
+  factory Indicator.fromMap(Map<String, dynamic> item) {
+    return Indicator(
+      id: item['id'] as int? ?? -1,
+      name: item['name'] as String? ?? '',
+      type: item['type'] as String? ?? '',
+      parameters: item['parameters'] as Map<String, dynamic>? ?? {},
+      isEnabled: item['is_enabled'] as bool? ?? true,
+    );
   }
 
   @override
@@ -140,6 +149,4 @@ class Indicator extends Cache {
   bool isMainChart() {
     return parameters["main_chart"] ?? false;
   }
-
-
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'cache_schema.dart';
 import 'drawing_schema.dart';
 import 'indicator_schema.dart';
@@ -52,7 +54,12 @@ class ChartConfig extends Cache {
 
   @override
   factory ChartConfig.from(Map<String, dynamic> item) {
-    final jsonIndicator  = item['indicator'] ?? Indicator.from(item['indicator'] as List<Object?>);
+    final indicatorData = item['indicator'];
+    Indicator? indicator;
+    if (indicatorData is Map<String, dynamic> && indicatorData.isNotEmpty) {
+      indicator = Indicator.fromMap(indicatorData);
+    }
+
     final drawingData = (item['drawing_data'] as List<Object?>).map((e) {
       final type = DrawingFeature.from(e as Map<String, dynamic>);
       if (type == null) return null;
@@ -70,7 +77,7 @@ class ChartConfig extends Cache {
       mainChart: item["main_chart"] as bool,
       drawingType: ChartType.values.firstWhere((e) => e.name == item["drawing_type"] as String),
       visible: item["visible"] as bool,
-      indicator: jsonIndicator.isDefault() ? null : jsonIndicator,
+      indicator: (indicator?.isDefault() ?? true) ? null : indicator,
       drawingData: drawingData,
     );
   }
@@ -115,7 +122,7 @@ class MultiChartConfigSchema extends CacheSchema {
     CREATE TABLE IF NOT EXISTS $cacheName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       title TEXT NOT NULL UNIQUE,
-      charts TEXT NOT NULL, -- JSON string
+      charts TEXT, -- JSON string
     );
   ''';
 
@@ -142,7 +149,7 @@ class MultiChartConfigSchema extends CacheSchema {
       VALUES (
       nextval('$sequenceName'),
       '${multiChart.title}',
-      '${multiChart.charts.map((e) => e.toMap()).toList()}',
+      '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       ) ON CONFLICT(title) DO UPDATE SET
           charts = excluded.charts;
     ''';
@@ -154,7 +161,7 @@ class MultiChartConfigSchema extends CacheSchema {
     return '''
       UPDATE $cacheName
       SET title = '${multiChart.title}',
-          charts = '${multiChart.charts.map((e) => e.toMap()).toList()}',
+          charts = '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       WHERE id = ${multiChart.id};
     ''';
   }
@@ -190,11 +197,18 @@ class MultiChartConfig extends Cache {
 
   @override
   factory MultiChartConfig.from(List<Object?> item) {
-    return MultiChartConfig(
-      id: item[0] as int,
-      title: item[1] as String,
-      charts: (item[2] as List<Object?>).map((e) => ChartConfig.from(e as Map<String, dynamic> )).toList(),
-    );
+    if (item.length < 4) {
+      final List<dynamic> jsonCharts = jsonDecode(item[2] as String);
+      return MultiChartConfig(
+        id: item[0] as int,
+        title: item[1] as String,
+        charts: jsonCharts.map((e) {
+          final map = e as Map<String, dynamic>;
+          return ChartConfig.from(map);
+        }).toList()
+      );
+    }
+    return defaultMultiChart();
   }
 
   @override

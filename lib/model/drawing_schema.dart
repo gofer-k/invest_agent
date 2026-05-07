@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -66,7 +67,7 @@ class LineFeature extends DrawingFeature {
       width: width ?? this.width,
       style: style ?? this.style,
       begin: begin ?? this.begin,
-      end: end ?? this.end,
+      end: end ?? this.end,);
   }
 
   @override
@@ -75,18 +76,21 @@ class LineFeature extends DrawingFeature {
     "color": color.toARGB32(),
     "width": width,
     "style": style.name,
-    "begin": begin.toMap(),
-    "end": end.toMap(),
+    "begin": jsonEncode(begin.toMap()),
+    "end": jsonEncode(end.toMap()),
   };
 
   @override
   factory LineFeature.from(Map<String, dynamic> item) {
+    final jsonBegin = jsonDecode(item['begin'] as String);
+    final jsonEnd = jsonDecode(item['end'] as String);
+
     return LineFeature(
-      type: item['type'] as DrawFeatureType,
+      type: DrawFeatureType.line,
       color: Color(item['color'] as int),
       width: item['width'] as double,
-      begin: item['begin'] as Point,
-      end: item['end'] as Point,
+      begin: Point(jsonBegin['x'] as num, jsonBegin['y'] as num),
+      end: Point(jsonEnd['x'] as num, jsonEnd['y'] as num),
     );
   }
 
@@ -147,19 +151,22 @@ class RectangleFeature extends DrawingFeature {
       "fillColor": fillColor.toARGB32(),
       "width": width,
       "style": style.name,
-      "leftTop": leftTop.toMap(),
-      "rightBottom": rightBottom.toMap(),
+      "leftTop": jsonEncode(leftTop.toMap()),
+      "rightBottom": jsonEncode(rightBottom.toMap()),
     };
 
   @override
   factory RectangleFeature.from(Map<String, dynamic> item) {
+    final jsonLeftTop = jsonDecode(item['leftTop'] as String);
+    final jsonRightBottom = jsonDecode(item['rightBottom'] as String);
+
     return RectangleFeature(
-      type: item['type'] as DrawFeatureType,
+      type: DrawFeatureType.rectangle,
       strokeColor: Color(item['strokeColor'] as int),
       fillColor: Color(item['fillColor'] as int),
       width: item['width'] as double,
-      leftTop: item['leftTop'] as Point,
-      rightBottom: item['rightBottom'] as Point,
+      leftTop: Point(jsonLeftTop['x'] as num, jsonLeftTop['y'] as num),
+      rightBottom: Point(jsonRightBottom['x'] as num, jsonRightBottom['y'] as num),
     );
   }
 
@@ -204,16 +211,17 @@ class LabelFeature extends DrawingFeature {
     "type": type.name,
     "text": text,
     "color": color.toARGB32(),
-    "position": position.toMap(),
+    "position": jsonEncode(position.toMap()),
   };
 
   @override
   factory LabelFeature.from(Map<String, dynamic> item) {
+    final jsonPosition = jsonDecode(item['position'] as String);
     return LabelFeature(
-      type: item['type'] as DrawFeatureType,
+      type: DrawFeatureType.label,
       text: item['text'] as String,
       color: Color(item['color'] as int),
-      position: item['position'] as Point,
+      position: Point(jsonPosition['x'] as num, jsonPosition['y'] as num),
     );
   }
 

@@ -90,7 +90,7 @@ class MultiChartNotifier extends _$MultiChartNotifier {
 }
 
 @riverpod
-List<MultiChartConfig> sortedMultiCharts(Ref ref) {
-  final charts = ref.watch(multiChartNotifierProvider().select((s) => s.getItems()));
+List<MultiChartConfig> sortedMultiCharts(Ref ref, CacheKeyType? type) {
+  final charts = ref.watch(multiChartProvider(type).select((s) => s.getItems()));
   return charts.toList()..sort((a, b) => a.title.compareTo(b.title));
 }
