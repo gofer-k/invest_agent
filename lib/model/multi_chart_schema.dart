@@ -36,7 +36,6 @@ enum ChartType {
 }
 
 class ChartConfig extends Cache {
-  final int id;
   final bool mainChart;
   final bool visible;
   final ChartType drawingType;
@@ -44,7 +43,6 @@ class ChartConfig extends Cache {
   final List<DrawingFeature> drawingData;
 
   ChartConfig({
-    required this.id,
     required this.mainChart,
     required this.drawingType,
     this.visible = true,
@@ -52,21 +50,33 @@ class ChartConfig extends Cache {
     this.drawingData = const[]
   }) : super.from([]);
 
-  factory ChartConfig.from(List<Object?> item) {
-    final jsonIndicator  = Indicator.from(item[4] as List<Object?>);
-    final drawingData = (item[5] as List<Object?>).map((e) => DrawingFeature.from(e as List<Object?>)).toList();
+  @override
+  factory ChartConfig.from(Map<String, dynamic> item) {
+    final jsonIndicator  = item['indicator'] ?? Indicator.from(item['indicator'] as List<Object?>);
+    final drawingData = (item['drawing_data'] as List<Object?>).map((e) {
+      final type = DrawingFeature.from(e as Map<String, dynamic>);
+      if (type == null) return null;
+      switch (type) {
+        case DrawFeatureType.line:
+          return LineFeature.from(e);
+        case DrawFeatureType.rectangle:
+          return RectangleFeature.from(e);
+        case DrawFeatureType.label:
+          return LabelFeature.from(e);
+      }
+    }).whereType<DrawingFeature>().toList();
+
     return ChartConfig(
-      id: item[0] as int,
-      mainChart: item[1] as bool,
-      drawingType: ChartType.values.firstWhere((e) => e.name == item[2] as String),
-      visible: item[3] as bool,
+      mainChart: item["main_chart"] as bool,
+      drawingType: ChartType.values.firstWhere((e) => e.name == item["drawing_type"] as String),
+      visible: item["visible"] as bool,
       indicator: jsonIndicator.isDefault() ? null : jsonIndicator,
       drawingData: drawingData,
     );
   }
 
+  @override
   Map<String, dynamic> toMap() => {
-    "id": id,
     "main_chart": mainChart,
     "drawing_type": drawingType.name,
     "visible": visible,
@@ -84,6 +94,15 @@ class ChartConfig extends Cache {
 
   @override
   int get hashCode => runtimeType.hashCode;
+
+  ChartConfig copyWith(bool? mainChart, ChartType? drawingType, bool? visible, Indicator? indicator, List<DrawingFeature>? drawingData) {
+    return ChartConfig(
+      mainChart: mainChart ?? this.mainChart,
+      drawingType: drawingType ?? this.drawingType,
+      visible: visible ?? this.visible,
+      indicator: indicator ?? this.indicator,
+      drawingData: drawingData ?? this.drawingData,);
+  }
 }
 
 class MultiChartConfigSchema extends CacheSchema {
@@ -174,7 +193,7 @@ class MultiChartConfig extends Cache {
     return MultiChartConfig(
       id: item[0] as int,
       title: item[1] as String,
-      charts: (item[2] as List<Object?>).map((e) => ChartConfig.from(e as List<Object?>)).toList(),
+      charts: (item[2] as List<Object?>).map((e) => ChartConfig.from(e as Map<String, dynamic> )).toList(),
     );
   }
 
@@ -189,4 +208,12 @@ class MultiChartConfig extends Cache {
   String toString() => title;
 
   static MultiChartConfig defaultMultiChart() => MultiChartConfig(id: -1, title: '', charts: []);
+
+  MultiChartConfig copyWith(int? id, String? title, List<ChartConfig>? charts) {
+    return MultiChartConfig(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      charts: charts ?? this.charts,
+    );
+  }
 }

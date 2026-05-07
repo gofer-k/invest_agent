@@ -1,6 +1,6 @@
 import 'package:invest_agent/model/analysis_period.dart';
 
-import 'multi_chart_config.dart';
+import 'multi_chart_schema.dart';
 
 class ChartsConfiguration {
   final List<MultiChartConfig> multiCharts;
@@ -22,7 +22,7 @@ class ChartsConfiguration {
   };
 
   ChartsConfiguration({this.periodType = PeriodType.year,
-    this.multiCharts = const [MultiChartConfig(title: "Price")]});
+    this.multiCharts = const []});
 
   static bool validate(MultiChartConfig chart) {
     final availableSuppCharts = _profileRules[chart.mainChart];
