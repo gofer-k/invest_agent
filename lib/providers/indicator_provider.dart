@@ -42,11 +42,11 @@ class IndicatorNotifier extends _$IndicatorNotifier {
       data: (path) {
         _dbPath = path;
         final cacheAsync = ref.watch(cacheProvider<Indicator, IndicatorSchema>(_schema, path));
-        return IndicatorNotifierState(cache: cacheAsync.value ?? const []);
+        return IndicatorNotifierState(cache: cacheAsync.value ?? [Indicator.defaultIndicator()]);
       },
       orElse: () {
         _dbPath = "";
-        return const IndicatorNotifierState();
+        return IndicatorNotifierState(cache: [Indicator.defaultIndicator()]);
       },
     );
   }

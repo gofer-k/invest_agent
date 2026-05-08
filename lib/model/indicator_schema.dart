@@ -127,8 +127,8 @@ class Indicator extends Cache {
   static Indicator defaultIndicator() {
     return Indicator(
       id: -1,
-      name: '',
-      type: '',
+      name: '-',
+      type: '-',
       parameters: {},
       isEnabled: false,
     );
@@ -143,7 +143,7 @@ class Indicator extends Cache {
   );
 
   bool isDefault() {
-    return id == -1 && name == '';
+    return id == -1 && name == '-';
   }
 
   bool isMainChart() {

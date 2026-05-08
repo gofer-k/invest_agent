@@ -64,7 +64,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to the provider to update the selected asset when data is first loaded
     ref.listen<List<AssetConfig>>(sortedAssetsProvider, (previous, next) {
       if (_selectedAsset.isDefault() && next.isNotEmpty) {
         setState(() {
@@ -72,9 +71,8 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         });
       }
     });
-    //TODO: Fix display of indicators
     ref.listen<List<Indicator>>(sortedIndicatorsProvider, (previous, next) {
-      if (_selectedIndicator.isDefault() && next.isNotEmpty) {
+      if (!_selectedIndicator.isDefault() && next.isNotEmpty) {
         setState(() {
           _selectedIndicator = next.first;
         });
@@ -243,6 +241,8 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   Widget _displayIndicatorsList() {
     final indicators = ref.watch(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
+    indicators.add(Indicator.defaultIndicator());
+
     return DropdownList<Indicator>(
       textStyle: Theme.of(context).textTheme.labelLarge,
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
