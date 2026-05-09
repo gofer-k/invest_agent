@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/analysis_respond.dart';
+import '../../model/index_price.dart';
 
 class OverlayVolume extends OverlayChart {
-  final List<PriceData> data;
+  final List<IndexPrice> data;
   final Color upVolumeColor;
   final Color downVolumeColor;
   final double barWidth;

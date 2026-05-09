@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:math' hide log;
 
 import 'analysis_period.dart';
+import 'index_price.dart';
 
 class BaseIndicatorValue {
   final DateTime dateTime;
@@ -367,25 +368,25 @@ class CandleStickItem extends BaseIndicatorValue {
   }
 }
 
-class PriceData extends BaseIndicatorValue {
-  final double openPrice;
-  final double closePrice;
-  final double highPrice;
-  final double lowPrice;
-  final double volume;
-  final double volumeZscore;
-
-  PriceData({required super.dateTime,
-    required this.openPrice,
-    required this.closePrice,
-    required this.highPrice,
-    required this.lowPrice,
-    required this.volume,
-    required this.volumeZscore});
-}
+// class PriceData extends BaseIndicatorValue {
+//   final double openPrice;
+//   final double closePrice;
+//   final double highPrice;
+//   final double lowPrice;
+//   final double volume;
+//   final double volumeZscore;
+//
+//   PriceData({required super.dateTime,
+//     required this.openPrice,
+//     required this.closePrice,
+//     required this.highPrice,
+//     required this.lowPrice,
+//     required this.volume,
+//     required this.volumeZscore});
+// }
 
 class AnalysisRespond {
-  final List<PriceData> priceData;
+  final List<IndexPrice> priceData;
   final List<Indicators> indicators;
   final List<CandleStickItem> candles;
   double priceRange = 0.0;
@@ -394,6 +395,20 @@ class AnalysisRespond {
   PeriodType period;
 
   AnalysisRespond(this.indicators, this.candles, this.priceData, this.period);
+
+  AnalysisRespond copyWith({
+    PeriodType? period,
+    List<IndexPrice>? priceData,
+    List<Indicators>? indicators,
+    List<CandleStickItem>? candles,
+    double? priceRange, double? maxPrice, double? minPrice}) {
+    return AnalysisRespond(
+      indicators ?? this.indicators,
+      candles ?? this.candles,
+      priceData ?? this.priceData,
+      period ?? this.period,
+    );
+  }
 
   void changePeriod(PeriodType period) {
     this.period = period;
@@ -476,15 +491,15 @@ class AnalysisRespond {
     return band;
   }
 
-  Future<List<PriceData>> getRollingVolume(int rollingWindow) async {
+  Future<List<IndexPrice>> getRollingVolume(int rollingWindow) async {
     return priceData.sublist(rollingWindow);
   }
 
-  List<PriceData> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
+  List<IndexPrice> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
     return priceData.sublist(prefixWindow);
   }
 
-  List<PriceData> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
+  List<IndexPrice> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
     final priceDataFiltered =
     priceData.where(
             (element) => element.dateTime.isAfter(startDate)
@@ -567,7 +582,7 @@ class AnalysisRespond {
   static AnalysisRespond? fromJsonSync(Map<String, dynamic> jsonMap) {
     final indicators = <Indicators>[];
     final candles = <CandleStickItem>[];
-    final List<PriceData> priceData = [];
+    final List<IndexPrice> priceData = [];
 
     final responseData = jsonMap["respond"] as Map<String, dynamic>;
     responseData.forEach((key, value) {
@@ -579,16 +594,17 @@ class AnalysisRespond {
         final highPrice = parseNum(metaData["High"]);
         final lowPrice = parseNum(metaData["Low"]);
         final volume = parseNum(metaData["Volume"]);
-        final volZscore = parseNum(metaData["VolumeZscore"]);
 
         if (openPrice != null && closePrice != null && highPrice != null && lowPrice != null && volume != null) {
-          priceData.add(PriceData(dateTime: dateTime,
+          priceData.add(IndexPrice(
+            id: -1,
+            assetId: -1,
+            dateTime: dateTime,
             openPrice: openPrice,
             closePrice: closePrice,
             highPrice: highPrice,
             lowPrice: lowPrice,
             volume: volume,
-            volumeZscore: volZscore ?? 0.0
           ));
         }
 
@@ -629,7 +645,7 @@ class AnalysisRespond {
             "High": priceData[i].highPrice,
             "Low": priceData[i].lowPrice,
             "Volume": priceData[i].volume,
-            "VolumeZscore": priceData[i].volumeZscore,
+            "VolumeZscore": [],
           },
           "indicators": indicators[i].toJson(),
           "candlestick": candles[i].toJson(),

@@ -2,18 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import '../../../model/analysis_request.dart';
 import '../../../model/analysis_respond.dart';
 import '../../../utils/chart_utils.dart';
 
 class ChartPainter extends CustomPainter {
   final TimeController controller;
-  final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overlays;
   final double widthSideLabels;
 
-  ChartPainter({required this.controller, required this.analysisRequest, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
+  ChartPainter({required this.controller, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -70,7 +68,6 @@ class ChartPainter extends CustomPainter {
   bool shouldRepaint(covariant ChartPainter oldDelegate) {
     return oldDelegate.controller != controller ||
         oldDelegate.results != results ||
-        oldDelegate.analysisRequest != analysisRequest ||
         oldDelegate.overlays != overlays;
   }
 }

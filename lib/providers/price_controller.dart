@@ -271,3 +271,13 @@ class PriceController extends _$PriceController {
 Map<int, String> assetPriceDetails(Ref ref, [CacheKeyType? type, bool? keepAlive]) {
   return ref.watch(priceControllerProvider(type, keepAlive).select((s) => s.assetDetails));
 }
+
+@riverpod
+Future<List<IndexPrice>> assetPrices(Ref ref, int assetId, [DateTime? endTime]) async {
+  final notifier = ref.watch(priceControllerProvider().notifier);
+
+  final schema = IndexPriceSchema();
+  final asset = AssetConfig.of(id: assetId);
+  final beginDate = await notifier.oldestDate(schema, asset);
+  return  await notifier.fetchDateRange(schema, asset, beginDate, endTime ?? DateTime.now());
+}

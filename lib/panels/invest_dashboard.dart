@@ -9,7 +9,6 @@ import '../model/charts_configuration.dart';
 import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 
-import '../model/index_price.dart';
 import '../model/indicator_schema.dart';
 import '../providers/indicator_provider.dart';
 import '../providers/load_database_provider.dart';
@@ -188,7 +187,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
               // MAIN ANALYSIS PANEL
               Expanded(
                 flex: 4,
-                child: _buildAnalysisPanel(),
+                child: _buildAnalysisPanel(ref),
               ),
             ],
         ),
@@ -223,15 +222,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (AssetConfig asset) {
         setState(() {
-          // TODO: display selected asset price
           _selectedAsset = asset;
-          if (!_selectedAsset.isDefault()) {
-            ref.read(priceControllerProvider().notifier).fetchOne(
-                IndexPriceSchema(),
-                IndexPrice.of(
-                  assetId: _selectedAsset.id,
-                  dateTime: DateTime.now()));
-          }
         });
       },
       choiceType: _selectedAsset, 
@@ -272,11 +263,8 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       textStyle: Theme.of(context).textTheme.labelLarge,
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (PeriodType period) {
-        setState(() {
-          _selectedPeriod = period;
-            //TODO:: change charts period
-          // widget.onConfigAnalysis(ChartsConfiguration(periodType: selectedPeriod, multiCharts: multiChart));
-        });
+        if (_selectedPeriod == period) return;
+        setState(() =>  _selectedPeriod = period);
       },
       choiceType: periods.contains(_selectedPeriod)
           ? _selectedPeriod
@@ -293,43 +281,71 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   }
 
   // Build the analysis panel UI
-  Widget _buildAnalysisPanel() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (errorMessage != null) {
-      return Center(
-        child: Text(
-          "Error: $errorMessage",
-          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ),
+  Widget _buildAnalysisPanel(WidgetRef ref) {
+    if (!_selectedAsset.isDefault()) {
+      final assetPriceAsync = ref.watch(assetPricesProvider(_selectedAsset.id));
+      return assetPriceAsync.when(
+        data: (priceData) {
+          if (priceData.isEmpty) {
+            return const Center(child: Text("No data available"));
+          }
+          return LayoutBuilder(builder: (context, constraints) {
+            return MultiChartView(
+              chartTitle: [_selectedAsset.symbol],
+              results: AnalysisRespond([], [], priceData, _selectedPeriod),
+              chartConfig: configurationCharts,
+              chartHeight: constraints.maxHeight,
+              prefixDomain: _selectedIndicator.isDefault() ? 0 : 20);
+            }
+          );
+        },
+        error: (error, stackTrace) {
+          return Center(
+            child: Text("Error: $error",
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator())
       );
     }
+    return const Center(child: Text("Run analysis to see settings"));
 
-    final AnalysisRespond? currentResult = analysisResult;
-    if (currentResult == null) {
-      return const Center(
-        child: Text("Run analysis to see results"),
-      );
-    }
-    final currentRequest = analysisRequest;
-    if (analysisRequest == null) {
-      return const Center(
-        child: Text("Run analysis to see settings"),
-      );
-    }
+    // if (isLoading) {
+    //   return const Center(child: CircularProgressIndicator());
+    // }
+    // if (errorMessage != null) {
+    //   return Center(
+    //     child: Text(
+    //       "Error: $errorMessage",
+    //       style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+    //     ),
+    //   );
+    // }
 
-    return LayoutBuilder(builder: (context, constraints) {
-      if (currentRequest != null) {
-        return MultiChartView(
-            chartTitle: [currentRequest.symbolTicker],
-            analysisRequest: currentRequest,
-            results: currentResult,
-            chartConfig: configurationCharts,
-            chartHeight: constraints.maxHeight);
-        }
-        return const Center(child: Text("No analysis to see results"));
-      }
-    );
+    // final AnalysisRespond? currentResult = analysisResult;
+    // if (currentResult == null) {
+    //   return const Center(
+    //     child: Text("Run analysis to see results"),
+    //   );
+    // }
+    // final currentRequest = analysisRequest;
+    // if (analysisRequest == null) {
+    //   return const Center(
+    //     child: Text("Run analysis to see settings"),
+    //   );
+    // }
+
+    // return LayoutBuilder(builder: (context, constraints) {
+    //   if (currentRequest != null) {
+    //     return MultiChartView(
+    //         chartTitle: [currentRequest.symbolTicker],
+    //         analysisRequest: currentRequest,
+    //         results: currentResult,
+    //         chartConfig: configurationCharts,
+    //         chartHeight: constraints.maxHeight);
+    //     }
+    //     return const Center(child: Text("No analysis to see results"));
+    //   }
   }
 }

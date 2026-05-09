@@ -106,6 +106,18 @@ class AssetConfig extends Cache{
 
   bool isDefault() => id == -1;
 
+  AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock) {
+    return AssetConfig(
+      id: id ?? this.id,
+      symbol: symbol ?? this.symbol,
+      currency: currency ?? this.currency,
+      stockExchange: stock ?? stockExchange);
+  }
+
+  factory AssetConfig.of({required int id}) {
+    return AssetConfig(id: id, symbol: '', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar);
+  }
+
   @override
   String toString() => symbol;
 
@@ -149,4 +161,5 @@ class AssetConfig extends Cache{
 
   @override
   int get hashCode => id.hashCode ^ symbol.hashCode;
+
 }

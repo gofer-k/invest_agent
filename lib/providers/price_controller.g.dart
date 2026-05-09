@@ -188,3 +188,82 @@ final class AssetPriceDetailsFamily extends $Family
   @override
   String toString() => r'assetPriceDetailsProvider';
 }
+
+@ProviderFor(assetPrices)
+final assetPricesProvider = AssetPricesFamily._();
+
+final class AssetPricesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<IndexPrice>>,
+          List<IndexPrice>,
+          FutureOr<List<IndexPrice>>
+        >
+    with $FutureModifier<List<IndexPrice>>, $FutureProvider<List<IndexPrice>> {
+  AssetPricesProvider._({
+    required AssetPricesFamily super.from,
+    required (int, DateTime?) super.argument,
+  }) : super(
+         retry: null,
+         name: r'assetPricesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$assetPricesHash();
+
+  @override
+  String toString() {
+    return r'assetPricesProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<IndexPrice>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<IndexPrice>> create(Ref ref) {
+    final argument = this.argument as (int, DateTime?);
+    return assetPrices(ref, argument.$1, argument.$2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AssetPricesProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$assetPricesHash() => r'd8024a2f48986e896d8c0ad3ff9bdeb0209f70ae';
+
+final class AssetPricesFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<IndexPrice>>,
+          (int, DateTime?)
+        > {
+  AssetPricesFamily._()
+    : super(
+        retry: null,
+        name: r'assetPricesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AssetPricesProvider call(int assetId, [DateTime? endTime]) =>
+      AssetPricesProvider._(argument: (assetId, endTime), from: this);
+
+  @override
+  String toString() => r'assetPricesProvider';
+}

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/index_price.dart';
+
 class OverlayOBV extends OverlayChart {
-  final List<PriceData> data;
+  final List<IndexPrice> data;
   final Color lineColor;
   final double lineWidth;
 

@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/axis_label.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
 import 'package:invest_agent/widgets/charts/overlay_bellinger_band.dart';
@@ -20,18 +19,18 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 import 'package:invest_agent/widgets/charts/controllers/crosshair_controller.dart';
 import 'package:invest_agent/widgets/utils/tooltip_overlay.dart';
 import '../../model/analysis_respond.dart';
+import '../../model/index_price.dart';
 import 'painters/bottom_axis_painter.dart';
 
 class SyncChart extends ConsumerStatefulWidget {
   final TimeController controller;
   final CrosshairController? crosshairController;
-  final AnalysisRequest analysisRequest;
   final AnalysisRespond results;
   final List<OverlayChart> overLayCharts;
   final double Function(DateTime? startDate, DateTime? endDate) minFunc;
   final double Function(DateTime? startDate, DateTime? endDate) maxFunc;
   const SyncChart({super.key, required this.controller, this.crosshairController,
-    required this.analysisRequest, required this.results,
+    required this.results,
     this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
 
   @override
@@ -116,7 +115,6 @@ class _SyncChartState extends ConsumerState<SyncChart> {
                             size: Size(chartSpace.width, chartSpace.height),
                               painter: ChartPainter(
                                 controller: widget.controller,
-                                analysisRequest: widget.analysisRequest,
                                 results: widget.results,
                                 overlays: widget.overLayCharts,
                                 widthSideLabels: sideLabelsWidth
@@ -229,7 +227,7 @@ class _SyncChartState extends ConsumerState<SyncChart> {
               TooltipItem(
                   overlayType: OverlayType.priceLine,
                   time: snappedItem.dateTime,
-                  value: (snappedItem as PriceData).closePrice,
+                  value: (snappedItem as IndexPrice).closePrice,
                   extras: {
                     "open": snappedItem.openPrice,
                     "high": snappedItem.highPrice,
@@ -246,7 +244,7 @@ class _SyncChartState extends ConsumerState<SyncChart> {
               TooltipItem(
                   overlayType: OverlayType.volume,
                   time: snappedItem.dateTime,
-                  value: (snappedItem as PriceData).volume),
+                  value: (snappedItem as IndexPrice).volume),
           OverlayType.tooltipMarker => throw UnimplementedError(),
         };
 

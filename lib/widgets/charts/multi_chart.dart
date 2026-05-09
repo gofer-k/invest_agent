@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
@@ -22,7 +21,6 @@ import 'overlay_volume.dart';
 
 class MultiChartView extends ConsumerStatefulWidget {
   final List<String> chartTitle;
-  final AnalysisRequest analysisRequest;
   final ChartsConfiguration chartConfig;
   final AnalysisRespond results;
   final double chartHeight;
@@ -33,7 +31,6 @@ class MultiChartView extends ConsumerStatefulWidget {
     super.key,
     required this.chartTitle,
     required this.chartConfig,
-    required this.analysisRequest,
     required this.results,
     required this.chartHeight,
     this.showCrosshair = true,
@@ -73,8 +70,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   void didUpdateWidget(MultiChartView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Check if the analysisRequest has changed.
-    if (widget.analysisRequest != oldWidget.analysisRequest) {
+    if (widget.chartConfig != oldWidget.chartConfig) {
       // Re-initialize the controller with the new data.
       _chartController.dispose();
       _initializeControllers();
@@ -106,7 +102,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     return SyncChart(
       controller: _chartController,
       crosshairController: _crosshairController,
-      analysisRequest: widget.analysisRequest,
       results: widget.results,
       minFunc: (startDate, endDate) => _getMinValue(chart.mainChart, _chartController.visibleStart, _chartController.visibleEnd),
       maxFunc: (startDate, endDate) => _getMaxPrice(chart.mainChart, _chartController.visibleStart, _chartController.visibleEnd),

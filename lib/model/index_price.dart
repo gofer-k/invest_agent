@@ -1,6 +1,8 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
+import 'analysis_respond.dart';
+
 class IndexPriceSchema implements CacheSchema {
   static const String cacheName = "price";
   static const String cacheSequenceName = "price_id_sequence";
@@ -139,25 +141,27 @@ class IndexPriceSchema implements CacheSchema {
   String get allAssetDetails => 'SELECT meta_id, MIN(date), MAX(date), COUNT(*) FROM $cacheName GROUP BY meta_id;';
 }
 
-class IndexPrice extends Cache {
+class IndexPrice implements Cache, BaseIndicatorValue {
   final int id;
   final int assetId;
-  final DateTime dateTime;
   final double openPrice;
   final double closePrice;
   final double highPrice;
   final double lowPrice;
   final double volume;
 
+  final DateTime _dateTime;
+  @override
+  DateTime get dateTime => _dateTime;
+
   IndexPrice({
     required this.id,
     required this.assetId,
-    required this.dateTime,
     required this.openPrice,
     required this.closePrice,
     required this.highPrice,
     required this.lowPrice,
-    required this.volume}) : super.from([]);
+    required this.volume, required DateTime dateTime}) : _dateTime = dateTime;
 
   @override
   String toString() {
@@ -177,7 +181,9 @@ class IndexPrice extends Cache {
       } else {
         dateTime = DateTime.parse(item[2].toString());
       }
-      
+
+      final jsonVolume = item[7] == null ? 0.0 : item[7] as num;
+
       return IndexPrice(
         id: (item[0] as num).toInt(),
         assetId: (item[1] as num).toInt(),
@@ -186,7 +192,7 @@ class IndexPrice extends Cache {
         highPrice: (item[4] as num).toDouble(),
         lowPrice: (item[5] as num).toDouble(),
         closePrice: (item[6] as num).toDouble(),
-        volume: (item[7] as num).toDouble(),
+        volume: jsonVolume.toDouble(),
       );
     }
     catch (e) {
