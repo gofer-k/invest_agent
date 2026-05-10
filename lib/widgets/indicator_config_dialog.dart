@@ -64,7 +64,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                   Switch(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     value: parameters["main_chart"] ?? false,
-                    onChanged: (bool value) => setState(() => parameters["main_chart"] = value)),
+                    onChanged: (bool value) => setState(() => parameters[Indicator.mainChart] = value)),
                   Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
                 ]
               ),
@@ -187,51 +187,4 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
       },
     );
   }
-  // Widget _handleAddParameter(BuildContext context) {
-  //   final nameController = TextEditingController();
-  //   return Column(
-  //       children: [
-  //         TextField(
-  //           controller: nameController,
-  //           decoration: const InputDecoration(
-  //             labelText: "New parameter name",
-  //             border: OutlineInputBorder(),
-  //             hintText: "e.g. Periods, Source, etc.",
-  //           ),
-  //           autofocus: true,
-  //           onSubmitted: (v) {
-  //             final name = v.trim();
-  //             if (name.isNotEmpty) {
-  //               setState(() {
-  //                 // Initialize as an empty list so it uses the List UI
-  //                 parameters[name] = [];
-  //                 addingParameter = false;
-  //               });
-  //             }
-  //           },
-  //         ),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.end,
-  //           children: [
-  //             TextButton(
-  //               onPressed: () => setState(() => addingParameter = false),
-  //               child: const Text("Cancel"),
-  //             ),
-  //             ElevatedButton(
-  //               onPressed: () {
-  //                 final name = nameController.text.trim();
-  //                 if (name.isNotEmpty) {
-  //                   setState(() {
-  //                     parameters[name] = [];
-  //                     addingParameter = false;
-  //                   });
-  //                 }
-  //               },
-  //               child: const Text("Add"),
-  //             ),
-  //           ],
-  //         ),
-  //       ]
-  //   );
-  // }
 }

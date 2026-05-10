@@ -52,7 +52,7 @@ class IndicatorSchema implements CacheSchema {
       SET name = '${config.name}',
           type = '${config.type}',
           parameters = '${jsonEncode(config.parameters)}',
-          is_enabled = ${config.isEnabled}
+          is_enabled = ${config.isEnabled},
       WHERE id = ${config.id};
     ''';
   }
@@ -79,6 +79,8 @@ class Indicator extends Cache {
   final Map<String, dynamic> parameters;
   final bool isEnabled;
 
+  static const String mainChart = "main_chart";
+  
   Indicator({
     required this.id,
     required this.name,
@@ -108,7 +110,7 @@ class Indicator extends Cache {
       name: item['name'] as String? ?? '',
       type: item['type'] as String? ?? '',
       parameters: item['parameters'] as Map<String, dynamic>? ?? {},
-      isEnabled: item['is_enabled'] as bool? ?? true,
+      isEnabled: item['is_enabled'] as bool? ?? true
     );
   }
 
@@ -129,24 +131,26 @@ class Indicator extends Cache {
       id: -1,
       name: '-',
       type: '-',
-      parameters: {},
-      isEnabled: false,
+      parameters: {mainChart: false},
+      isEnabled: false
     );
   }
 
-  Indicator copyWith(bool isEnabled) => Indicator(
-    id: id,
-    name: name,
-    type: type,
-    parameters: parameters,
-    isEnabled: isEnabled,
-  );
-
+  Indicator copyWith(String? newName, String? newType, bool? isEnabled, bool? isMainChart) {
+    parameters[mainChart] = isMainChart ?? parameters[mainChart];
+    return Indicator(
+        id: id,
+        name: newName ?? name,
+        type: newType ?? type,
+        parameters: parameters,
+        isEnabled: isEnabled ?? this.isEnabled);
+  }
+  
   bool isDefault() {
     return id == -1 && name == '-';
   }
 
   bool isMainChart() {
-    return parameters["main_chart"] ?? false;
+    return parameters["_mainChart"] ?? false;
   }
 }
