@@ -66,19 +66,19 @@ class _EtfSettingsChartsState extends State<EtfSettingsCharts> {
             expanded: true,
             body: Column(
               children: [
-               Text(chart.mainChart.toString().split('.').last, style: Theme.of(context).textTheme.titleLarge),
-                if (chart.overlayCharts.isNotEmpty)
-                  Wrap(spacing: 8,
-                    children: chart.overlayCharts.map((w) =>
-                      Chip(label: Text(w.toString().split('.').last),
-                        onDeleted: () {
-                          setState(() {
-                            chart.removeOverlayChart(w);
-                          });
-                        },
-                      )
-                    ).toList(),
-                  ),
+               // Text(chart.mainChart.toString().split('.').last, style: Theme.of(context).textTheme.titleLarge),
+               //  if (chart.overlayCharts.isNotEmpty)
+               //    Wrap(spacing: 8,
+               //      children: chart.overlayCharts.map((w) =>
+               //        Chip(label: Text(w.toString().split('.').last),
+               //          onDeleted: () {
+               //            setState(() {
+               //              chart.removeOverlayChart(w);
+               //            });
+               //          },
+               //        )
+               //      ).toList(),
+               //    ),
               ],
             ),
           ),
