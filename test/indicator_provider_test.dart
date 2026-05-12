@@ -60,7 +60,7 @@ void main() {
 
     test('Initial state is empty list', () async {
       final state = container.read(indicatorProvider(testPath));
-      expect(state.cache, isEmpty);
+      expect(state.cache, []);
     });
 
     test('addIndicator adds an indicator and updates state', () async {
@@ -69,7 +69,7 @@ void main() {
       await notifier.addEntry(Indicator(
         id: 0,
         name: 'SMA 20',
-        type: 'SMA',
+        type: IndicatorType.sma,
         parameters: {'window': 20},
       ));
 
@@ -83,7 +83,7 @@ void main() {
       container.read(indicatorProvider(testPath));
       final notifier = container.read(indicatorProvider(testPath).notifier);
       await notifier.addEntry(Indicator(
-        id: 0, name: 'Old', type: 'SMA', parameters: {},
+        id: 0, name: 'Old', type: IndicatorType.sma, parameters: {},
       ));
 
       var state = container.read(indicatorProvider(testPath));
@@ -92,15 +92,13 @@ void main() {
       await notifier.updateIndicator(Indicator(
         id: savedIndicator.id,
         name: 'New',
-        type: 'SMA',
+        type: IndicatorType.sma,
         parameters: {'p': [1]},
-        isEnabled: false,
       ));
 
       final newState = container.read(indicatorProvider(testPath));
       final savedNewIndicator = newState.cache.first;
       expect(savedNewIndicator.name, 'New');
-      expect(savedNewIndicator.isEnabled, isFalse);
     });
 
     test('deleteIndicator removes an indicator', () async {
@@ -108,7 +106,7 @@ void main() {
       container.read(indicatorProvider(testPath));
       final notifier = container.read(indicatorProvider(testPath).notifier);
       await notifier.addEntry(Indicator(
-        id: 0, name: 'T1', type: 'T', parameters: {},
+        id: 0, name: 'T1', type: IndicatorType.undefined, parameters: {},
       ));
 
       var state = container.read(indicatorProvider(testPath));
@@ -118,23 +116,6 @@ void main() {
 
       state = await container.read(indicatorProvider(testPath));
       expect(state.cache, isEmpty);
-    });
-
-    test('toggleIndicator flips isEnabled', () async {
-      await container.read(loadDatabaseProvider(testPath).future);
-      container.read(indicatorProvider(testPath));
-      final notifier = container.read(indicatorProvider(testPath).notifier);
-      await notifier.addEntry(Indicator(
-        id: 0, name: 'ToggleMe', type: 'T', parameters: {}, isEnabled: true,
-      ));
-
-      var state = container.read(indicatorProvider(testPath));
-      expect((state.cache.first).isEnabled, isTrue);
-
-      await notifier.toggleIndicator(state.cache.first);
-
-      state = await container.read(indicatorProvider(testPath));
-      expect((state.cache.first).isEnabled, isFalse);
     });
   });
 }

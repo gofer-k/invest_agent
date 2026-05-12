@@ -58,7 +58,7 @@ final class IndicatorNotifierProvider
   }
 }
 
-String _$indicatorNotifierHash() => r'fde9e797786e9b3c776eaad408b21e8f8bbf8d2a';
+String _$indicatorNotifierHash() => r'c37ceebdbe90ac3535bc0ac57571055821445f42';
 
 final class IndicatorNotifierFamily extends $Family
     with

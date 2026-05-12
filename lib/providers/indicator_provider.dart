@@ -42,11 +42,11 @@ class IndicatorNotifier extends _$IndicatorNotifier {
       data: (path) {
         _dbPath = path;
         final cacheAsync = ref.watch(cacheProvider<Indicator, IndicatorSchema>(_schema, path));
-        return IndicatorNotifierState(cache: cacheAsync.value ?? [Indicator.defaultIndicator()]);
+        return IndicatorNotifierState(cache: cacheAsync.value ?? const []);
       },
       orElse: () {
         _dbPath = "";
-        return IndicatorNotifierState(cache: [Indicator.defaultIndicator()]);
+        return const IndicatorNotifierState();
       },
     );
   }
@@ -86,11 +86,6 @@ class IndicatorNotifier extends _$IndicatorNotifier {
     final notifier =ref.read(cacheProvider<Indicator, IndicatorSchema>(_schema, dbPath).notifier);
     await notifier.clearAll();
     await fetchAll();
-  }
-
-  Future<void> toggleIndicator(Indicator indicator) async {
-    final updated = indicator.copyWith(!indicator.isEnabled);
-    await updateIndicator(updated);
   }
 }
 

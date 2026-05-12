@@ -1,6 +1,20 @@
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
 
+enum IndicatorType {
+  price("Price"),
+  bellingerBands("Bellinger Bands"),
+  sma("Simple Moving Average"),
+  ema("Exponential Moving Average"),
+  macd("Moving Average Convergence/Divergence"),
+  rsi("Relative Strength Index"),
+  volume("Volume"),
+  undefined("Undefined");
+
+  const IndicatorType(this.name);
+  final String name;
+}
+
 class IndicatorSchema implements CacheSchema {
   const IndicatorSchema();
 
@@ -17,7 +31,6 @@ class IndicatorSchema implements CacheSchema {
       name TEXT NOT NULL UNIQUE,
       type TEXT NOT NULL,
       parameters TEXT, -- JSON string
-      is_enabled BOOLEAN DEFAULT TRUE
     );
   ''';
 
@@ -35,12 +48,11 @@ class IndicatorSchema implements CacheSchema {
       VALUES (
       nextval('$sequenceName'),
       '${config.name}',
-      '${config.type}', 
-      '${jsonEncode(config.parameters)}',
-       ${config.isEnabled}) ON CONFLICT(name) DO UPDATE SET
+      '${config.type.name}', 
+      '${jsonEncode(config.parameters)}'
+       ) ON CONFLICT(name) DO UPDATE SET
           type = excluded.type,
-          parameters = excluded.parameters,
-          is_enabled = excluded.is_enabled;
+          parameters = excluded.parameters;
     ''';
   }
 
@@ -50,9 +62,8 @@ class IndicatorSchema implements CacheSchema {
     return '''
       UPDATE $tableName
       SET name = '${config.name}',
-          type = '${config.type}',
-          parameters = '${jsonEncode(config.parameters)}',
-          is_enabled = ${config.isEnabled},
+          type = '${config.type.name}',
+          parameters = '${jsonEncode(config.parameters)}'
       WHERE id = ${config.id};
     ''';
   }
@@ -74,10 +85,9 @@ class IndicatorSchema implements CacheSchema {
 
 class Indicator extends Cache {
   final int id;
-  final String name; // SMA, EMA, RSI, etc.
-  final String type;  // friendly name of the indicator
+  final String name; // friendly an indicator's name
+  final IndicatorType type;  // an indicator's type
   final Map<String, dynamic> parameters;
-  final bool isEnabled;
 
   static const String mainChart = "main_chart";
   
@@ -86,19 +96,17 @@ class Indicator extends Cache {
     required this.name,
     required this.type,
     required this.parameters,
-    this.isEnabled = true,
   }) : super.from([]);
 
   @override
   factory Indicator.from(List<Object?> item) {
-    if (item.length >= 5) {
+    if (item.length >= 4) {
       final jsonParameters = jsonDecode(item[3] as String);
       return Indicator(
         id: item[0] as int,
         name: item[1] as String,
-        type: item[2] as String,
+        type: IndicatorType.values.firstWhere((e) => e.name == item[2] as String),
         parameters: jsonParameters,
-        isEnabled: (item[4] as bool),
       );
     }
     return defaultIndicator();
@@ -107,10 +115,9 @@ class Indicator extends Cache {
   factory Indicator.fromMap(Map<String, dynamic> item) {
     return Indicator(
       id: item['id'] as int? ?? -1,
+      type: item['type'] as IndicatorType,
       name: item['name'] as String? ?? '',
-      type: item['type'] as String? ?? '',
       parameters: item['parameters'] as Map<String, dynamic>? ?? {},
-      isEnabled: item['is_enabled'] as bool? ?? true
     );
   }
 
@@ -120,7 +127,6 @@ class Indicator extends Cache {
     'name': name,
     'type': type,
     'parameters': parameters,
-    'is_enabled': isEnabled,
   };
 
   @override
@@ -130,27 +136,50 @@ class Indicator extends Cache {
     return Indicator(
       id: -1,
       name: '-',
-      type: '-',
+      type: IndicatorType.undefined,
       parameters: {mainChart: false},
-      isEnabled: false
     );
   }
 
-  Indicator copyWith(String? newName, String? newType, bool? isEnabled, bool? isMainChart) {
+  static Indicator priceIndicator() {
+    return Indicator(
+      id: -2,
+      name: 'Asset;s price',
+      type: IndicatorType.price,
+      parameters: {mainChart: true},
+    );
+  }
+
+  Indicator copyWith({String? newName, IndicatorType? newType, bool? isMainChart}) {
     parameters[mainChart] = isMainChart ?? parameters[mainChart];
     return Indicator(
         id: id,
         name: newName ?? name,
         type: newType ?? type,
-        parameters: parameters,
-        isEnabled: isEnabled ?? this.isEnabled);
+        parameters: parameters);
   }
   
   bool isDefault() {
-    return id == -1 && name == '-';
+    return id == -1 && type == IndicatorType.undefined;
   }
 
   bool isMainChart() {
     return parameters["_mainChart"] ?? false;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Indicator && runtimeType == other.runtimeType &&
+      id == other.id && // TODO: Consider not use it here
+      name == other.name &&
+      type == other.type &&
+      parameters == other.parameters;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^ // TODO:Consider not use it here
+      name.hashCode ^
+      type.hashCode ^
+      parameters.hashCode;
 }
