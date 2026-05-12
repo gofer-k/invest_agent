@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/index_price.dart';
+import 'package:invest_agent/model/price_result.dart';
 import 'package:invest_agent/model/trading_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
