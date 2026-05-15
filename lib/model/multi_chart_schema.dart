@@ -1,56 +1,67 @@
 import 'dart:convert';
 
+import 'package:invest_agent/model/asset_config.dart';
+
+import 'analysis_period.dart';
 import 'cache_schema.dart';
 import 'drawing_schema.dart';
+import 'indicator_result.dart';
 import 'indicator_schema.dart';
 
-enum MainChartType {
-  candlestickPrice("Candlestick",),
-  linePrice("Line"),
-  bars("Bars"),
-  macd("MACD"),
-  volume("Volume"),
-  rsi("RSI");
-
-  const MainChartType(this.name);
-  final String name;
-}
-
-enum SupplementChart {
-  bb("BB - Bollinger Bands"),
-  deathCross("DC - Death cross"),
-  goldenCross("GC - Golden cross"),
-  ema("EMA - exp. moving average"),
-  emaSignal("EMA signal"),
-  obv("OBV - on balance volume"),
-  sma("MA - moving average");
-  const SupplementChart(this.name);
-  final String name;
-}
-
-enum ChartType {
-  candlestickPrice("Candlestick",),
-  linePrice("Line"),
-  bars("Bars");
-
-  const ChartType(this.name);
-  final String name;
-}
+//TODO: remove this
+// enum MainChartType {
+//   candlestickPrice("Candlestick",),
+//   linePrice("Line"),
+//   bars("Bars"),
+//   macd("MACD"),
+//   volume("Volume"),
+//   rsi("RSI");
+//
+//   const MainChartType(this.name);
+//   final String name;
+// }
+//
+// //TODO: remove this
+// enum SupplementChart {
+//   bb("BB - Bollinger Bands"),
+//   deathCross("DC - Death cross"),
+//   goldenCross("GC - Golden cross"),
+//   ema("EMA - exp. moving average"),
+//   emaSignal("EMA signal"),
+//   obv("OBV - on balance volume"),
+//   sma("MA - moving average");
+//   const SupplementChart(this.name);
+//   final String name;
+// }
 
 class ChartConfig extends Cache {
   final bool mainChart;
   final bool visible;
-  final ChartType drawingType;
-  final Indicator? indicator;
+  final ChartStyle chartStyle;
+  final Indicator indicatorConfig; // price or indicator
   final List<DrawingFeature> drawingData;
 
   ChartConfig({
     required this.mainChart,
-    required this.drawingType,
+    required this.chartStyle,
     this.visible = true,
-    this.indicator,
+    required this.indicatorConfig,
     this.drawingData = const[]
   }) : super.from([]);
+
+  ChartConfig copyWith({
+    bool? mainChart,
+    ChartStyle? drawingType,
+    bool? visible,
+    Indicator? newIndicatorConfig,
+    List<DrawingFeature>? drawingData}) {
+    return ChartConfig(
+      mainChart: mainChart ?? this.mainChart,
+      chartStyle: drawingType ?? this.chartStyle,
+      visible: visible ?? this.visible,
+      indicatorConfig: newIndicatorConfig ?? indicatorConfig,
+      drawingData: drawingData ?? this.drawingData,);
+  }
 
   @override
   factory ChartConfig.from(Map<String, dynamic> item) {
@@ -59,6 +70,7 @@ class ChartConfig extends Cache {
     if (indicatorData is Map<String, dynamic> && indicatorData.isNotEmpty) {
       indicator = Indicator.fromMap(indicatorData);
     }
+
 
     final drawingData = (item['drawing_data'] as List<Object?>).map((e) {
       final type = DrawingFeature.from(e as Map<String, dynamic>);
@@ -75,9 +87,9 @@ class ChartConfig extends Cache {
 
     return ChartConfig(
       mainChart: item["main_chart"] as bool,
-      drawingType: ChartType.values.firstWhere((e) => e.name == item["drawing_type"] as String),
+      chartStyle: ChartStyle.values.firstWhere((e) => e.name == item["drawing_type"] as String),
       visible: item["visible"] as bool,
-      indicator: (indicator?.isDefault() ?? true) ? null : indicator,
+      indicatorConfig: indicator ?? Indicator.defaultIndicator(),
       drawingData: drawingData,
     );
   }
@@ -85,14 +97,14 @@ class ChartConfig extends Cache {
   @override
   Map<String, dynamic> toMap() => {
     "main_chart": mainChart,
-    "drawing_type": drawingType.name,
+    "drawing_type": chartStyle.name,
     "visible": visible,
-    "indicator": indicator?.toMap() ?? {},
+    "indicator": indicatorConfig.toMap(),
     "drawing_data": drawingData.map((e) => e.toMap()).toList(),
   };
 
   @override
-  String toString() => drawingType.name;
+  String toString() => chartStyle.name;
 
   @override
   bool operator ==(Object other) =>
@@ -102,16 +114,9 @@ class ChartConfig extends Cache {
   @override
   int get hashCode => runtimeType.hashCode;
 
-  ChartConfig copyWith(bool? mainChart, ChartType? drawingType, bool? visible, Indicator? indicator, List<DrawingFeature>? drawingData) {
-    return ChartConfig(
-      mainChart: mainChart ?? this.mainChart,
-      drawingType: drawingType ?? this.drawingType,
-      visible: visible ?? this.visible,
-      indicator: indicator ?? this.indicator,
-      drawingData: drawingData ?? this.drawingData,);
-  }
 }
 
+// -- Multi chart schema --
 class MultiChartConfigSchema extends CacheSchema {
   static const String cacheName = "multi_chart";
   static const String sequenceName = "multi_chart_id_sequence";
@@ -122,6 +127,7 @@ class MultiChartConfigSchema extends CacheSchema {
     CREATE TABLE IF NOT EXISTS $cacheName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       title TEXT NOT NULL UNIQUE,
+      period_type TEXT,
       charts TEXT, -- JSON string
     );
   ''';
@@ -149,6 +155,7 @@ class MultiChartConfigSchema extends CacheSchema {
       VALUES (
       nextval('$sequenceName'),
       '${multiChart.title}',
+      '${multiChart.periodType.name}',
       '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       ) ON CONFLICT(title) DO UPDATE SET
           charts = excluded.charts;
@@ -161,6 +168,7 @@ class MultiChartConfigSchema extends CacheSchema {
     return '''
       UPDATE $cacheName
       SET title = '${multiChart.title}',
+          period_type = '${multiChart.periodType.name}',
           charts = '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       WHERE id = ${multiChart.id};
     ''';
@@ -177,35 +185,45 @@ class MultiChartConfigSchema extends CacheSchema {
 
 class MultiChartConfig extends Cache {
   final int id;
-  final String title;
+  final String title; // Asset's name
   final List<ChartConfig> charts;
-
-  final MainChartType mainChart;
-  final List<SupplementChart> overlayCharts;
+  final PeriodType periodType;
+  final AssetConfig? asset;
 
   MultiChartConfig({
     required this.id,
     required this.title,
-    this.mainChart = MainChartType.linePrice,
-    this.overlayCharts = const[],
+    required this.asset,
     this.charts = const[],
+    this.periodType = PeriodType.year,
   }) : super.from([]);
 
-  void removeOverlayChart(SupplementChart suppChart) {
-    overlayCharts.remove(suppChart);
+  MultiChartConfig copyWith({
+    int? newId, String? newTitle, AssetConfig? newAsset,
+    PeriodType? newPeriodType,
+    List<ChartConfig>? newCharts}) {
+    return MultiChartConfig(
+      id: newId ?? id,
+      title: newTitle ?? title,
+      asset: newAsset ?? asset,
+      periodType: newPeriodType ?? periodType,
+      charts: newCharts ?? charts,
+    );
   }
 
   @override
   factory MultiChartConfig.from(List<Object?> item) {
-    if (item.length < 4) {
-      final List<dynamic> jsonCharts = jsonDecode(item[2] as String);
+    if (item.length >= 4) {
+      final List<dynamic> jsonCharts = jsonDecode(item[3] as String);
       return MultiChartConfig(
         id: item[0] as int,
         title: item[1] as String,
+        asset: null,
+        periodType: PeriodType.values.firstWhere((e) => e.name == item[2] as String),
         charts: jsonCharts.map((e) {
           final map = e as Map<String, dynamic>;
           return ChartConfig.from(map);
-        }).toList()
+        }).toList(),
       );
     }
     return defaultMultiChart();
@@ -215,19 +233,24 @@ class MultiChartConfig extends Cache {
   Map<String, dynamic> toMap() =>{
     'id': id,
     'title': title,
+    'period_type': periodType.name,
     'charts': charts.map((e) => e.toMap()).toList(),
   };
 
   @override
   String toString() => title;
 
-  static MultiChartConfig defaultMultiChart() => MultiChartConfig(id: -1, title: '', charts: []);
+  static MultiChartConfig defaultMultiChart() => MultiChartConfig(id: -1, title: '', periodType: PeriodType.year, charts: [], asset: null);
 
-  MultiChartConfig copyWith(int? id, String? title, List<ChartConfig>? charts) {
-    return MultiChartConfig(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      charts: charts ?? this.charts,
-    );
-  }
+  ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
+
+  List<ChartConfig> get overlayCharts => charts.where((e) => !e.mainChart).toList();
+  
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MultiChartConfig && runtimeType == other.runtimeType;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
 }

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 import '../model/indicator_schema.dart';
 
@@ -25,15 +26,16 @@ class IndicatorDialog extends ConsumerStatefulWidget {
 
 class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   late final TextEditingController controllerName;
-  late final TextEditingController controllerType;
+  // late final TextEditingController controllerType;
   late Map<String, dynamic> parameters = {};
   bool addingParameter = false;
+  IndicatorType _selectedType = IndicatorType.undefined;
 
   @override
   void initState() {
     super.initState();
     controllerName = TextEditingController(text: widget.indicator?.name ?? '');
-    controllerType = TextEditingController(text: widget.indicator?.type ?? '');
+    // controllerType = TextEditingController(text: widget.indicator?.type ?? '');
     // Ensure parameters is a mutable copy
     parameters = Map<String, dynamic>.from(widget.indicator?.parameters ?? {});
   }
@@ -41,7 +43,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   @override
   void dispose() {
     controllerName.dispose();
-    controllerType.dispose();
+    // controllerType.dispose();
     super.dispose();
   }
 
@@ -53,9 +55,17 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
         padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _editIndicatorName(controllerName, "Input indicator name", "Indicator name"),
+              DropdownList<IndicatorType>(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+                backgroundColor:  Colors.grey.shade600.withAlpha(128),
+                onSelected: (IndicatorType type) {
+                  setState(() => _selectedType = type);
+                },
+                choiceType: _selectedType,
+                choices: IndicatorType.values,
+              ),
               const SizedBox(height: 8),
-              _editIndicatorName(controllerType, "Input type: e.g. Moving Average", "Indicator type"),
+              _editIndicatorName(controllerName, "Input indicator name", "Indicator name"),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -106,7 +116,8 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
             if (name.isEmpty) return;
             final newIndicator = Indicator(id: widget.indicator?.id ?? -1,
               name: name,
-              type: controllerType.text.trim(),
+              // type: controllerType.text.trim()
+              type: _selectedType,
               parameters: parameters
             );
             widget.onSave(newIndicator);

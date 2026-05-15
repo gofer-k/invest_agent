@@ -195,11 +195,11 @@ final assetPricesProvider = AssetPricesFamily._();
 final class AssetPricesProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<IndexPrice>>,
-          List<IndexPrice>,
-          FutureOr<List<IndexPrice>>
+          AsyncValue<List<IndexPriceItem>>,
+          List<IndexPriceItem>,
+          FutureOr<List<IndexPriceItem>>
         >
-    with $FutureModifier<List<IndexPrice>>, $FutureProvider<List<IndexPrice>> {
+    with $FutureModifier<List<IndexPriceItem>>, $FutureProvider<List<IndexPriceItem>> {
   AssetPricesProvider._({
     required AssetPricesFamily super.from,
     required (int, DateTime?) super.argument,
@@ -223,12 +223,12 @@ final class AssetPricesProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<IndexPrice>> $createElement(
+  $FutureProviderElement<List<IndexPriceItem>> $createElement(
     $ProviderPointer pointer,
   ) => $FutureProviderElement(pointer);
 
   @override
-  FutureOr<List<IndexPrice>> create(Ref ref) {
+  FutureOr<List<IndexPriceItem>> create(Ref ref) {
     final argument = this.argument as (int, DateTime?);
     return assetPrices(ref, argument.$1, argument.$2);
   }
@@ -249,7 +249,7 @@ String _$assetPricesHash() => r'd8024a2f48986e896d8c0ad3ff9bdeb0209f70ae';
 final class AssetPricesFamily extends $Family
     with
         $FunctionalFamilyOverride<
-          FutureOr<List<IndexPrice>>,
+          FutureOr<List<IndexPriceItem>>,
           (int, DateTime?)
         > {
   AssetPricesFamily._()

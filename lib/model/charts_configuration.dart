@@ -1,34 +1,30 @@
-import 'package:invest_agent/model/analysis_period.dart';
-
 import 'multi_chart_schema.dart';
 
 class ChartsConfiguration {
   final List<MultiChartConfig> multiCharts;
-  final PeriodType periodType;
 
-  static const Map<MainChartType, List<SupplementChart>> _profileRules = {
-    MainChartType.candlestickPrice: [
-      SupplementChart.bb, SupplementChart.sma,
-      SupplementChart.deathCross,
-      SupplementChart.goldenCross,
-      SupplementChart.ema,
-      SupplementChart.emaSignal],
-    MainChartType.linePrice: [
-      SupplementChart.bb, SupplementChart.sma,
-      SupplementChart.deathCross,
-      SupplementChart.goldenCross,
-      SupplementChart.ema,
-      SupplementChart.emaSignal]
-  };
+  // static const Map<MainChartType, List<SupplementChart>> _profileRules = {
+  //   MainChartType.candlestickPrice: [
+  //     SupplementChart.bb, SupplementChart.sma,
+  //     SupplementChart.deathCross,
+  //     SupplementChart.goldenCross,
+  //     SupplementChart.ema,
+  //     SupplementChart.emaSignal],
+  //   MainChartType.linePrice: [
+  //     SupplementChart.bb, SupplementChart.sma,
+  //     SupplementChart.deathCross,
+  //     SupplementChart.goldenCross,
+  //     SupplementChart.ema,
+  //     SupplementChart.emaSignal]
+  // };
 
-  ChartsConfiguration({this.periodType = PeriodType.year,
-    this.multiCharts = const []});
+  ChartsConfiguration({this.multiCharts = const []});
 
   static bool validate(MultiChartConfig chart) {
-    final availableSuppCharts = _profileRules[chart.mainChart];
-    if (availableSuppCharts != null) {
-      return chart.overlayCharts.every((suppChart) => availableSuppCharts.contains(suppChart));
-    }
+    // final availableSuppCharts = _profileRules[chart.mainChart];
+    // if (availableSuppCharts != null) {
+    //   return chart.overlayCharts.every((suppChart) => availableSuppCharts.contains(suppChart));
+    // }
     return true;
   }
 

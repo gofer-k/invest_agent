@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/asset_config.dart';
-import '../model/index_price.dart';
+import '../model/price_result.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../providers/assets_utilities.dart';

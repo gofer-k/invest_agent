@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/drawing_schema.dart';
+import 'package:invest_agent/model/indicator_result.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
@@ -73,12 +74,13 @@ void main() {
       await container.read(loadDatabaseProvider(testPath).future);
       
       final config = MultiChartConfig(id: 1, title: 'Test Chart', periodType: PeriodType.year, charts: [
-        ChartConfig(mainChart: true, drawingType: ChartType.linePrice,
+        ChartConfig(mainChart: true, chartStyle: ChartStyle.line,
           drawingData: [
             LineFeature(begin: Point(0, 0), end: Point(10, 20))
-          ]),
-        ChartConfig(mainChart: false, drawingType: ChartType.bars,
-          indicatorConfig: Indicator(id: 0, name: "SMA", type: "Moving Average",
+          ],
+          indicatorConfig: Indicator.priceIndicator()),
+        ChartConfig(mainChart: false, chartStyle: ChartStyle.bars,
+          indicatorConfig: Indicator(id: 0, name: "SMA", type: IndicatorType.sma,
             parameters: {"window": 20})),
       ], asset: asset);
       
@@ -89,11 +91,11 @@ void main() {
       expect(state.cachedCharts.length, 1);
       expect(state.cachedCharts.first.title, 'Test Chart');
       expect(state.cachedCharts.first.charts.length, 2);
-      expect(state.cachedCharts.first.charts.last.indicatorConfig?.name, 'SMA');
-      expect(state.cachedCharts.first.charts.last.indicatorConfig?.parameters['window'], 20);
-      expect(state.cachedCharts.first.charts.last.indicatorConfig?.isDefault(), false);
-      expect(state.cachedCharts.first.charts.last.indicatorConfig?.id, 0);
-      expect(state.cachedCharts.first.charts.last.indicatorConfig?.type, 'Moving Average');
+      expect(state.cachedCharts.first.charts.last.indicatorConfig.name, 'SMA');
+      expect(state.cachedCharts.first.charts.last.indicatorConfig.parameters['window'], 20);
+      expect(state.cachedCharts.first.charts.last.indicatorConfig.isDefault(), false);
+      expect(state.cachedCharts.first.charts.last.indicatorConfig.id, 0);
+      expect(state.cachedCharts.first.charts.last.indicatorConfig.type, IndicatorType.sma);
 
       expect(state.cachedCharts.first.charts.first.drawingData.length, 1);
       final cachedLine = state.cachedCharts.first.charts.first.drawingData.first as LineFeature;

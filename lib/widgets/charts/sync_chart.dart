@@ -1,37 +1,27 @@
-import 'dart:developer';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/axis_label.dart';
+import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
-import 'package:invest_agent/widgets/charts/overlay_bellinger_band.dart';
-import 'package:invest_agent/widgets/charts/overlay_candlestick.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 import 'package:invest_agent/widgets/charts/painters/chart_painter.dart';
-import 'package:invest_agent/widgets/charts/overlay_macd.dart';
-import 'package:invest_agent/widgets/charts/overlay_moving_average.dart';
-import 'package:invest_agent/widgets/charts/overlay_price_chart.dart';
-import 'package:invest_agent/widgets/charts/overlay_rsi.dart';
-import 'package:invest_agent/widgets/charts/overlay_volume.dart';
 import 'package:invest_agent/widgets/charts/painters/side_axis_painter.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 import 'package:invest_agent/widgets/charts/controllers/crosshair_controller.dart';
 import 'package:invest_agent/widgets/utils/tooltip_overlay.dart';
-import '../../model/analysis_respond.dart';
-import '../../model/index_price.dart';
 import 'painters/bottom_axis_painter.dart';
 
 class SyncChart extends ConsumerStatefulWidget {
   final TimeController controller;
   final CrosshairController? crosshairController;
-  final AnalysisRespond results;
   final List<OverlayChart> overLayCharts;
+  // final BaseIndicatorResult indicatorResult;
   final double Function(DateTime? startDate, DateTime? endDate) minFunc;
   final double Function(DateTime? startDate, DateTime? endDate) maxFunc;
   const SyncChart({super.key, required this.controller, this.crosshairController,
-    required this.results,
-    this.overLayCharts = const[], required this.minFunc, required this.maxFunc});
+    // required this.indicatorResult,
+    this.overLayCharts = const[], required this.minFunc, required this.maxFunc, required ChartConfig mainChartConfig});
 
   @override
   ConsumerState<SyncChart> createState() => _SyncChartState();
@@ -115,7 +105,6 @@ class _SyncChartState extends ConsumerState<SyncChart> {
                             size: Size(chartSpace.width, chartSpace.height),
                               painter: ChartPainter(
                                 controller: widget.controller,
-                                results: widget.results,
                                 overlays: widget.overLayCharts,
                                 widthSideLabels: sideLabelsWidth
                               ),
@@ -160,117 +149,118 @@ class _SyncChartState extends ConsumerState<SyncChart> {
   TooltipData? _findNearestValue(DateTime startDate, DateTime? currTime, double width, double height) {
     if (currTime == null) return null;
 
-    List<TooltipItem> items = [];
-    double? nearestPrimaryValue;
-    DateTime? nearestDatetime;
-    int nearestIndex = -1;
-
-    try {
-      for (final overlayChart in widget.overLayCharts) {
-        final data = switch(overlayChart.overlayType) {
-          OverlayType.bellingerBands =>
-          (overlayChart as OverlayBellingerBand).data,
-          OverlayType.macd => (overlayChart as OverlayMacd).data,
-          OverlayType.movingAverage =>
-          (overlayChart as OverlayMovingAverage).data,
-          OverlayType.obv => null,
-          OverlayType.pattern => null,
-          OverlayType.priceCandles => (overlayChart as OverlayCandlestick).data,
-          OverlayType.priceLine => (overlayChart as OverlayPriceChart).data,
-          OverlayType.rsi => (overlayChart as OverlayRsi).data,
-          OverlayType.signal => null,
-          OverlayType.volume => (overlayChart as OverlayVolume).data,
-          OverlayType.tooltipMarker => null,
-        };
-        if (data == null) continue;
-
-        if (nearestIndex == -1) {
-          nearestIndex = findNearestIndex(currTime, data);
-          nearestDatetime = data[nearestIndex].dateTime;
-        }
-        final snappedItem = data[nearestIndex];
-        final toolTipItem = switch(overlayChart.overlayType) {
-          OverlayType.bellingerBands =>
-              TooltipItem(
-                  overlayType: OverlayType.bellingerBands,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as BellingerBandEntry).stdValue),
-          OverlayType.macd =>
-              TooltipItem(
-                  overlayType: OverlayType.macd,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as MACD).macd,
-                  extras: {
-                    "signal": snappedItem.signal,
-                    "hist": snappedItem.hist
-                  }
-              ),
-          OverlayType.movingAverage =>
-              TooltipItem(
-                overlayType: OverlayType.movingAverage,
-                time: snappedItem.dateTime,
-                value: (snappedItem as SimpleMovingAverage).rollingMean,
-              ),
-          OverlayType.obv => null,
-          OverlayType.pattern => null,
-          OverlayType.priceCandles =>
-              TooltipItem(
-                  overlayType: OverlayType.priceCandles,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as CandleStickItem).closePrice,
-                  extras: {
-                    "open": snappedItem.openPrice ?? 0.0,
-                    "high": snappedItem.highPrice ?? 0.0,
-                    "low": snappedItem.lowPrice ?? 0.0,
-                  }),
-          OverlayType.priceLine =>
-              TooltipItem(
-                  overlayType: OverlayType.priceLine,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as IndexPrice).closePrice,
-                  extras: {
-                    "open": snappedItem.openPrice,
-                    "high": snappedItem.highPrice,
-                    "low": snappedItem.lowPrice,
-                  }
-              ),
-          OverlayType.rsi =>
-              TooltipItem(
-                  overlayType: OverlayType.rsi,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as RSI).rsi),
-          OverlayType.signal => null,
-          OverlayType.volume =>
-              TooltipItem(
-                  overlayType: OverlayType.volume,
-                  time: snappedItem.dateTime,
-                  value: (snappedItem as IndexPrice).volume),
-          OverlayType.tooltipMarker => throw UnimplementedError(),
-        };
-
-        if (toolTipItem != null) {
-          if (toolTipItem.overlayType == OverlayType.priceCandles ||
-              toolTipItem.overlayType == OverlayType.priceLine ||
-              toolTipItem.overlayType == OverlayType.volume) {
-            nearestPrimaryValue = toolTipItem.value;
-          }
-          items.add(toolTipItem);
-        }
-      }
-
-      if (nearestPrimaryValue != null && nearestDatetime != null) {
-        final x = dateToPos(nearestDatetime, widget.controller.visibleStart,
-            widget.controller.visibleEnd, width);
-        final y = valueToPos(currValue: nearestPrimaryValue,
-            min: widget.results.minPrice,
-            max: widget.results.maxPrice,
-            height: height);
-        return TooltipData(position: Offset(x, y), time: currTime, data: items);
-      }
-    }
-    catch(r) {
-      log(r.toString());
-    }
-    return null;
+    // TODO: find nearest value in the chart
+    // List<TooltipItem> items = [];
+    // double? nearestPrimaryValue;
+    // DateTime? nearestDatetime;
+    // int nearestIndex = -1;
+    //
+    // try {
+    //   for (final overlayChart in widget.overLayCharts) {
+    //     final data = switch(overlayChart.overlayType) {
+    //       OverlayType.bellingerBands =>
+    //       (overlayChart as OverlayBellingerBand).data,
+    //       OverlayType.macd => (overlayChart as OverlayMacd).data,
+    //       OverlayType.movingAverage =>
+    //       (overlayChart as OverlayMovingAverage).data,
+    //       OverlayType.obv => null,
+    //       OverlayType.pattern => null,
+    //       OverlayType.priceCandles => (overlayChart as OverlayCandlestick).data,
+    //       OverlayType.priceLine => (overlayChart as OverlayPriceChart).data.priceData,
+    //       OverlayType.rsi => (overlayChart as OverlayRsi).data,
+    //       OverlayType.signal => null,
+    //       OverlayType.volume => (overlayChart as OverlayVolume).data,
+    //       OverlayType.tooltipMarker => null,
+    //     };
+    //     if (data == null) continue;
+    //
+    //     if (nearestIndex == -1) {
+    //       nearestIndex = findNearestIndex(currTime, data);
+    //       nearestDatetime = data[nearestIndex].dateTime;
+    //     }
+    //     final snappedItem = data[nearestIndex];
+    //     final toolTipItem = switch(overlayChart.overlayType) {
+    //       OverlayType.bellingerBands =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.bellingerBands,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as BellingerBandEntry).stdValue),
+    //       OverlayType.macd =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.macd,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as MACD).macd,
+    //               extras: {
+    //                 "signal": snappedItem.signal,
+    //                 "hist": snappedItem.hist
+    //               }
+    //           ),
+    //       OverlayType.movingAverage =>
+    //           TooltipItem(
+    //             overlayType: OverlayType.movingAverage,
+    //             time: snappedItem.dateTime,
+    //             value: (snappedItem as SimpleMovingAverage).rollingMean,
+    //           ),
+    //       OverlayType.obv => null,
+    //       OverlayType.pattern => null,
+    //       OverlayType.priceCandles =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.priceCandles,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as CandleStickItem).closePrice,
+    //               extras: {
+    //                 "open": snappedItem.openPrice ?? 0.0,
+    //                 "high": snappedItem.highPrice ?? 0.0,
+    //                 "low": snappedItem.lowPrice ?? 0.0,
+    //               }),
+    //       OverlayType.priceLine =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.priceLine,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as IndexPriceItem).closePrice,
+    //               extras: {
+    //                 "open": snappedItem.openPrice,
+    //                 "high": snappedItem.highPrice,
+    //                 "low": snappedItem.lowPrice,
+    //               }
+    //           ),
+    //       OverlayType.rsi =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.rsi,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as RSI).rsi),
+    //       OverlayType.signal => null,
+    //       OverlayType.volume =>
+    //           TooltipItem(
+    //               overlayType: OverlayType.volume,
+    //               time: snappedItem.dateTime,
+    //               value: (snappedItem as IndexPriceItem).volume),
+    //       OverlayType.tooltipMarker => throw UnimplementedError(),
+    //     };
+    //
+    //     if (toolTipItem != null) {
+    //       if (toolTipItem.overlayType == OverlayType.priceCandles ||
+    //           toolTipItem.overlayType == OverlayType.priceLine ||
+    //           toolTipItem.overlayType == OverlayType.volume) {
+    //         nearestPrimaryValue = toolTipItem.value;
+    //       }
+    //       items.add(toolTipItem);
+    //     }
+    //   }
+    //
+    //   if (nearestPrimaryValue != null && nearestDatetime != null) {
+    //     final x = dateToPos(nearestDatetime, widget.controller.visibleStart,
+    //         widget.controller.visibleEnd, width);
+    //     final y = valueToPos(currValue: nearestPrimaryValue,
+    //         min: widget.indicatorResult.minValue,
+    //         max: widget.indicatorResult.maxValue,
+    //         height: height);
+    //     return TooltipData(position: Offset(x, y), time: currTime, data: items);
+    //   }
+    // }
+    // catch(r) {
+    //   log(r.toString());
+    // }
+    // return null;
   }
 }

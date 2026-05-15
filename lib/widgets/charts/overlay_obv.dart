@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/index_price.dart';
+import '../../model/price_result.dart';
 
 class OverlayOBV extends OverlayChart {
-  final List<IndexPrice> data;
+  final List<IndexPriceItem> data;
   final Color lineColor;
   final double lineWidth;
 
@@ -40,7 +40,7 @@ class OverlayOBV extends OverlayChart {
       }
       final Offset offset = Offset(
         ctx.dateToPos(price.dateTime, size),
-        ctx.indicatorToPos(price.volume, minValue, maxValue, size.height),
+        ctx.indicatorToPos(price.volume, size.height, minValue, maxValue),
       );
       path.lineTo(offset.dx, offset.dy);
     }

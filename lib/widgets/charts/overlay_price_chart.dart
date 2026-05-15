@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/index_price.dart';
+import '../../model/price_result.dart';
 
 class OverlayPriceChart extends OverlayChart {
-  final List<IndexPrice> data;
+  final IndexPrice data;
   final Color lineColor;
   final double strokeWidth;
 
@@ -21,16 +21,16 @@ class OverlayPriceChart extends OverlayChart {
       ..color = lineColor
       ..strokeWidth = strokeWidth;
 
-    final int firstVisibleIndex = data.indexWhere(
+    final int firstVisibleIndex = data.priceData.indexWhere(
       (price) => !price.dateTime.isBefore(ctx.startDate),
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
     final int startIndex = (firstVisibleIndex > 0) ? firstVisibleIndex - 1 : 0;
 
     // Suggestion 1: Iterate over pairs for clarity
-    for (int i = startIndex + 1; i < data.length; ++i) {
-      final prevPrice = data[i - 1];
-      final currentPrice = data[i];
+    for (int i = startIndex + 1; i < data.priceData.length; ++i) {
+      final prevPrice = data.priceData[i - 1];
+      final currentPrice = data.priceData[i];
 
       // Stop drawing once we move past the visible area
       if (prevPrice.dateTime.isAfter(ctx.endDate)) {
@@ -39,11 +39,17 @@ class OverlayPriceChart extends OverlayChart {
 
       final Offset prevOffset = Offset(
         ctx.dateToPos(prevPrice.dateTime, size),
-        ctx.priceToPos(prevPrice.closePrice, size.height),
+        ctx.indicatorToPos(prevPrice.closePrice, size.height,
+            data.getMin(ctx.startDate, ctx.endDate),
+            data.getMax(ctx.startDate, ctx.endDate)
+        ),
       );
       final Offset currOffset = Offset(
         ctx.dateToPos(currentPrice.dateTime, size),
-        ctx.priceToPos(currentPrice.closePrice, size.height),
+        ctx.indicatorToPos(
+            currentPrice.closePrice, size.height,
+            data.getMin(ctx.startDate, ctx.endDate),
+            data.getMax(ctx.startDate, ctx.endDate)),
       );
       canvas.drawLine(prevOffset, currOffset, paint);
     }

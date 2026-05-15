@@ -65,7 +65,7 @@ class OverlayMacd extends OverlayChart {
     final path = Path();
     path.moveTo(
         ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
-        ctx.indicatorToPos(firstVal, minValue, maxValue, size.height));
+        ctx.indicatorToPos(firstVal, size.height, minValue, maxValue));
     for (var elem in data.skip(firstVisibleIndex)) {
       if (elem.dateTime.isBefore(ctx.startDate) || elem.dateTime.isAfter(ctx.endDate)) {
         continue;
@@ -75,7 +75,7 @@ class OverlayMacd extends OverlayChart {
         _OverlayType.indicatorValue => elem.macd,
       };
       final Offset offset = Offset(ctx.dateToPos(elem.dateTime, size),
-          ctx.indicatorToPos(val, minValue, maxValue, size.height));
+          ctx.indicatorToPos(val, size.height, minValue, maxValue));
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);

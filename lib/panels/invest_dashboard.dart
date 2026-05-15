@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/model/indicator_result.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
@@ -10,9 +11,12 @@ import '../model/analysis_request.dart';
 import '../model/analysis_respond.dart';
 
 import '../model/indicator_schema.dart';
+import '../model/multi_chart_schema.dart';
+import '../model/price_result.dart';
 import '../providers/indicator_provider.dart';
 import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
+import '../providers/multi_chart_provider.dart';
 import '../providers/price_controller.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/utils/dropdownlist.dart';
@@ -53,8 +57,14 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   var activePanelIndex = PanelIndex.notUsed;
   AssetConfig _selectedAsset = AssetConfig.defaultAsset();
-  Indicator _selectedIndicator = Indicator.defaultIndicator();
   PeriodType _selectedPeriod = PeriodType.year;
+  ChartStyle _selectedChartStyle = ChartStyle.line;
+  
+  // TODO: add to the indicator's cache and the visualization config
+  Indicator _selectedIndicator = Indicator.defaultIndicator();
+  final Indicator _priceConfig = Indicator.priceIndicator();
+  final List<Indicator> _displayedIndicators = [];
+  final List<MultiChartConfig> _displayedCharts = [];
 
   @override
   void initState() {
@@ -74,6 +84,15 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       if (!_selectedIndicator.isDefault() && next.isNotEmpty) {
         setState(() {
           _selectedIndicator = next.first;
+        });
+      }
+    });
+    ref.listen<List<MultiChartConfig>>(multiChartsByProvider(
+        CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod), (previous, next) {
+      if (next.isNotEmpty) {
+        setState(() {
+          _displayedCharts.clear();
+          _displayedCharts.addAll(next);
         });
       }
     });
@@ -100,6 +119,8 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                 _displayAssetsList(),
                 const SizedBox(width: 4,),
                 _displayIndicatorsList(),
+                const SizedBox(width: 4,),
+                _displayChartStyles(),
                 const SizedBox(width: 4,),
                 _displayPeriodList(),
               ],
@@ -231,8 +252,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   }
 
   Widget _displayIndicatorsList() {
-    final indicators = ref.watch(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
-    indicators.add(Indicator.defaultIndicator());
+    final indicators = ref.watch(sortedIndicatorsProvider);
 
     return DropdownList<Indicator>(
       textStyle: Theme.of(context).textTheme.labelLarge,
@@ -241,7 +261,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         setState(() {
           _selectedIndicator = indicator;
           if (!_selectedIndicator.isDefault()) {
-            //TODO:: load and display indicator's data
+            //TODO: load and display indicator's data
             // ref.read(priceControllerProvider.notifier).fetchOne(
             //     IndexPriceSchema(),
             //     IndexPrice.of(
@@ -273,6 +293,22 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     );
   }
 
+  Widget _displayChartStyles() {
+    final styles = ChartStyle.values.toList();
+    return DropdownList<ChartStyle>(
+      textStyle: Theme.of(context).textTheme.labelLarge,
+        backgroundColor:  Colors.grey.shade600.withAlpha(128),
+      onSelected: (ChartStyle style) {
+        if (_selectedChartStyle == style) return;
+        setState(() =>  _selectedChartStyle = style);
+      },
+      choiceType: styles.contains(_selectedChartStyle)
+          ? _selectedChartStyle
+          : styles.first,
+      choices: styles.toList()
+    );
+  }
+
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
     final filePath = result["response_file"];
     final data = loadFinancialDataFromGzip(filePath);
@@ -282,7 +318,11 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   // Build the analysis panel UI
   Widget _buildAnalysisPanel(WidgetRef ref) {
+    //TODO: add floating charts configs
+    // _displayedCharts = ref.read(multiChartsByProvider(CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod));
+
     if (!_selectedAsset.isDefault()) {
+      //----
       final assetPriceAsync = ref.watch(assetPricesProvider(_selectedAsset.id));
       return assetPriceAsync.when(
         data: (priceData) {
@@ -290,12 +330,19 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
             return const Center(child: Text("No data available"));
           }
           return LayoutBuilder(builder: (context, constraints) {
+            final priceResult = IndexPrice(
+                priceData : priceData,
+                config: _priceConfig,
+                style: _selectedChartStyle,
+            );
             return MultiChartView(
-              chartTitle: [_selectedAsset.symbol],
-              results: AnalysisRespond([], [], priceData, _selectedPeriod),
-              chartConfig: configurationCharts,
+              priceData: priceResult,
+              assetConfig: _selectedAsset,
+              multiChartConfig: _displayedCharts,
+              periodType: _selectedPeriod,
               chartHeight: constraints.maxHeight,
-              prefixDomain: _selectedIndicator.isDefault() ? 0 : 20);
+              prefixDomain: 0); // TODO: check out this
+              // prefixDomain: _selectedIndicator.isDefault() ? 0 : 20);
             }
           );
         },
@@ -310,6 +357,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       );
     }
     return const Center(child: Text("Run analysis to see settings"));
+    //----
 
     // if (isLoading) {
     //   return const Center(child: CircularProgressIndicator());

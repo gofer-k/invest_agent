@@ -1,7 +1,8 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
-import 'analysis_respond.dart';
+import 'indicator_result.dart';
+import 'indicator_schema.dart';
 
 class IndexPriceSchema implements CacheSchema {
   static const String cacheName = "price";
@@ -35,7 +36,7 @@ class IndexPriceSchema implements CacheSchema {
   String deleteOne(Cache cache) {
     return
       '''
-      DELETE FROM $cacheName WHERE id = ${(cache as IndexPrice).id} AND
+      DELETE FROM $cacheName WHERE id = ${(cache as IndexPriceItem).id} AND
       meta_id = ${cache.assetId};
       ''';
   }
@@ -49,11 +50,11 @@ class IndexPriceSchema implements CacheSchema {
 
   @override
   String readOne(Cache cache) =>
-      'SELECT * FROM $cacheName WHERE id = ${(cache as IndexPrice).id};';
+      'SELECT * FROM $cacheName WHERE id = ${(cache as IndexPriceItem).id};';
 
   @override
   String saveOne(Cache cache) {
-    final price = cache as IndexPrice;
+    final price = cache as IndexPriceItem;
     return '''
       INSERT INTO $cacheName
       VALUES (
@@ -76,7 +77,7 @@ class IndexPriceSchema implements CacheSchema {
 
   @override
   String updateOne(Cache cache) {
-    final price = cache as IndexPrice;
+    final price = cache as IndexPriceItem;
     return '''
       UPDATE $cacheName
       SET meta_id = ${price.assetId},
@@ -141,7 +142,7 @@ class IndexPriceSchema implements CacheSchema {
   String get allAssetDetails => 'SELECT meta_id, MIN(date), MAX(date), COUNT(*) FROM $cacheName GROUP BY meta_id;';
 }
 
-class IndexPrice implements Cache, BaseIndicatorValue {
+class IndexPriceItem implements Cache, BaseIndicatorValue {
   final int id;
   final int assetId;
   final double openPrice;
@@ -154,7 +155,7 @@ class IndexPrice implements Cache, BaseIndicatorValue {
   @override
   DateTime get dateTime => _dateTime;
 
-  IndexPrice({
+  IndexPriceItem({
     required this.id,
     required this.assetId,
     required this.openPrice,
@@ -169,7 +170,7 @@ class IndexPrice implements Cache, BaseIndicatorValue {
   }
 
   @override
-  factory IndexPrice.from(List<Object?> item) {
+  factory IndexPriceItem.from(List<Object?> item) {
     if (item.length < 8) {
       throw Exception("Invalidate input data");
     }
@@ -184,7 +185,7 @@ class IndexPrice implements Cache, BaseIndicatorValue {
 
       final jsonVolume = item[7] == null ? 0.0 : item[7] as num;
 
-      return IndexPrice(
+      return IndexPriceItem(
         id: (item[0] as num).toInt(),
         assetId: (item[1] as num).toInt(),
         dateTime: dateTime,
@@ -200,8 +201,8 @@ class IndexPrice implements Cache, BaseIndicatorValue {
     }
   }
 
-  factory IndexPrice.of({int? assetId, DateTime? dateTime}) {
-    return IndexPrice(
+  factory IndexPriceItem.of({int? assetId, DateTime? dateTime}) {
+    return IndexPriceItem(
       id: 0,
       assetId: assetId ?? 0,
       dateTime: dateTime ?? DateTime.now(),
@@ -227,12 +228,12 @@ class IndexPrice implements Cache, BaseIndicatorValue {
   @override
   bool operator ==(Object other) =>
     identical(this, other) ||
-        other is IndexPrice &&
+        other is IndexPriceItem &&
             runtimeType == other.runtimeType &&
             id == other.id &&
             assetId == other.assetId &&
             dateTime == other.dateTime &&
-            openPrice == other.openPrice &&
+            openPrice == other.openPrice && // TODO: Consider not use thore below
             closePrice == other.closePrice &&
             highPrice == other.highPrice &&
             lowPrice == other.lowPrice &&
@@ -243,9 +244,108 @@ class IndexPrice implements Cache, BaseIndicatorValue {
       id.hashCode ^
       assetId.hashCode ^
       dateTime.hashCode ^
-      openPrice.hashCode ^
+      openPrice.hashCode ^  // TODO: Consider not use thore below
       closePrice.hashCode ^
       highPrice.hashCode ^
       lowPrice.hashCode ^
       volume.hashCode;
+}
+
+class IndexPrice extends BaseIndicatorResult {
+  final List<IndexPriceItem> priceData;
+
+  double _maxValue = 0.0;
+  @override
+  double get maxValue => _maxValue;
+
+  double _minValue = 0.0;
+  @override
+  double get minValue => _minValue;
+
+  IndexPrice({
+    super.style = ChartStyle.line,
+    required this.priceData,
+    required super.config});
+
+  IndexPrice copyWith({
+    List<IndexPriceItem>? newPriceData,
+    ChartStyle? newStyle,
+    Indicator? newConfig}) {
+    return IndexPrice(
+      priceData: newPriceData ?? priceData,
+      style: newStyle ?? style,
+      config: newConfig ?? config,
+    );
+  }
+
+  List<IndexPriceItem> _filteredBy(int prefixWindow, DateTime startDate, DateTime endDate) {
+    final priceDataFiltered =
+    priceData.where(
+            (element) => element.dateTime.isAfter(startDate)
+            && element.dateTime.isBefore(endDate)).toList();
+    return priceDataFiltered.sublist(prefixWindow);
+  }
+
+  List<DateTime> dateTimeDomain(int prefixWindow) {
+    return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
+  }
+
+  List<IndexPriceItem> getData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
+    if (prefixWindow > 0) {
+      return priceData.sublist(prefixWindow);
+    }
+    return _filteredBy(prefixWindow, startDate ?? DateTime.now(), endDate ?? DateTime.now());
+  }
+
+  @override
+  double getMin(DateTime? startDate, DateTime? endDate) {
+    if (priceData.isEmpty) {
+      return 0.0;
+    }
+
+    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final minPriceItem = priceDataFiltered.reduce(
+            (currentItem, nextItem) =>
+        currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem);
+
+   _minValue = minPriceItem.closePrice;
+   return _minValue;
+  }
+
+  @override
+  double getMax(DateTime? startDate, DateTime? endDate) {
+    if (priceData.isEmpty) {
+      return 0.0;
+    }
+
+    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final maxPriceItem = priceDataFiltered.reduce(
+          (currentItem, nextItem) =>
+      currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
+    );
+    _maxValue = maxPriceItem.closePrice;
+    return _maxValue;
+  }
+}
+
+class VolumeResult extends IndexPrice {
+  VolumeResult({
+    required super.priceData,
+    required super.config,
+    super.style = ChartStyle.bars,
+  });
+
+  @override
+  double getMin(DateTime? startDate, DateTime? endDate) {
+    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    _maxValue = priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
+    return _maxValue;
+  }
+
+  @override
+  double getMax(DateTime? startDate, DateTime? endDate) {
+    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    _minValue =  priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
+    return _minValue;
+  }
 }

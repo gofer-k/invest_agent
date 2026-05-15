@@ -26,8 +26,8 @@ class OverlayPattern extends OverlayChart {
 
     final x1 = ctx.dateToPos(startDate, size);
     final x2 = ctx.dateToPos(endDate, size);
-    final y1 = ctx.priceToPos(topValue, size.height);
-    final y2 = ctx.priceToPos(bottomValue, size.height);
+    final y1 = ctx.indicatorToPos(topValue, size.height, 0.0, 0.0);
+    final y2 = ctx.indicatorToPos(bottomValue, size.height, 0.0, 0.0);
     final rect = Rect.fromLTRB(x1, y1, x2, y2);
     final paint = Paint()
       ..color = patternsColor

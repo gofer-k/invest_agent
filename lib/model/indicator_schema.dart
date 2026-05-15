@@ -3,13 +3,15 @@ import 'dart:convert';
 
 enum IndicatorType {
   price("Price"),
-  bellingerBands("Bellinger Bands"),
+  bellingerBands("Bollinger Bands"),
   sma("Simple Moving Average"),
   ema("Exponential Moving Average"),
   macd("Moving Average Convergence/Divergence"),
   rsi("Relative Strength Index"),
   volume("Volume"),
-  undefined("Undefined");
+  undefined("Undefined"),
+  kst("Know Sure Thing"),
+  roc("Rate of Change"),;
 
   const IndicatorType(this.name);
   final String name;
@@ -102,10 +104,11 @@ class Indicator extends Cache {
   factory Indicator.from(List<Object?> item) {
     if (item.length >= 4) {
       final jsonParameters = jsonDecode(item[3] as String);
+      final jsonType = IndicatorType.values.firstWhere((e) => e.name == item[2] as String);
       return Indicator(
         id: item[0] as int,
         name: item[1] as String,
-        type: IndicatorType.values.firstWhere((e) => e.name == item[2] as String),
+        type: jsonType,
         parameters: jsonParameters,
       );
     }
@@ -146,7 +149,9 @@ class Indicator extends Cache {
       id: -2,
       name: 'Asset;s price',
       type: IndicatorType.price,
-      parameters: {mainChart: true},
+      parameters: {
+        mainChart: true
+      },
     );
   }
 

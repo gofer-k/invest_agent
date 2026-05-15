@@ -43,9 +43,9 @@ class OverlayRsi extends OverlayChart {
       ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
       ctx.indicatorToPos(
         data[firstVisibleIndex].rsi,
-        minValue,
-        maxValue,
         size.height,
+        minValue,
+        maxValue
       ),
     );
     for (var value in data.skip(firstVisibleIndex)) {
@@ -55,7 +55,7 @@ class OverlayRsi extends OverlayChart {
       }
       final Offset offset = Offset(
         ctx.dateToPos(value.dateTime, size),
-        ctx.indicatorToPos(value.rsi, minValue, maxValue, size.height),
+        ctx.indicatorToPos(value.rsi, size.height, minValue, maxValue),
       );
       path.lineTo(offset.dx, offset.dy);
     }

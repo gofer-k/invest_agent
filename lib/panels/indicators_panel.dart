@@ -36,7 +36,7 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
               final indicator = indicators[index];
               return Card(child: ListTile(
                   title: Text(indicator.name),
-                  subtitle: Text(indicator.type, style: const TextStyle(fontSize: 11)),
+                  subtitle: Text(indicator.type.name, style: const TextStyle(fontSize: 11)),
                   trailing: _buildTrailingActions(context, indicator)
                 ),
               );

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import '../../../model/analysis_respond.dart';
 import '../../../utils/chart_utils.dart';
 
 class ChartPainter extends CustomPainter {
   final TimeController controller;
-  final AnalysisRespond results;
   final List<OverlayChart> overlays;
   final double widthSideLabels;
 
-  ChartPainter({required this.controller, required this.results, this.overlays = const[], this.widthSideLabels = 0.0});
+  ChartPainter({required this.controller,
+    this.overlays = const[],
+    this.widthSideLabels = 0.0});
 
   void _paintBackGround(Canvas canvas, Size size) {
     final paintBackGround = Paint()
@@ -37,8 +37,8 @@ class ChartPainter extends CustomPainter {
   void _drawOverlays(Canvas canvas, Size size) {
     final ctx = OverlayContext(startDate: controller.visibleStart, endDate: controller.visibleEnd,
         dateToPos: (date, size) => dateToPos(date, controller.visibleStart, controller.visibleEnd, size.width),
-        priceToPos: (value, height) => valueToPos(currValue: value, min: results.minPrice, max: results.maxPrice, height: height),
-        indicatorToPos: (value, min, max, height) => valueToPos(currValue: value, min: min, max: max, height: height)
+        // priceToPos: (value, height) => valueToPos(currValue: value, min: results.minPrice, max: results.maxPrice, height: height),
+        indicatorToPos: (value, height, min, max) => valueToPos(currValue: value, min: min, max: max, height: height)
     );
     for (var overlay in overlays) {
       overlay.draw(canvas, size, ctx);
@@ -67,7 +67,7 @@ class ChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant ChartPainter oldDelegate) {
     return oldDelegate.controller != controller ||
-        oldDelegate.results != results ||
+        // oldDelegate.results != results ||
         oldDelegate.overlays != overlays;
   }
 }

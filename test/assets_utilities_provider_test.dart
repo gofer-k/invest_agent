@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
-import 'package:invest_agent/model/index_price.dart';
+import 'package:invest_agent/model/price_result.dart';
 import 'package:invest_agent/providers/assets_utilities.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/price_controller.dart';
@@ -87,20 +87,20 @@ void main() {
       final date1 = DateTime(2023, 1, 1);
       final date2 = DateTime(2023, 1, 10);
 
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset1.id, dateTime: date1,
         openPrice: 100, closePrice: 100, highPrice: 100, lowPrice: 100, volume: 100
       ));
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset1.id, dateTime: date2,
         openPrice: 110, closePrice: 110, highPrice: 110, lowPrice: 110, volume: 100
       ));
 
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset2.id, dateTime: date1,
         openPrice: 150, closePrice: 150, highPrice: 150, lowPrice: 150, volume: 100
       ));
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset2.id, dateTime: date2,
         openPrice: 160, closePrice: 160, highPrice: 160, lowPrice: 160, volume: 100
       ));
@@ -122,21 +122,21 @@ void main() {
       final date3 = DateTime(2023, 1, 15);
 
       // Asset 1: date1 to date2
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset1.id, dateTime: date1,
         openPrice: 100, closePrice: 100, highPrice: 100, lowPrice: 100, volume: 100
       ));
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset1.id, dateTime: date2,
         openPrice: 110, closePrice: 110, highPrice: 110, lowPrice: 110, volume: 100
       ));
 
       // Asset 2: date1 to date3
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset2.id, dateTime: date1,
         openPrice: 150, closePrice: 150, highPrice: 150, lowPrice: 150, volume: 100
       ));
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset2.id, dateTime: date3,
         openPrice: 170, closePrice: 170, highPrice: 170, lowPrice: 170, volume: 100
       ));
@@ -160,7 +160,7 @@ void main() {
       final date1 = DateTime(2023, 1, 1, 12, 0, 0);
       // Same day, results in 0 duration after DateUtils.dateOnly
       
-      await controller.save(priceSchema, IndexPrice(
+      await controller.save(priceSchema, IndexPriceItem(
         id: 0, assetId: asset1.id, dateTime: date1,
         openPrice: 100, closePrice: 100, highPrice: 100, lowPrice: 100, volume: 100
       ));

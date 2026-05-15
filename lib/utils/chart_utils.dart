@@ -1,10 +1,11 @@
-import 'package:invest_agent/model/analysis_respond.dart';
-
 import '../model/analysis_period.dart';
+import '../model/indicator_result.dart';
 import 'custom_datetime_format.dart';
 
-double valueToPos({required double currValue, required double min,
-  required double max, required double height}) {
+double valueToPos({required double currValue,
+  required double min,
+  required double max,
+  required double height}) {
   final range = max - min;
   if (range == 0) return height /2;
 

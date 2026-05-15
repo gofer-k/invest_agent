@@ -20,7 +20,7 @@ class OverlaySignal extends OverlayChart {
     if (date.isBefore(ctx.startDate) || date.isAfter(ctx.endDate)) return;
 
     final x = ctx.dateToPos(date, size);
-    final y = ctx.priceToPos(value, size.height);
+    final y = ctx.indicatorToPos(value, size.height, 0.0, 0.0);
     final paint = Paint()..color = signalColor;
     canvas.drawCircle(Offset(x, y), 4, paint);
   }

@@ -2,13 +2,8 @@ import 'dart:developer';
 import 'dart:math' hide log;
 
 import 'analysis_period.dart';
-import 'index_price.dart';
-
-class BaseIndicatorValue {
-  final DateTime dateTime;
-
-  const BaseIndicatorValue({required this.dateTime});
-}
+import 'indicator_result.dart';
+import 'price_result.dart';
 
 // Build SMA chart:
 // Map<rollingWindow, List<SMA>>
@@ -368,28 +363,10 @@ class CandleStickItem extends BaseIndicatorValue {
   }
 }
 
-// class PriceData extends BaseIndicatorValue {
-//   final double openPrice;
-//   final double closePrice;
-//   final double highPrice;
-//   final double lowPrice;
-//   final double volume;
-//   final double volumeZscore;
-//
-//   PriceData({required super.dateTime,
-//     required this.openPrice,
-//     required this.closePrice,
-//     required this.highPrice,
-//     required this.lowPrice,
-//     required this.volume,
-//     required this.volumeZscore});
-// }
-
 class AnalysisRespond {
-  final List<IndexPrice> priceData;
+  final List<IndexPriceItem> priceData;
   final List<Indicators> indicators;
   final List<CandleStickItem> candles;
-  double priceRange = 0.0;
   double maxPrice = 0.0;
   double minPrice = 0.0;
   PeriodType period;
@@ -398,7 +375,7 @@ class AnalysisRespond {
 
   AnalysisRespond copyWith({
     PeriodType? period,
-    List<IndexPrice>? priceData,
+    List<IndexPriceItem>? priceData,
     List<Indicators>? indicators,
     List<CandleStickItem>? candles,
     double? priceRange, double? maxPrice, double? minPrice}) {
@@ -415,43 +392,40 @@ class AnalysisRespond {
     _reset();
   }
 
-  double getMaxPrice(DateTime? startDate, DateTime? endDate) {
-    if (priceData.isEmpty) {
-      return 0.0;
-    }
-
-    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-    final maxPriceItem = priceDataFiltered.reduce(
-          (currentItem, nextItem) =>
-      currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
-    );
-    maxPrice = maxPriceItem.closePrice;
-    return maxPrice;
-  }
-
-  double getMinPrice(DateTime? startDate, DateTime? endDate) {
-    if (priceData.isEmpty) {
-      return 0.0;
-    }
-
-    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-    final minPriceItem = priceDataFiltered.reduce(
-            (currentItem, nextItem) =>
-        currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem);
-
-    minPrice = minPriceItem.closePrice;
-    return minPrice;
-  }
-
-  double getMinVolume(DateTime? startDate, DateTime? endDate) {
-    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-    return priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
-  }
-
-  double getMaxVolume(DateTime? startDate, DateTime? endDate) {
-    final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-    return priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
-  }
+  // double getMaxPrice(DateTime? startDate, DateTime? endDate) {
+  //   if (priceData.isEmpty) {
+  //     return 0.0;
+  //   }
+  //
+  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+  //   final maxPriceItem = priceDataFiltered.reduce(
+  //         (currentItem, nextItem) =>
+  //     currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
+  //   );
+  //   maxPrice = maxPriceItem.closePrice;
+  //   return maxPrice;
+  // }
+  // double getMinPrice(DateTime? startDate, DateTime? endDate) {
+  //   if (priceData.isEmpty) {
+  //     return 0.0;
+  //   }
+  //
+  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+  //   final minPriceItem = priceDataFiltered.reduce(
+  //           (currentItem, nextItem) =>
+  //       currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem);
+  //
+  //   minPrice = minPriceItem.closePrice;
+  //   return minPrice;
+  // }
+  // double getMinVolume(DateTime? startDate, DateTime? endDate) {
+  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+  //   return priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
+  // }
+  // double getMaxVolume(DateTime? startDate, DateTime? endDate) {
+  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
+  //   return priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
+  // }
 
   Future<List<SimpleMovingAverage>> getFutureSMA(int rollingWindow) async {
     return getSMA(rollingWindow);
@@ -491,25 +465,23 @@ class AnalysisRespond {
     return band;
   }
 
-  Future<List<IndexPrice>> getRollingVolume(int rollingWindow) async {
+  Future<List<IndexPriceItem>> getRollingVolume(int rollingWindow) async {
     return priceData.sublist(rollingWindow);
   }
 
-  List<IndexPrice> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
-    return priceData.sublist(prefixWindow);
-  }
-
-  List<IndexPrice> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
-    final priceDataFiltered =
-    priceData.where(
-            (element) => element.dateTime.isAfter(startDate)
-            && element.dateTime.isBefore(endDate)).toList();
-    return priceDataFiltered.sublist(prefixWindow);
-  }
-
-  List<DateTime> getDateTimeDomain(int prefixWindow) {
-    return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
-  }
+  // List<IndexPriceItem> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
+  //   return priceData.sublist(prefixWindow);
+  // }
+  // List<IndexPriceItem> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
+  //   final priceDataFiltered =
+  //   priceData.where(
+  //           (element) => element.dateTime.isAfter(startDate)
+  //           && element.dateTime.isBefore(endDate)).toList();
+  //   return priceDataFiltered.sublist(prefixWindow);
+  // }
+  // List<DateTime> getDateTimeDomain(int prefixWindow) {
+  //   return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
+  // }
 
   List<MACD> getMacd(MACDType type) {
     final macd = <MACD>[];
@@ -574,7 +546,6 @@ class AnalysisRespond {
   }
   
   void _reset() {
-    priceRange = 0.0;
     maxPrice = 0.0;
     minPrice = 0.0;
   }
@@ -582,7 +553,7 @@ class AnalysisRespond {
   static AnalysisRespond? fromJsonSync(Map<String, dynamic> jsonMap) {
     final indicators = <Indicators>[];
     final candles = <CandleStickItem>[];
-    final List<IndexPrice> priceData = [];
+    final List<IndexPriceItem> priceData = [];
 
     final responseData = jsonMap["respond"] as Map<String, dynamic>;
     responseData.forEach((key, value) {
@@ -595,18 +566,19 @@ class AnalysisRespond {
         final lowPrice = parseNum(metaData["Low"]);
         final volume = parseNum(metaData["Volume"]);
 
-        if (openPrice != null && closePrice != null && highPrice != null && lowPrice != null && volume != null) {
-          priceData.add(IndexPrice(
-            id: -1,
-            assetId: -1,
-            dateTime: dateTime,
-            openPrice: openPrice,
-            closePrice: closePrice,
-            highPrice: highPrice,
-            lowPrice: lowPrice,
-            volume: volume,
-          ));
-        }
+        // price data is from db cache instead of Json now!!!
+        // if (openPrice != null && closePrice != null && highPrice != null && lowPrice != null && volume != null) {
+        //   priceData.add(IndexPriceItem(
+        //     id: -1,
+        //     assetId: -1,
+        //     dateTime: dateTime,
+        //     openPrice: openPrice,
+        //     closePrice: closePrice,
+        //     highPrice: highPrice,
+        //     lowPrice: lowPrice,
+        //     volume: volume,
+        //   ));
+        // }
 
         final jsonCandle = value["candlestick"] as Map<String, dynamic>;
         final candleItem = CandleStickItem.fromJson(dateTime, openPrice, closePrice, highPrice, lowPrice, volume, jsonCandle);

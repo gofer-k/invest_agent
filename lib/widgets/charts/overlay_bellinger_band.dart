@@ -29,13 +29,13 @@ class OverlayBellingerBand extends OverlayChart {
     final path = Path();
     path.moveTo(
         ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
-        ctx.indicatorToPos(data[firstVisibleIndex].stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
+        ctx.indicatorToPos(data[firstVisibleIndex].stdValue ?? 0.0, size.height, minBandValue, maxBandValue, ));
     for (var value in data.skip(firstVisibleIndex)) {
       if (value.dateTime.isBefore(ctx.startDate) || value.dateTime.isAfter(ctx.endDate)) {
         continue;
       }
       final Offset offset = Offset(ctx.dateToPos(value.dateTime, size),
-          ctx.indicatorToPos(value.stdValue ?? 0.0, minBandValue, maxBandValue, size.height));
+          ctx.indicatorToPos(value.stdValue ?? 0.0, size.height, minBandValue, maxBandValue));
       path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);

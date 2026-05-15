@@ -14,7 +14,7 @@ part 'price_controller.g.dart';
 
 @immutable
 class PriceControllerState {
-  final List<IndexPrice> cache;
+  final List<IndexPriceItem> cache;
   final Map<int, String> assetDetails;
   final List<RemoteRequest> remoteRequests;
   const PriceControllerState({
@@ -23,7 +23,7 @@ class PriceControllerState {
     this.remoteRequests = const []});
   
   PriceControllerState copyWith({
-    List<IndexPrice>? cache,
+    List<IndexPriceItem>? cache,
     Map<int, String>? assetDetails,
     List<RemoteRequest>? remoteRequests}) {
     return PriceControllerState(
@@ -32,7 +32,7 @@ class PriceControllerState {
       remoteRequests: remoteRequests ?? this.remoteRequests,
     );
   }
-  List<IndexPrice> getItems() => cache;
+  List<IndexPriceItem> getItems() => cache;
   List<RemoteRequest> getRemoteRequests() => remoteRequests;
 }
 
@@ -63,16 +63,16 @@ class PriceController extends _$PriceController {
     return await ref.read(loadPriceProvider(type, true).future);
   }
 
-  Future<List<IndexPrice>> _fetchAndSet(
+  Future<List<IndexPriceItem>> _fetchAndSet(
       Future<String> Function() queryBuilder) async {
     try {
       final db = await _getDb();
-      final items = await db.useConnection<List<IndexPrice>>((con) async {
+      final items = await db.useConnection<List<IndexPriceItem>>((con) async {
         final sql = await queryBuilder();
         final queryResults = await con.query(sql);
         return queryResults
             .fetchAll()
-            .map((row) => IndexPrice.from(row))
+            .map((row) => IndexPriceItem.from(row))
             .toList();
       });
 
@@ -87,7 +87,7 @@ class PriceController extends _$PriceController {
   }
 
   Future<void> _updateAndSet(Future<String> Function() execBuilder,
-      {IndexPrice? item, bool isDelete = false}) async {
+      {IndexPriceItem? item, bool isDelete = false}) async {
     try {
       final db = await _getDb();
       await db.transaction<void>((con) async {
@@ -96,7 +96,7 @@ class PriceController extends _$PriceController {
       });
 
       if (ref.mounted && item != null) {
-        final currentCache = List<IndexPrice>.from(state.cache);
+        final currentCache = List<IndexPriceItem>.from(state.cache);
         if (isDelete) {
           currentCache.removeWhere((e) => e.id == item.id);
         } else {
@@ -159,29 +159,29 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<List<IndexPrice>> fetchOne(IndexPriceSchema schema,
-      IndexPrice price) =>
+  Future<List<IndexPriceItem>> fetchOne(IndexPriceSchema schema,
+      IndexPriceItem price) =>
       _fetchAndSet(() async => schema.readOne(price));
 
-  Future<List<IndexPrice>> fetchAll(IndexPriceSchema schema) =>
+  Future<List<IndexPriceItem>> fetchAll(IndexPriceSchema schema) =>
       _fetchAndSet(() async => schema.readAll);
 
-  Future<List<IndexPrice>> fetchDateRange(IndexPriceSchema schema,
+  Future<List<IndexPriceItem>> fetchDateRange(IndexPriceSchema schema,
       AssetConfig asset, DateTime begin, DateTime end) {
     final actualBegin = begin.isBefore(end) ? begin : end;
     final actualEnd = begin.isBefore(end) ? end : begin;
     return _fetchAndSet(() async => schema.readDateRange(asset, actualBegin, actualEnd));
   }
 
-  Future<void> save(IndexPriceSchema schema, IndexPrice item) async {
+  Future<void> save(IndexPriceSchema schema, IndexPriceItem item) async {
     await _updateAndSet(() async => schema.saveOne(item), item: item);
   }
 
-  Future<void> update(IndexPriceSchema schema, IndexPrice item) async {
+  Future<void> update(IndexPriceSchema schema, IndexPriceItem item) async {
     await _updateAndSet(() async => schema.updateOne(item), item: item);
   }
 
-  Future<void> delete(IndexPriceSchema schema, IndexPrice item) async {
+  Future<void> delete(IndexPriceSchema schema, IndexPriceItem item) async {
     await _updateAndSet(() async => schema.deleteOne(item), item: item, isDelete: true);
   }
 
@@ -227,7 +227,7 @@ class PriceController extends _$PriceController {
 
           if (asset.isDefault()) continue;
 
-          final price = IndexPrice(
+          final price = IndexPriceItem(
             id: 0,
             assetId: asset.id,
             dateTime: respond.timestamp,
@@ -273,7 +273,7 @@ Map<int, String> assetPriceDetails(Ref ref, [CacheKeyType? type, bool? keepAlive
 }
 
 @riverpod
-Future<List<IndexPrice>> assetPrices(Ref ref, int assetId, [DateTime? endTime]) async {
+Future<List<IndexPriceItem>> assetPrices(Ref ref, int assetId, [DateTime? endTime]) async {
   final notifier = ref.watch(priceControllerProvider().notifier);
 
   final schema = IndexPriceSchema();

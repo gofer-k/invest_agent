@@ -91,7 +91,10 @@ class IndicatorNotifier extends _$IndicatorNotifier {
 
 @riverpod
 List<Indicator> sortedIndicators(Ref ref) {
-  final assets = ref.watch(indicatorProvider().select(
+  final cachedIndicators = ref.watch(indicatorProvider().select(
           (s) => s.getItems()));
-  return assets.toList()..sort((a, b) => a.name.compareTo(b.name));
+
+  final indicators = <Indicator>[Indicator.defaultIndicator()];
+  indicators.addAll(cachedIndicators);
+  return indicators.toList()..sort((a, b) => a.name.compareTo(b.name));
 }

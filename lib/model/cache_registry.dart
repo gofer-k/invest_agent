@@ -3,7 +3,7 @@ import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
 
 import 'asset_config.dart';
-import 'index_price.dart';
+import 'price_result.dart';
 import 'indicator_schema.dart';
 import 'multi_chart_schema.dart';
 
@@ -15,7 +15,7 @@ class CacheRegistry {
     PortfolioConfig: (item) => PortfolioConfig.from(item),
     AssetConfig: (item) => AssetConfig.from(item),
     UserAccount: (item) => UserAccount.fromList(item),
-    IndexPrice: (item) => IndexPrice.from(item),
+    IndexPriceItem: (item) => IndexPriceItem.from(item),
     AnalysisEntry: (item) => AnalysisEntry.from(item),
     Indicator: (item) => Indicator.from(item),
     MultiChartConfig: (item) => MultiChartConfig.from(item),

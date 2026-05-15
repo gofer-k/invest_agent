@@ -60,6 +60,7 @@ class TooltipOverlay extends StatelessWidget {
       OverlayType.signal => null,
       OverlayType.volume => "Volume: ",
       OverlayType.tooltipMarker => null,
+      OverlayType.empty => null,
     };
     return text != null ? intl.NumberFormat.compact().format(item.value) : "";
   }

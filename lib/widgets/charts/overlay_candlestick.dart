@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
-import '../../model/index_price.dart';
+import '../../model/price_result.dart';
 
 class OverlayCandlestick extends OverlayChart {
-  final List<IndexPrice> data;
+  final List<IndexPriceItem> data;
   final Color upColor;
   final Color downColor;
   final double bodyWidth;

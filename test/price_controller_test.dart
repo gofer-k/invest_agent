@@ -92,7 +92,7 @@ void main() {
 
     test('save and fetchAll', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
-      final price = IndexPrice(
+      final price = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
@@ -113,7 +113,7 @@ void main() {
 
     test('fetchDateRange', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
-      final p1 = IndexPrice(
+      final p1 = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 2),
@@ -124,7 +124,7 @@ void main() {
         volume: 800.0,
       );
 
-      final p2 = IndexPrice(
+      final p2 = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 5),
@@ -152,7 +152,7 @@ void main() {
     test('update price', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
       // Save initial price first to ensure we have something to update
-      final price = IndexPrice(
+      final price = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
@@ -167,7 +167,7 @@ void main() {
       final savedItems = await controller.fetchAll(priceSchema);
       final savedPrice = savedItems.first;
 
-      final updatedPrice = IndexPrice(
+      final updatedPrice = IndexPriceItem(
         id: savedPrice.id,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
@@ -187,7 +187,7 @@ void main() {
 
     test('delete price', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
-      final price = IndexPrice(
+      final price = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
@@ -209,7 +209,7 @@ void main() {
 
     test('oldestDate and newestDate', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
-      final p1 = IndexPrice(
+      final p1 = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
@@ -219,7 +219,7 @@ void main() {
         lowPrice: 99.0,
         volume: 1000.0,
       );
-      final p2 = IndexPrice(
+      final p2 = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 2, 1),
@@ -244,7 +244,7 @@ void main() {
 
     test('assetPriceDetails updates after refreshAllDetails', () async {
       final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
-      final price = IndexPrice(
+      final price = IndexPriceItem(
         id: 0,
         assetId: testAsset.id,
         dateTime: DateTime(2023, 1, 1),
