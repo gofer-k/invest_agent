@@ -59,6 +59,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   void initState() {
     super.initState();
     _initializeControllers();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(multiChartProvider(CacheKeyType.analysisCache, widget.periodType).notifier).fetchAll();
+    });
   }
 
   // This method is called when the parent widget is rebuilt with new properties.
@@ -85,11 +89,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   @override
   Widget build(BuildContext context) {
-    final chartConfigs = ref.watch(multiChartsByProvider(
-        CacheKeyType.analysisCache,
-        widget.assetConfig,
-        widget.periodType));
-
+    final chartConfigs = ref.watch(multiChartProvider(CacheKeyType.analysisCache, widget.periodType)).cachedCharts;
     if (chartConfigs.isNotEmpty) {
       return Padding(padding: EdgeInsets.all(10),
           child: Column(
