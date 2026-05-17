@@ -39,7 +39,7 @@ class ChartConfig extends Cache {
   final bool visible;
   final ChartStyle chartStyle;
   final Indicator indicatorConfig; // price or indicator
-  final List<DrawingFeature> drawingData;
+  final List<DrawingFeature> drawingData; // the parent chart's drawing features
 
   ChartConfig({
     required this.mainChart,
@@ -109,10 +109,19 @@ class ChartConfig extends Cache {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ChartConfig && runtimeType == other.runtimeType;
+      other is ChartConfig &&
+          runtimeType == other.runtimeType &&
+          mainChart == other.mainChart &&
+          visible == other.visible &&
+          chartStyle == other.chartStyle &&
+          indicatorConfig == other.indicatorConfig;
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode =>
+      mainChart.hashCode ^
+      visible.hashCode ^
+      chartStyle.hashCode ^
+      indicatorConfig.hashCode;
 
 }
 
@@ -249,8 +258,15 @@ class MultiChartConfig extends Cache {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MultiChartConfig && runtimeType == other.runtimeType;
+      other is MultiChartConfig &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          periodType == other.periodType;
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      periodType.hashCode;
 }

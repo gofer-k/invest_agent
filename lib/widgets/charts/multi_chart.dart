@@ -18,7 +18,6 @@ import 'overlay_tooltip_marker.dart';
 class MultiChartView extends ConsumerStatefulWidget {
   final IndexPrice priceData;
   final AssetConfig assetConfig;
-  final List<MultiChartConfig> multiChartConfig;
   final PeriodType periodType;
   final double chartHeight;
   final bool showCrosshair;
@@ -28,7 +27,6 @@ class MultiChartView extends ConsumerStatefulWidget {
     super.key,
     required this.priceData,
     required this.assetConfig,
-    required this.multiChartConfig,
     required this.chartHeight,
     this.periodType = PeriodType.year,
     this.showCrosshair = true,
@@ -68,7 +66,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   void didUpdateWidget(MultiChartView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.multiChartConfig != oldWidget.multiChartConfig) {
+    if (widget.assetConfig != oldWidget.assetConfig ||
+        widget.periodType != oldWidget.periodType) {
       // Re-initialize the controller with the new data.
       _chartController.dispose();
       _initializeControllers();
@@ -86,15 +85,22 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   @override
   Widget build(BuildContext context) {
-    final chartConfigs = ref.watch(multiChartsByProvider(CacheKeyType.analysisCache, widget.assetConfig, widget.periodType));
-    return Padding(padding: EdgeInsets.all(10),
-      child: Column(
-        children: [
-          for (var chart in chartConfigs)
-            Expanded(flex: 5, child: _buildChart(chart)),
-        ],
-      )
-    );
+    final chartConfigs = ref.watch(multiChartsByProvider(
+        CacheKeyType.analysisCache,
+        widget.assetConfig,
+        widget.periodType));
+
+    if (chartConfigs.isNotEmpty) {
+      return Padding(padding: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              for (var chart in chartConfigs)
+                Expanded(flex: 5, child: _buildChart(chart)),
+            ],
+          )
+      );
+    }
+    return const Center(child: Text("No chart configs available"));
   }
 
   Widget _buildChart(MultiChartConfig chart) {

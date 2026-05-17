@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/indicator_result.dart';
+import 'package:invest_agent/model/asset_config.dart';
+import 'package:invest_agent/model/multi_chart_schema.dart';
+import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/charts_configuration.dart';
+import 'package:invest_agent/model/analysis_request.dart';
+import 'package:invest_agent/model/analysis_respond.dart';
+import 'package:invest_agent/providers/indicator_provider.dart';
+import 'package:invest_agent/providers/multi_chart_provider.dart';
+import 'package:invest_agent/providers/price_controller.dart';
+import 'package:invest_agent/widgets/app_logo.dart';
+import 'package:invest_agent/widgets/utils/dropdownlist.dart';
+import 'package:invest_agent/widgets/utils/task_bar_icon.dart';
 import 'package:invest_agent/themes/app_themes.dart';
-import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
-import '../model/analysis_period.dart';
-import '../model/asset_config.dart';
-import '../model/charts_configuration.dart';
-import '../model/analysis_request.dart';
-import '../model/analysis_respond.dart';
-
-import '../model/indicator_schema.dart';
-import '../model/multi_chart_schema.dart';
-import '../model/price_result.dart';
-import '../providers/indicator_provider.dart';
+import 'package:invest_agent/utils/load_json_data.dart';
+import 'package:invest_agent/model/price_result.dart';
+import '../model/indicator_result.dart';
 import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
-import '../providers/multi_chart_provider.dart';
-import '../providers/price_controller.dart';
-import '../widgets/app_logo.dart';
-import '../widgets/utils/dropdownlist.dart';
-import '../widgets/utils/task_bar_icon.dart';
 import 'analysis_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
@@ -65,6 +64,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   final Indicator _priceConfig = Indicator.priceIndicator();
   final List<Indicator> _displayedIndicators = [];
   final List<MultiChartConfig> _displayedCharts = [];
+  late MultiChartConfig _currentChartConfig = MultiChartConfig.defaultMultiChart();
 
   @override
   void initState() {
@@ -93,9 +93,17 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         setState(() {
           _displayedCharts.clear();
           _displayedCharts.addAll(next);
+          _currentChartConfig = _displayedCharts.last;
         });
       }
     });
+
+    if (_displayedCharts.isEmpty) {
+      _changeMultiChartConfig(
+        newAsset: _selectedAsset,
+        newPeriodType: _selectedPeriod,
+        newIndicator: _priceConfig);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -244,6 +252,9 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       onSelected: (AssetConfig asset) {
         setState(() {
           _selectedAsset = asset;
+          if (!_selectedAsset.isDefault()) {
+            _changeMultiChartConfig(newAsset: _selectedAsset);
+          }
         });
       },
       choiceType: _selectedAsset, 
@@ -261,12 +272,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         setState(() {
           _selectedIndicator = indicator;
           if (!_selectedIndicator.isDefault()) {
-            //TODO: load and display indicator's data
-            // ref.read(priceControllerProvider.notifier).fetchOne(
-            //     IndexPriceSchema(),
-            //     IndexPrice.of(
-            //         assetId: _selectedIndicator.id,
-            //         dateTime: DateTime.now()));
+            _changeMultiChartConfig(newIndicator: _selectedIndicator);
           }
         });
       },
@@ -284,7 +290,10 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (PeriodType period) {
         if (_selectedPeriod == period) return;
-        setState(() =>  _selectedPeriod = period);
+        setState(() {
+          _selectedPeriod = period;
+          _changeMultiChartConfig(newPeriodType: _selectedPeriod);
+        });
       },
       choiceType: periods.contains(_selectedPeriod)
           ? _selectedPeriod
@@ -300,13 +309,54 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         backgroundColor:  Colors.grey.shade600.withAlpha(128),
       onSelected: (ChartStyle style) {
         if (_selectedChartStyle == style) return;
-        setState(() =>  _selectedChartStyle = style);
+        setState(() {
+          _selectedChartStyle = style;
+          _changeMultiChartConfig(newChartStyle :_selectedChartStyle);
+        });
       },
       choiceType: styles.contains(_selectedChartStyle)
           ? _selectedChartStyle
           : styles.first,
       choices: styles.toList()
     );
+  }
+
+  void _changeMultiChartConfig({AssetConfig? newAsset, PeriodType? newPeriodType,
+    ChartStyle? newChartStyle, Indicator? newIndicator}) {
+
+    final targetAsset = newAsset ?? _selectedAsset;
+    final targetPeriod = newPeriodType ?? _selectedPeriod;
+    if (targetAsset.isDefault()) return;
+
+    final List<ChartConfig> updatedCharts = List.from(_currentChartConfig.charts);
+    if (newIndicator != null && !updatedCharts.any((c) => c.indicatorConfig == newIndicator)) {
+      updatedCharts.add(
+        ChartConfig(
+          indicatorConfig: newIndicator,
+          chartStyle: newChartStyle ?? ChartStyle.line,
+          mainChart: newIndicator.isMainChart(),
+          drawingData: [
+            //TODO: add user's drawing features in the current chart
+          ]
+       ));
+    }
+
+    final newIndicatorConfig =_currentChartConfig.copyWith(
+      newAsset: targetAsset,
+      newPeriodType: targetPeriod,
+      newCharts: updatedCharts,
+      newTitle: "${targetAsset.symbol} - ${targetPeriod.name} - ${(newChartStyle ?? _selectedChartStyle).name}",
+    );
+
+    // Update the multi chart in the cache
+    if (newIndicatorConfig == _currentChartConfig) return;
+
+    final notifier = ref.read(multiChartProvider(CacheKeyType.analysisCache, targetPeriod).notifier);
+    if (newIndicatorConfig.id  < 0) {
+      notifier.addEntry(newIndicatorConfig);
+    } else {
+      notifier.updateMultiChart(newIndicatorConfig);
+    }
   }
 
   Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
@@ -338,7 +388,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
             return MultiChartView(
               priceData: priceResult,
               assetConfig: _selectedAsset,
-              multiChartConfig: _displayedCharts,
               periodType: _selectedPeriod,
               chartHeight: constraints.maxHeight,
               prefixDomain: 0); // TODO: check out this

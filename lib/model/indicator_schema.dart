@@ -1,5 +1,6 @@
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 
 enum IndicatorType {
   price("Price"),
@@ -118,7 +119,9 @@ class Indicator extends Cache {
   factory Indicator.fromMap(Map<String, dynamic> item) {
     return Indicator(
       id: item['id'] as int? ?? -1,
-      type: item['type'] as IndicatorType,
+      type: item['type'] is String 
+          ? IndicatorType.values.firstWhere((e) => e.name == item['type'])
+          : item['type'] as IndicatorType,
       name: item['name'] as String? ?? '',
       parameters: item['parameters'] as Map<String, dynamic>? ?? {},
     );
@@ -128,7 +131,7 @@ class Indicator extends Cache {
   Map<String, dynamic> toMap() =>   {
     'id': id,
     'name': name,
-    'type': type,
+    'type': type.name,
     'parameters': parameters,
   };
 
@@ -156,12 +159,13 @@ class Indicator extends Cache {
   }
 
   Indicator copyWith({String? newName, IndicatorType? newType, bool? isMainChart}) {
-    parameters[mainChart] = isMainChart ?? parameters[mainChart];
+    final newParams = Map<String, dynamic>.from(parameters);
+    newParams[mainChart] = isMainChart ?? newParams[mainChart];
     return Indicator(
         id: id,
         name: newName ?? name,
         type: newType ?? type,
-        parameters: parameters);
+        parameters: newParams);
   }
   
   bool isDefault() {
@@ -169,22 +173,23 @@ class Indicator extends Cache {
   }
 
   bool isMainChart() {
-    return parameters["_mainChart"] ?? false;
+    return parameters[mainChart] ?? false;
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Indicator && runtimeType == other.runtimeType &&
-      id == other.id && // TODO: Consider not use it here
-      name == other.name &&
-      type == other.type &&
-      parameters == other.parameters;
+      other is Indicator &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          type == other.type &&
+          const MapEquality().equals(parameters, other.parameters);
 
   @override
   int get hashCode =>
-      id.hashCode ^ // TODO:Consider not use it here
+      id.hashCode ^
       name.hashCode ^
       type.hashCode ^
-      parameters.hashCode;
+      const MapEquality().hash(parameters);
 }
