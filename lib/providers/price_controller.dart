@@ -191,17 +191,19 @@ class PriceController extends _$PriceController {
   }
 
   Future<DateTime> oldestDate(IndexPriceSchema schema, AssetConfig asset) async {
+    final oldest = DateTime(2019, 1, 1);
     final val = await _queryValue<Object?>(() async => schema.oldestDate(asset), null);
-    if (val == null) return DateTime.now();
+    if (val == null) return oldest;
     if (val is DateTime) return val;
-    return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    return DateTime.tryParse(val.toString()) ?? oldest;
   }
 
   Future<DateTime> newestDate(IndexPriceSchema schema, AssetConfig asset) async {
+    final newest = DateTime.now();
     final val = await _queryValue<Object?>(() async => schema.newestDate(asset), null);
-    if (val == null) return DateTime.now();
+    if (val == null) return newest;
     if (val is DateTime) return val;
-    return DateTime.tryParse(val.toString()) ?? DateTime.now();
+    return DateTime.tryParse(val.toString()) ?? newest;
   }
 
   Future<void> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
@@ -227,7 +229,12 @@ class PriceController extends _$PriceController {
 
           if (asset.isDefault()) continue;
 
-          final price = IndexPriceItem(
+          // Discard invalid remote values
+          if (respond.open == 0.0 || respond.close == 0.0 || respond.high == 0.0 || respond.low == 0.0) {
+            continue;
+          }
+
+          final nextPrice = IndexPriceItem(
             id: 0,
             assetId: asset.id,
             dateTime: respond.timestamp,
@@ -237,7 +244,8 @@ class PriceController extends _$PriceController {
             lowPrice: respond.low,
             volume: respond.volume,
           );
-          await con.execute(schema.saveOne(price));
+
+          await con.execute(schema.saveOne(nextPrice));
         }
       });
 
