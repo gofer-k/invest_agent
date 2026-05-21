@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:flutter/foundation.dart';
 import 'package:invest_agent/model/analysis_period.dart';
 
@@ -18,7 +16,6 @@ class TimeController extends ChangeNotifier {
     final start = startDatetime(periodType, maxDomainEnd) ?? minDomainStart;
     visibleStart = start.isBefore(minDomainStart) ? minDomainStart : start;
     visibleEnd = maxDomainEnd;
-    dev.log("TimeController: visible range [$visibleStart - $visibleEnd], domain range [$minDomainStart - $maxDomainEnd]");
   }
 
   Duration get visibleSpan => visibleEnd.difference(visibleStart);

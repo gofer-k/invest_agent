@@ -181,11 +181,11 @@ class MarketStackRespond {
 
       return MarketStackRespond(
         type: MarketStackType.eod,
-        open: (json['open'] as num).toDouble(),
-        high: (json['high'] as num).toDouble(),
-        low: (json['low'] as num).toDouble(),
-        close: (json['close'] as num).toDouble(),
-        volume: (json['volume'] as num).toDouble(),
+        open: (json['open'] == null ? 0.0 : (json['open'] as num).toDouble()),
+        high: (json['high'] == null ? 0.0 : (json['high'] as num).toDouble()),
+        low: (json['low'] == null ? 0.0 : (json['low'] as num).toDouble()),
+        close: (json['close'] == null ? 0.0 :(json['close'] as num).toDouble()),
+        volume: (json['volume'] == null ? 0.0 : (json['volume'] as num).toDouble()),
         timestamp: DateTime.parse(json['date'] as String),
         symbol: symbol,
         symbolSuffix: suffix,
@@ -193,6 +193,10 @@ class MarketStackRespond {
         currency: json['price_currency'] == null ? null : (json['price_currency']),
         dividend: json['dividend'] == null ? null : (json['dividend'] as num).toDouble(),
       );
+    }
+    catch (e) {
+      log('MarketStackRespond.fromEod failed: $e');
+      rethrow;
     }
     finally {
       sw.stop();
