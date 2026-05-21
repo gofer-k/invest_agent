@@ -127,5 +127,5 @@ List<MultiChartConfig> sortedMultiCharts(Ref ref, CacheKeyType? type) {
 @riverpod
 List<MultiChartConfig> multiChartsBy(Ref ref, CacheKeyType? type, AssetConfig asset, PeriodType periodType) {
   final charts = ref.watch(multiChartProvider(type, periodType).select((s) => s.cachedCharts));
-  return charts.where((chart) => chart.asset?.id == asset.id).toList();
+  return charts.where((chart) => chart.asset.id == asset.id).toList();
 }

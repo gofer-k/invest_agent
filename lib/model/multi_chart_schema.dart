@@ -57,7 +57,7 @@ class ChartConfig extends Cache {
     List<DrawingFeature>? drawingData}) {
     return ChartConfig(
       mainChart: mainChart ?? this.mainChart,
-      chartStyle: drawingType ?? this.chartStyle,
+      chartStyle: drawingType ?? chartStyle,
       visible: visible ?? this.visible,
       indicatorConfig: newIndicatorConfig ?? indicatorConfig,
       drawingData: drawingData ?? this.drawingData,);
@@ -135,6 +135,7 @@ class MultiChartConfigSchema extends CacheSchema {
    '''
     CREATE TABLE IF NOT EXISTS $cacheName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
+      asset_id INTEGER,
       title TEXT NOT NULL UNIQUE,
       period_type TEXT,
       charts TEXT, -- JSON string
@@ -163,6 +164,7 @@ class MultiChartConfigSchema extends CacheSchema {
       INSERT INTO $cacheName 
       VALUES (
       nextval('$sequenceName'),
+      ${multiChart.asset.id},
       '${multiChart.title}',
       '${multiChart.periodType.name}',
       '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
@@ -177,6 +179,7 @@ class MultiChartConfigSchema extends CacheSchema {
     return '''
       UPDATE $cacheName
       SET title = '${multiChart.title}',
+          asset_id = ${multiChart.asset.id},
           period_type = '${multiChart.periodType.name}',
           charts = '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       WHERE id = ${multiChart.id};
@@ -197,7 +200,7 @@ class MultiChartConfig extends Cache {
   final String title; // Asset's name
   final List<ChartConfig> charts;
   final PeriodType periodType;
-  final AssetConfig? asset;
+  final AssetConfig asset;
 
   MultiChartConfig({
     required this.id,
@@ -222,13 +225,14 @@ class MultiChartConfig extends Cache {
 
   @override
   factory MultiChartConfig.from(List<Object?> item) {
-    if (item.length >= 4) {
-      final List<dynamic> jsonCharts = jsonDecode(item[3] as String);
+    if (item.length >= 5) {
+      final List<dynamic> jsonCharts = jsonDecode(item[4] as String);
+      final jsonAssetId = item[1] as int;
       return MultiChartConfig(
         id: item[0] as int,
-        title: item[1] as String,
-        asset: null,
-        periodType: PeriodType.values.firstWhere((e) => e.name == item[2] as String),
+        asset: AssetConfig.of(id: jsonAssetId),
+        title: item[2] as String,
+        periodType: PeriodType.values.firstWhere((e) => e.name == item[3] as String),
         charts: jsonCharts.map((e) {
           final map = e as Map<String, dynamic>;
           return ChartConfig.from(map);
@@ -241,6 +245,7 @@ class MultiChartConfig extends Cache {
   @override
   Map<String, dynamic> toMap() =>{
     'id': id,
+    'asset_id': asset.id,
     'title': title,
     'period_type': periodType.name,
     'charts': charts.map((e) => e.toMap()).toList(),
@@ -249,7 +254,10 @@ class MultiChartConfig extends Cache {
   @override
   String toString() => title;
 
-  static MultiChartConfig defaultMultiChart() => MultiChartConfig(id: -1, title: '', periodType: PeriodType.year, charts: [], asset: null);
+  static MultiChartConfig defaultMultiChart() =>
+      MultiChartConfig(
+        id: -1, title: '', periodType: PeriodType.year, charts: [],
+        asset: AssetConfig.defaultAsset());
 
   ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
 
@@ -261,12 +269,14 @@ class MultiChartConfig extends Cache {
       other is MultiChartConfig &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          asset == other.asset &&
           title == other.title &&
           periodType == other.periodType;
 
   @override
   int get hashCode =>
       id.hashCode ^
+      asset.hashCode ^
       title.hashCode ^
       periodType.hashCode;
 }
