@@ -14,7 +14,7 @@ class OverlayMovingAverage extends OverlayChart {
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0) return;
+    if (size.width <= 0 || data.isEmpty) return;
 
     final paint = Paint()
       ..color = lineColor
@@ -24,22 +24,31 @@ class OverlayMovingAverage extends OverlayChart {
     final int firstVisibleIndex = data.indexWhere(
             (ma) => ma.dateTime.isAfter(ctx.startDate)
     );
-    if (firstVisibleIndex == -1) return; // Nothing to draw
+    if (firstVisibleIndex == -1) return; 
 
-    final minValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.rollingMean! <= next.rollingMean! ? curr : next).rollingMean ?? 0.0;
-    final maxValue = data.skip(firstVisibleIndex).reduce((curr, next) => curr.rollingMean! > next.rollingMean! ? curr : next).rollingMean ?? 0.0;
+    final visibleData = data.skip(firstVisibleIndex).toList();
+    if (visibleData.isEmpty) return;
+
+    final minValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) <= (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
+    final maxValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) > (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
+
+    if (minValue == maxValue) return;
 
     final path = Path();
-    path.moveTo(
-        ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
-        ctx.indicatorToPos(data[firstVisibleIndex].rollingMean ?? 0.0, size.height,minValue, maxValue));
-    for (var ma in data.skip(firstVisibleIndex)) {
-      if (ma.dateTime.isBefore(ctx.startDate) || ma.dateTime.isAfter(ctx.endDate)) {
-        continue;
+    bool started = false;
+
+    for (var ma in visibleData) {
+      if (ma.dateTime.isAfter(ctx.endDate)) break;
+      
+      final x = ctx.dateToPos(ma.dateTime, size);
+      final y = ctx.indicatorToPos(ma.rollingMean ?? 0.0, size.height, minValue, maxValue);
+      
+      if (!started) {
+        path.moveTo(x, y);
+        started = true;
+      } else {
+        path.lineTo(x, y);
       }
-      final Offset offset = Offset(ctx.dateToPos(ma.dateTime, size),
-          ctx.indicatorToPos(ma.rollingMean ?? 0.0, size.height, minValue, maxValue));
-      path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);
   }

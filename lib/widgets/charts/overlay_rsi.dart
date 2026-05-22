@@ -17,7 +17,8 @@ class OverlayRsi extends OverlayChart {
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0) return;
+    if (size.width <= 0 || data.isEmpty) return;
+    
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = lineWidth
@@ -28,36 +29,33 @@ class OverlayRsi extends OverlayChart {
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final minValue = data
-        .skip(firstVisibleIndex)
+    final visibleData = data.skip(firstVisibleIndex).toList();
+    if (visibleData.isEmpty) return;
+
+    final minValue = visibleData
         .reduce((curr, next) => curr.rsi <= next.rsi ? curr : next)
         .rsi;
-    final maxValue = data
-        .skip(firstVisibleIndex)
+    final maxValue = visibleData
         .reduce((curr, next) => curr.rsi > next.rsi ? curr : next)
         .rsi;
-    if (minValue == 0.0 || maxValue == 0.0) return;
+    
+    if (minValue == maxValue) return;
 
     final path = Path();
-    path.moveTo(
-      ctx.dateToPos(data[firstVisibleIndex].dateTime, size),
-      ctx.indicatorToPos(
-        data[firstVisibleIndex].rsi,
-        size.height,
-        minValue,
-        maxValue
-      ),
-    );
-    for (var value in data.skip(firstVisibleIndex)) {
-      if (value.dateTime.isBefore(ctx.startDate) ||
-          value.dateTime.isAfter(ctx.endDate)) {
-        continue;
+    bool started = false;
+
+    for (var value in visibleData) {
+      if (value.dateTime.isAfter(ctx.endDate)) break;
+      
+      final x = ctx.dateToPos(value.dateTime, size);
+      final y = ctx.indicatorToPos(value.rsi, size.height, minValue, maxValue);
+      
+      if (!started) {
+        path.moveTo(x, y);
+        started = true;
+      } else {
+        path.lineTo(x, y);
       }
-      final Offset offset = Offset(
-        ctx.dateToPos(value.dateTime, size),
-        ctx.indicatorToPos(value.rsi, size.height, minValue, maxValue),
-      );
-      path.lineTo(offset.dx, offset.dy);
     }
     canvas.drawPath(path, paint);
   }

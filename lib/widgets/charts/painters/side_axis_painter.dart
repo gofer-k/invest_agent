@@ -46,6 +46,10 @@ class SideAxisPainter extends CustomPainter{
 
     final min = minValue(controller.visibleStart, controller.visibleEnd);
     final max = maxValue(controller.visibleStart, controller.visibleEnd);
+    
+    // Guard against equal min/max or no data
+    if (min == max) return;
+    
     final double step = (max - min) / (countLevels - 1);
 
     for (var i = 0; i < countLevels; i++) {
@@ -56,6 +60,8 @@ class SideAxisPainter extends CustomPainter{
   }
 
   void _drawLabel(Canvas canvas, Size size, double minValue, double maxValue, ValueLabel label) {
+    if (minValue == maxValue) return;
+
     final String compactNumber = intl.NumberFormat.compact().format(label.value);
     _valuePainter.text = TextSpan(text: compactNumber,
         style: style.copyWith(color: label.textColor));
@@ -84,12 +90,16 @@ class SideAxisPainter extends CustomPainter{
   @override
   void paint(Canvas canvas, Size size) {
     const countLevels = 5;
+    
+    final min = minValue(controller.visibleStart, controller.visibleEnd);
+    final max = maxValue(controller.visibleStart, controller.visibleEnd);
+
+    // If there is no data range to draw, just return
+    if (min == max && min == 0.0) return;
+
     if (highLightLabels.isNotEmpty) {
       drawLevelLines(canvas, size, countLevels);
     }
-
-    final min = minValue(controller.visibleStart, controller.visibleEnd);
-    final max = maxValue(controller.visibleStart, controller.visibleEnd);
 
     for (int i = 0; i <= countLevels; ++i) {
       final ratio = i / countLevels;
@@ -102,7 +112,7 @@ class SideAxisPainter extends CustomPainter{
           textDirection: TextDirection.ltr)
         ..layout(maxWidth: size.width);
 
-      final textOffset = Offset(4, y - textPainter.height / 2); // Added 4px left padding
+      final textOffset = Offset(4, y - textPainter.height / 2);
       textPainter.paint(canvas, textOffset);
     }
     for(final label in highLightLabels) {

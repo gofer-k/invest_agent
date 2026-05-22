@@ -20,11 +20,15 @@ class OverlayVolume extends OverlayChart {
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (data.isEmpty) return;
-    double maxVolume = data
-        .reduce(
-          (current, next) => current.volume > next.volume ? current : next,
-        )
-        .volume;
+
+    final visibleData = data.where((p) => !p.dateTime.isBefore(ctx.startDate) && !p.dateTime.isAfter(ctx.endDate)).toList();
+    if (visibleData.isEmpty) return;
+
+    double maxVolume = visibleData
+        .map((e) => e.volume)
+        .reduce((current, next) => current > next ? current : next);
+
+    if (maxVolume == 0) return;
 
     final paintUp = Paint()
       ..color = upVolumeColor
@@ -36,11 +40,7 @@ class OverlayVolume extends OverlayChart {
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
-    for (final price in data) {
-      if (price.dateTime.isBefore(ctx.startDate) ||
-          price.dateTime.isAfter(ctx.endDate)) {
-        continue;
-      }
+    for (final price in visibleData) {
       final x = ctx.dateToPos(price.dateTime, size);
       final vol = price.volume;
       final barHeight = (vol / maxVolume) * size.height * 0.75;

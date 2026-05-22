@@ -47,15 +47,15 @@ class ChartPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inMilliseconds;
+    if (snapDays <= 0 || size.width <= 0) return;
+
     // Define a rectangle for the clipping area
     final clipRect = Rect.fromLTWH(0, 0, size.width, size.height);
 
     // Save the canvas state and apply the clip
     canvas.save();
     canvas.clipRect(clipRect);
-
-    final snapDays = controller.visibleEnd.difference(controller.visibleStart).inMilliseconds;
-    if (snapDays <= 0 || size.width <= 0) return;
 
     _paintBackGround(canvas, size);
     _paintGrid(canvas, size);
