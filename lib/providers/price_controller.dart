@@ -229,11 +229,8 @@ class PriceController extends _$PriceController {
 
           if (asset.isDefault()) continue;
 
-          // Discard invalid remote values
-          if (respond.open == 0.0 || respond.close == 0.0 || respond.high == 0.0 || respond.low == 0.0) {
-            continue;
-          }
-
+          // Caveat:
+          // Remote data may be invalid or not complete because of free account's remote source.
           final nextPrice = IndexPriceItem(
             id: 0,
             assetId: asset.id,
