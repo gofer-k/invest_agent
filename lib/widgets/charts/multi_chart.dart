@@ -53,6 +53,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     if (widget.showCrosshair && _crosshairController == null) {
       _crosshairController = CrosshairController();
     }
+
+    // Ensure the charts config data to be available
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   ref.read(multiChartProvider(CacheKeyType.analysisCache, widget.periodType).notifier).fetchAll();
+    // });
   }
 
   @override
@@ -89,7 +94,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   @override
   Widget build(BuildContext context) {
-    final chartConfigs = ref.watch(multiChartProvider(CacheKeyType.analysisCache, widget.periodType)).cachedCharts;
+    final chartConfigs = ref.watch(
+        multiChartsByProvider(
+            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType));
     if (chartConfigs.isNotEmpty) {
       return Padding(padding: EdgeInsets.all(10),
           child: Column(
@@ -113,7 +120,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       minFunc: (startDate, endDate) => _getMinValue(mainChart.indicatorConfig.type, _chartController.visibleStart, _chartController.visibleEnd),
       maxFunc: (startDate, endDate) => _getMaxValue(mainChart.indicatorConfig.type, _chartController.visibleStart, _chartController.visibleEnd),
       overLayCharts: [
-        _showMainChart(chart.mainChart),
+        _showMainChart(mainChart),
         for(var overlayChart in chart.overlayCharts)
           _showOverlayChart(overlayChart),
         if (widget.showCrosshair)
