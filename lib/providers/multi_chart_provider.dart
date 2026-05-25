@@ -129,3 +129,13 @@ List<MultiChartConfig> multiChartsBy(Ref ref, CacheKeyType? type, AssetConfig as
   final charts = ref.watch(multiChartProvider(type, periodType).select((s) => s.cachedCharts));
   return charts.where((chart) => chart.asset.id == asset.id).toList();
 }
+
+
+@riverpod
+Future<void> removeMultiChartBy(Ref ref, CacheKeyType? type, AssetConfig asset) async {
+  for (final chart in ref.read(multiChartProvider(type).select((s) => s.cachedCharts))) {
+    if (chart.asset.id == asset.id) {
+      await ref.read(multiChartProvider(type).notifier).deleteEntry(chart);
+    }
+  }
+}

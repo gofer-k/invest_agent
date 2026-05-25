@@ -142,6 +142,20 @@ class PortfolioConfig implements Cache{
   this.rebalanceThreshold = 0.05,
   });
 
+  PortfolioConfig copyWith({
+    int? id,
+    String? portfolioName,
+    List<int>? metaIds,
+    double? targetWeight,
+    double? rebalanceThreshold}) {
+    return PortfolioConfig(
+      id: id ?? this.id,
+      portfolioName: portfolioName ?? this.portfolioName,
+      metaIds: metaIds ?? this.metaIds,
+      targetWeight: targetWeight ?? this.targetWeight,
+      rebalanceThreshold: rebalanceThreshold ?? this.rebalanceThreshold);
+  }
+
   @override
   factory PortfolioConfig.from(List<Object?> row) {
     if (row.isEmpty && row.length < 5) {

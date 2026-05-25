@@ -58,7 +58,7 @@ final class PriceControllerProvider
   }
 }
 
-String _$priceControllerHash() => r'23949761cdb3c37227367a66d7141f23faaa9cf8';
+String _$priceControllerHash() => r'8934dd95ff7de4afc276dd84f46b9c1a9e826bb6';
 
 final class PriceControllerFamily extends $Family
     with
@@ -199,7 +199,9 @@ final class AssetPricesProvider
           List<IndexPriceItem>,
           FutureOr<List<IndexPriceItem>>
         >
-    with $FutureModifier<List<IndexPriceItem>>, $FutureProvider<List<IndexPriceItem>> {
+    with
+        $FutureModifier<List<IndexPriceItem>>,
+        $FutureProvider<List<IndexPriceItem>> {
   AssetPricesProvider._({
     required AssetPricesFamily super.from,
     required (int, DateTime?) super.argument,
@@ -244,7 +246,7 @@ final class AssetPricesProvider
   }
 }
 
-String _$assetPricesHash() => r'd8024a2f48986e896d8c0ad3ff9bdeb0209f70ae';
+String _$assetPricesHash() => r'fb68f68739b02784f71932c09ab7f5f45345231f';
 
 final class AssetPricesFamily extends $Family
     with

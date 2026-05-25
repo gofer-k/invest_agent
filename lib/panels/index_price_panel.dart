@@ -2,10 +2,12 @@ import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/providers/multi_chart_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../model/asset_config.dart';
 import '../model/price_result.dart';
+import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../providers/assets_utilities.dart';
@@ -197,8 +199,10 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     );
 
     if (confirmed == true) {
+      await ref.read(removeMultiChartByProvider(CacheKeyType.analysisCache, asset));
       await ref.read(priceControllerProvider().notifier).deleteAssetAll(IndexPriceSchema(), asset);
-      await ref.read(modelConfigProvider.notifier).delete(AssetConfigSchema(), asset);
+      await ref.read(modelConfigProvider.notifier).removeAsset(asset);
+      await ref.read(refreshAllDetailsProvider.future);
     }
   }
 

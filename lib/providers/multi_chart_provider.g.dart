@@ -266,7 +266,7 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'4f36a73897394ff768cec59c4cfef9182db8b0c8';
+String _$multiChartsByHash() => r'97e24f5cb807cd7e52f6e10a5a04ad399a04696e';
 
 final class MultiChartsByFamily extends $Family
     with
@@ -291,4 +291,78 @@ final class MultiChartsByFamily extends $Family
 
   @override
   String toString() => r'multiChartsByProvider';
+}
+
+@ProviderFor(removeMultiChartBy)
+final removeMultiChartByProvider = RemoveMultiChartByFamily._();
+
+final class RemoveMultiChartByProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+    with $FutureModifier<void>, $FutureProvider<void> {
+  RemoveMultiChartByProvider._({
+    required RemoveMultiChartByFamily super.from,
+    required (CacheKeyType?, AssetConfig) super.argument,
+  }) : super(
+         retry: null,
+         name: r'removeMultiChartByProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$removeMultiChartByHash();
+
+  @override
+  String toString() {
+    return r'removeMultiChartByProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<void> create(Ref ref) {
+    final argument = this.argument as (CacheKeyType?, AssetConfig);
+    return removeMultiChartBy(ref, argument.$1, argument.$2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RemoveMultiChartByProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$removeMultiChartByHash() =>
+    r'e15ae6b001db11a442c3bdca23c0b104bd64598d';
+
+final class RemoveMultiChartByFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<void>,
+          (CacheKeyType?, AssetConfig)
+        > {
+  RemoveMultiChartByFamily._()
+    : super(
+        retry: null,
+        name: r'removeMultiChartByProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  RemoveMultiChartByProvider call(CacheKeyType? type, AssetConfig asset) =>
+      RemoveMultiChartByProvider._(argument: (type, asset), from: this);
+
+  @override
+  String toString() => r'removeMultiChartByProvider';
 }
