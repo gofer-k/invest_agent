@@ -34,8 +34,8 @@ class AssetConfigSchema implements CacheSchema
         exchange VARCHAR,
         currency VARCHAR,
         symbol_suffix VARCHAR,
-        links TEXT,
-        UNIQUE(id, symbol));
+        links TEXT
+      );
     ''';
 
   @override

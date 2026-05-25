@@ -20,8 +20,7 @@ class IndexPriceSchema implements CacheSchema {
           low FLOAT,
           close FLOAT,
           volume FLOAT,
-          UNIQUE(meta_id, date),
-          FOREIGN KEY (meta_id) REFERENCES ${AssetConfigSchema.cacheName}(id)
+          UNIQUE(meta_id, date)
       );      
     ''';
 

@@ -153,7 +153,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
             if (newAsset != null) {
               await ref.read(modelConfigProvider.notifier).update<AssetConfig>(
                   AssetConfigSchema(), newAsset);
-              ref.read(refreshAllDetailsProvider.future);
+              await ref.read(refreshAllDetailsProvider.future);
             }
           }),
         ),
