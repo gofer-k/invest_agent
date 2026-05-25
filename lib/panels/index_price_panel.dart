@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../model/asset_config.dart';
 import '../model/price_result.dart';
@@ -139,6 +140,22 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
           ]
         ),
         IconButton(
+          icon: const Icon(Icons.download, size: 18),
+          tooltip: 'Download historical data',
+          onPressed: () => _handleDownload(context, ref, asset)
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit, size: 18),
+          tooltip: 'Edit Asset',
+          onPressed: () => showAsset(context, asset, (newAsset) async {
+            if (newAsset != null) {
+              await ref.read(modelConfigProvider.notifier).update<AssetConfig>(
+                  AssetConfigSchema(), newAsset);
+              ref.read(refreshAllDetailsProvider.future);
+            }
+          }),
+        ),
+        IconButton(
           icon: Icon(Icons.delete, color: colorScheme.error, size: 18),
           tooltip: 'Delete History',
           onPressed: () => _handleDelete(context, ref, asset),
@@ -150,13 +167,10 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
   Future<void> _handleAddAsset(BuildContext context, WidgetRef ref) async {
     showAsset(context, AssetConfig.defaultAsset(), (newAsset) async {
       if (newAsset != null) {
-        // Corrected Schema
         await ref.read(modelConfigProvider.notifier).save<AssetConfig>(
             AssetConfigSchema(), newAsset);
 
         ref.read(refreshAllDetailsProvider.future);
-        // setState(() {
-        // });
       }
     });
   }
@@ -173,7 +187,9 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
             child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         ],
@@ -182,6 +198,31 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
     if (confirmed == true) {
       await ref.read(priceControllerProvider().notifier).deleteAssetAll(IndexPriceSchema(), asset);
+      await ref.read(modelConfigProvider.notifier).delete(AssetConfigSchema(), asset);
+    }
+  }
+
+  void _handleDownload(BuildContext context, WidgetRef ref, AssetConfig asset) async {
+    if (asset.links.isEmpty) {
+       if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No links configured for this asset')),
+        );
+      }
+      return;
+    }
+
+    for (final url in asset.links) {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+        return;
+      }
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch links for ${asset.symbol}')),
+      );
     }
   }
 }

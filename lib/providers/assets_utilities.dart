@@ -64,10 +64,12 @@ Future<void> refreshAssetPrices(Ref ref, UserAccount account, List<AssetConfig> 
 
       final bulkRequests = groupAssetsByTimeSpan.entries.map((e) {
         return MarketStackRequest.fromEod(
-            apiKey: apikey!,
-            fromDate: e.key.start,
-            symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
-            exchange: exchange);
+          apiKey: apikey!,
+          fromDate: e.key.start,
+          symbols: groupedAssets.map((a) => '${a.symbol}${a.stockExchange.suffix}').toList(),
+          exchange: exchange,
+          limit: 1000,
+        );
       }).toList();
 
       for (final request in bulkRequests) {

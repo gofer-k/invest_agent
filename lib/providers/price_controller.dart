@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:math' as Math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/price_result.dart';
@@ -212,39 +213,59 @@ class PriceController extends _$PriceController {
       state = state.copyWith(remoteRequests: [...state.remoteRequests, request]);
     }
 
+    int currentResultsOffset = 0; // Returns your pagination offset value.
+    int totalCountResults = 9223372036854775807; // Max 64-bit signed integer
+    
     try {
-      final client = ref.read(investingDataClientProvider(request).notifier);
-      final responseMap = await client.getRequest();
-      
-      if (!ref.mounted || responseMap == null) return;
-      final db = await _getDb();
-      final schema = IndexPriceSchema();
-      final List<dynamic> data = responseMap['data'] ?? [];
+      while (currentResultsOffset < totalCountResults) {
+        final client = ref.read(investingDataClientProvider(request).notifier);
+        final responseMap = await client.getRequest();
+        
+        if (!ref.mounted || responseMap == null) break;
 
-      await db.transaction((con) async {
-        for (final item in data) {
-          if (!ref.mounted) break;
-          final respond = MarketStackRespond.fromEod(item);
-          final asset = assets.firstWhere((a) => a.symbol == respond.symbol, orElse: () => AssetConfig.defaultAsset());
+        final respond = MarketStackManagerRespond.fromEod(responseMap);
+        currentResultsOffset = respond.offset + respond.count;
+        totalCountResults = Math.min(respond.total, totalCountResults);
+        dev.log('currentResultsOffset: $currentResultsOffset, totalCountResults: $totalCountResults');
 
-          if (asset.isDefault()) continue;
+        final db = await _getDb();
+        final schema = IndexPriceSchema();
+        final List<dynamic> data = respond.data;
 
-          // Caveat:
-          // Remote data may be invalid or not complete because of free account's remote source.
-          final nextPrice = IndexPriceItem(
-            id: 0,
-            assetId: asset.id,
-            dateTime: respond.timestamp,
-            openPrice: respond.open,
-            closePrice: respond.close,
-            highPrice: respond.high,
-            lowPrice: respond.low,
-            volume: respond.volume,
-          );
+        await db.transaction((con) async {
+          for (final item in data) {
+            if (!ref.mounted) break;
+            final respond = MarketStackRespond.fromEod(item);
 
-          await con.execute(schema.saveOne(nextPrice));
+            final asset = assets.firstWhere((a) => a.symbol == respond.symbol, orElse: () => AssetConfig.defaultAsset());
+            if (asset.isDefault()) {
+              continue;
+            }
+
+            // Caveat:
+            // Remote data may be invalid or not complete because of free account's remote source.
+            final nextPrice = IndexPriceItem(
+              id: 0,
+              assetId: asset.id,
+              dateTime: respond.timestamp,
+              openPrice: respond.open,
+              closePrice: respond.close,
+              highPrice: respond.high,
+              lowPrice: respond.low,
+              volume: respond.volume,
+            );
+
+            await con.execute(schema.saveOne(nextPrice));
+          }
+        });
+
+        // Update offset or break loop based on your API's pagination logic
+        // currentResultsOffset += data.length; 
+        if (data.isEmpty) {
+          break;
         }
-      });
+        // break; // Added break to prevent infinite loop for now if logic is incomplete
+      }
 
       if (ref.mounted) await refreshAllDetails();
     } finally {
