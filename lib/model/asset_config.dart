@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
@@ -31,6 +34,7 @@ class AssetConfigSchema implements CacheSchema
         exchange VARCHAR,
         currency VARCHAR,
         symbol_suffix VARCHAR,
+        links TEXT,
         UNIQUE(id, symbol));
     ''';
 
@@ -52,6 +56,7 @@ class AssetConfigSchema implements CacheSchema
   @override
   String saveOne(Cache cache) {
     final assetConfig = cache as AssetConfig;
+    final linksJson = jsonEncode(assetConfig.links.map((e) => e.toString()).toList());
     return '''
       INSERT INTO $cacheName 
       VALUES (
@@ -59,7 +64,8 @@ class AssetConfigSchema implements CacheSchema
      '${assetConfig.symbol}',
      '${assetConfig.stockExchange.code}',
      '${assetConfig.currency.code}',
-     '${assetConfig.stockExchange.suffix}' 
+     '${assetConfig.stockExchange.suffix}',
+     '$linksJson' 
       );
     ''';
   }
@@ -67,12 +73,14 @@ class AssetConfigSchema implements CacheSchema
   @override
   String updateOne(Cache cache) {
     final assetConfig = cache as AssetConfig;
+    final linksJson = jsonEncode(assetConfig.links.map((e) => e.toString()).toList());
     return '''
       UPDATE $cacheName
       SET symbol = '${assetConfig.symbol}',
           exchange = '${assetConfig.stockExchange.code}',
           currency = '${assetConfig.currency.code}',
-          symbol_suffix = '${assetConfig.stockExchange.suffix}'
+          symbol_suffix = '${assetConfig.stockExchange.suffix}',
+          links = '$linksJson'
       WHERE id = ${assetConfig.id};
       ''';
   }
@@ -85,6 +93,7 @@ class AssetConfig extends Cache{
   final String symbol;
   final FiatCurrency currency;
   final StockExchange stockExchange;
+  final List<Uri> links;
 
   static StockExchange? _stockExchangeFromString(String stockSymbol, String stockSuffix) {
     try {
@@ -94,28 +103,63 @@ class AssetConfig extends Cache{
       return null; // Return null if no match is found
     }
   }
+  
+  static List<Uri>? _linksFromJson(Object? jsonLinks) {
+    if (jsonLinks == null) return null;
+    try {
+      final decoded = jsonLinks is String ? jsonDecode(jsonLinks) : jsonLinks;
+      final List<dynamic> list;
+
+      if (decoded is Map && decoded.containsKey('urls')) {
+        list = decoded['urls'] as List<dynamic>;
+      } else if (decoded is List) {
+        list = decoded;
+      } else {
+        return null;
+      }
+
+      return list.map((e) => Uri.tryParse(e.toString()))
+          .whereType<Uri>().toList();
+    }
+    catch (e){
+      log("Invalid asset's links format: $e");
+    }
+    return null;
+  }
+
+  static Map<String, dynamic> _toJsonLinks(List<Uri> links) {
+    return {'urls': links.map((e) => e.toString()).toList()};
+  }
 
   AssetConfig({
     required this.id,
     required this.symbol,
     required this.currency,
     required this.stockExchange,
+    this.links = const [],
   }) : super.from([]);
 
-  static AssetConfig defaultAsset() => AssetConfig(id: -1, symbol: 'no symbol', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar);
+  static AssetConfig defaultAsset() => 
+    AssetConfig(id: -1, 
+      symbol: 'no symbol',
+      currency: FiatCurrency.pln(),
+      stockExchange: StockExchange.xWar,
+      links: []);
 
   bool isDefault() => id == -1;
 
-  AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock) {
+  AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock, List<Uri>? links) {
     return AssetConfig(
       id: id ?? this.id,
       symbol: symbol ?? this.symbol,
       currency: currency ?? this.currency,
-      stockExchange: stock ?? stockExchange);
+      stockExchange: stock ?? stockExchange,
+      links: links ?? this.links,
+    );
   }
 
   factory AssetConfig.of({required int id}) {
-    return AssetConfig(id: id, symbol: '', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar);
+    return AssetConfig(id: id, symbol: '', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar, links: []);
   }
 
   @override
@@ -123,7 +167,7 @@ class AssetConfig extends Cache{
 
   @override
   factory AssetConfig.from(List<Object?> item) {
-    if (item.length < 5) {
+    if (item.length < 6) {
       throw Exception("Invalidate input data");
     }
     final dbCurrency = item[3] as String;
@@ -135,11 +179,15 @@ class AssetConfig extends Cache{
     if (stockExchange == null) {
       throw Exception("Invalidate input stock exchange: [${item[2]}, ${item[4]}]");
     }
+    
+    final links = _linksFromJson(item[5]);
+
     return AssetConfig(
         id: item[0] as int,
         symbol: item[1] as String,
         currency: currency,
-        stockExchange: stockExchange);
+        stockExchange: stockExchange,
+        links: links ?? []);
   }
 
   @override
@@ -149,6 +197,7 @@ class AssetConfig extends Cache{
     'exchange': stockExchange.code,
     'currency': currency.code,
     'symbol_suffix': stockExchange.suffix,
+    'links': AssetConfig._toJsonLinks(links)
   };
 
   @override

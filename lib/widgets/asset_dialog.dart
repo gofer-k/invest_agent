@@ -45,17 +45,20 @@ class _AssetDialogState extends ConsumerState<AssetDialog> {
       FiatCurrencyEnum.fromCurrency(widget.assetConfig?.currency) ?? FiatCurrencyEnum.usd;
   late StockExchange selectedStockExchange = widget.assetConfig?.stockExchange ?? StockExchange.lSe;
 
-  late final TextEditingController controller;
+  late final TextEditingController controllerAssetSymbol;
+  late final TextEditingController controllerAssetUri;
 
   @override
   void initState() {
     super.initState();
-    controller = TextEditingController(text: widget.assetConfig?.symbol ?? '');
+    controllerAssetSymbol = TextEditingController(text: widget.assetConfig?.symbol ?? '');
+    controllerAssetUri = TextEditingController(text: widget.assetConfig?.links.firstOrNull.toString() ?? '');
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    controllerAssetSymbol.dispose();
+    controllerAssetUri.dispose();
     super.dispose();
   }
 
@@ -70,7 +73,7 @@ class _AssetDialogState extends ConsumerState<AssetDialog> {
         children: [
           // Asset name
           TextField(
-            controller: controller,
+            controller: controllerAssetSymbol,
             decoration: const InputDecoration(
               labelText: "Asset Symbol",
               hintText: "e.g. ISAC",
@@ -108,18 +111,31 @@ class _AssetDialogState extends ConsumerState<AssetDialog> {
               setState(() => selectedStockExchange = value);
             },
           ),
+          // Links list
+          const SizedBox(height: 16),
+          TextField(
+            controller: controllerAssetUri,
+            decoration: const InputDecoration(
+              labelText: "Historical data link",
+              hintText: "Type a link to historical data",
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.url,
+            textAlign: TextAlign.end,
+          )
         ]
       ),
       actions: [
         BackButton(onPressed: () => Navigator.of(context).pop()),
         ElevatedButton(
           onPressed: () {
-            final name = controller.text.trim();
+            final name = controllerAssetSymbol.text.trim();
             if (name.isEmpty) return;
             final newAsset = AssetConfig(id: widget.assetConfig?.id ?? -1,
               symbol: name,
               currency: selectedCurrency.data,
               stockExchange: selectedStockExchange,
+              links: [Uri.tryParse(controllerAssetUri.text.trim()) ?? Uri.parse('')]
             );
             widget.onSave(newAsset);
             Navigator.of(context).pop();
