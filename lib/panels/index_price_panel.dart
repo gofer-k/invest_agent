@@ -11,6 +11,7 @@ import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../providers/assets_utilities.dart';
+import '../providers/price_importer_csv.dart';
 import '../widgets/asset_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
@@ -218,7 +219,10 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
 
     for (final url in asset.links) {
       if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
+        final result = await launchUrl(url, mode: LaunchMode.externalApplication);
+        if (result) {
+          _refreshDownloadedPrices(ref, asset);;
+        }
         return;
       }
     }
@@ -228,5 +232,9 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
         SnackBar(content: Text('Could not launch links for ${asset.symbol}')),
       );
     }
+  }
+
+  void _refreshDownloadedPrices(WidgetRef ref, AssetConfig asset) async{
+    ref.read(priceImporterProvider.notifier).importFromCsv(asset);
   }
 }
