@@ -26,23 +26,6 @@ class DatabaseHelper {
   /// [readOnly] allows opening the database even if another process (like DBeaver) has it open,
   /// provided that process is also in read-only mode or you only need to read.
   /// [settings] allows passing custom DuckDB configurations (e.g., {'threads': '4', 'access_mode': 'READ_ONLY'}).
-  // factor DatabaseHelper(this._cacheFile, {
-  //   int maxConnections = 5,
-  //   bool readOnly = false,
-  //   Map<String, String>? settings,
-  // }) {
-  //   if (_instance._cacheFile != cacheFile || _instance._readOnly != readOnly) {
-  //     _instance.dispose();
-  //     _instance._cacheFile = cacheFile;
-  //     _instance._readOnly = readOnly;
-  //   }
-  //   _instance._maxConnections = maxConnections;
-  //   _instance._customSettings = settings ?? {};
-  //   return _instance;
-  // }
-  //
-  // DatabaseHelper._internal();
-
   DatabaseHelper({required this.cacheFile,
     this.maxConnections = 5,
     this.readOnly = false,
