@@ -235,6 +235,6 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
   }
 
   void _refreshDownloadedPrices(WidgetRef ref, AssetConfig asset) async{
-    ref.read(priceImporterProvider.notifier).importFromCsv(asset);
+    ref.read(priceImporterProvider(CacheKeyType.priceCache).notifier).importFromCsv(asset);
   }
 }
