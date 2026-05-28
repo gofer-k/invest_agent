@@ -6,7 +6,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/asset_config.dart';
 import '../model/price_result.dart';
 import 'load_database_provider.dart';
-import 'price_controller.dart';
 
 part 'price_importer_csv.g.dart';
 
@@ -15,9 +14,9 @@ class PriceImporter extends _$PriceImporter {
   String csvPath = "";
 
   @override
-  Future<void> build(CacheKeyType cacheTYpe) async {
+  Future<void> build(CacheKeyType cacheTYpe, [String? path]) async {
     if (cacheTYpe == CacheKeyType.memoryCache) {
-      csvPath = cacheTYpe.key;
+      csvPath = path ?? '';
       return;
     }
 
@@ -31,15 +30,15 @@ class PriceImporter extends _$PriceImporter {
 
   /// Imports CSV data from the given [filePath] for a specific [assetId].
   /// Expects schema similar to: "Date","Price","Open","High","Low","Vol.","Change %"
-  Future<void> importFromCsv(AssetConfig asset) async {
+  Future<List<IndexPriceItem>> importFromCsv(AssetConfig asset) async {
     final file = await _downloadedFile(asset);
     if (file == null) {
       log("No CSV file found for asset: ${asset.symbol}");
-      return;
+      return [];
     }
 
     final lines = await file.readAsLines();
-    if (lines.isEmpty) return;
+    if (lines.isEmpty) return [];
 
     final headerRow = lines[0].trim();
     final headerColumns = _headerIndexes(headerRow.split(','));
@@ -56,7 +55,7 @@ class PriceImporter extends _$PriceImporter {
     if (closeIdx == -1 || openIdx == -1 || highIdx == -1 || 
         lowIdx == -1 || volumeIdx == -1 || dateIdx == -1) {
       log("Invalid header columns: $headerColumns. Could not find all required fields.");
-      return;
+      return [];
     }
 
     final List<IndexPriceItem> items = [];
@@ -82,7 +81,7 @@ class PriceImporter extends _$PriceImporter {
         final open = double.parse(columns[openIdx].replaceAll(',', ''));
         final high = double.parse(columns[highIdx].replaceAll(',', ''));
         final low = double.parse(columns[lowIdx].replaceAll(',', ''));
-        final volume = _parseVolume(columns[volumeIdx]);
+        final volume = parseVolume(columns[volumeIdx]);
 
         items.add(IndexPriceItem(
           id: 0,
@@ -100,17 +99,7 @@ class PriceImporter extends _$PriceImporter {
       }
     }
 
-    if (items.isNotEmpty) {
-      final controller = ref.read(priceControllerProvider().notifier);
-      final schema = IndexPriceSchema();
-
-      // Batch save using the controller's logic
-      for (final item in items) {
-        await controller.save(schema, item);
-      }
-
-      await controller.refreshAllDetails();
-    }
+    return items;
   }
 
   Future<File?> _downloadedFile(AssetConfig asset) async {
@@ -125,7 +114,7 @@ class PriceImporter extends _$PriceImporter {
     return matches.isEmpty ? null : matches.first;
   }
   
-  double _parseVolume(String vol) {
+  static double parseVolume(String vol) {
     if (vol == '-' || vol.isEmpty) return 0.0;
     vol = vol.toUpperCase().replaceAll(',', '');
     double multiplier = 1.0;
@@ -144,7 +133,7 @@ class PriceImporter extends _$PriceImporter {
     return (double.tryParse(vol) ?? 0.0) * multiplier;
   }
 
-  Map<String, int> _headerIndexes(List<String> headerColumns) {
+  static Map<String, int> _headerIndexes(List<String> headerColumns) {
     final Map<String, int> indexes = {};
     final normalized = headerColumns.map((c) => c.toLowerCase().replaceAll('"', '').trim()).toList();
     
