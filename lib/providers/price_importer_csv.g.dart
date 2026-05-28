@@ -13,7 +13,7 @@ part of 'price_importer_csv.dart';
 final priceImporterProvider = PriceImporterFamily._();
 
 final class PriceImporterProvider
-    extends $AsyncNotifierProvider<PriceImporter, void> {
+    extends $AsyncNotifierProvider<PriceImporter, String> {
   PriceImporterProvider._({
     required PriceImporterFamily super.from,
     required (CacheKeyType, String?) super.argument,
@@ -50,15 +50,15 @@ final class PriceImporterProvider
   }
 }
 
-String _$priceImporterHash() => r'f938d05ba4fc053150163cb0394b6c954ad77a73';
+String _$priceImporterHash() => r'e25341394e30c9494cc58dd07d26af169773ac76';
 
 final class PriceImporterFamily extends $Family
     with
         $ClassFamilyOverride<
           PriceImporter,
-          AsyncValue<void>,
-          void,
-          FutureOr<void>,
+          AsyncValue<String>,
+          String,
+          FutureOr<String>,
           (CacheKeyType, String?)
         > {
   PriceImporterFamily._()
@@ -77,21 +77,21 @@ final class PriceImporterFamily extends $Family
   String toString() => r'priceImporterProvider';
 }
 
-abstract class _$PriceImporter extends $AsyncNotifier<void> {
+abstract class _$PriceImporter extends $AsyncNotifier<String> {
   late final _$args = ref.$arg as (CacheKeyType, String?);
   CacheKeyType get cacheTYpe => _$args.$1;
   String? get path => _$args.$2;
 
-  FutureOr<void> build(CacheKeyType cacheTYpe, [String? path]);
+  FutureOr<String> build(CacheKeyType cacheTYpe, [String? path]);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
+              AnyNotifier<AsyncValue<String>, String>,
+              AsyncValue<String>,
               Object?,
               Object?
             >;

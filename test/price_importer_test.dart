@@ -1,48 +1,16 @@
-import 'dart:developer' as dev;
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
-import 'package:invest_agent/model/price_result.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/price_importer_csv.dart';
-import 'package:invest_agent/utils/database_helper.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 import 'package:test/test.dart';
 
 void main() {
-  setUpAll(() {
-    try {
-      final ldPath = Platform.environment['DUCKDB_PATH'];
-      bool loaded = false;
-      if (ldPath != null) {
-        for (final path in ldPath.split(':')) {
-          final file = File('$path/libduckdb.so');
-          if (file.existsSync()) {
-            DynamicLibrary.open(file.path);
-            loaded = true;
-            break;
-          }
-        }
-      }
-      if (!loaded) {
-        final homePath = Platform.environment['HOME'];
-        final duckDbFile = '$homePath/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release/libduckdb.so';
-        if (File(duckDbFile).existsSync()) {
-          DynamicLibrary.open(duckDbFile);
-        }
-      }
-    } catch (e) {
-      dev.log('DuckDB Library load info: $e');
-    }
-  });
-
   group('PriceImporter Integration Tests', () {
     late ProviderContainer container;
-    late DatabaseHelper dbHelper;
     late Directory tempDir;
-    const keepAlive = true;
     final testAsset = AssetConfig(
       id: 1,
       symbol: "TEST_ASSET",
@@ -52,37 +20,17 @@ void main() {
     File? csvFile;
 
     setUp(() async {
-      // Initialize in-memory DuckDB
-      dbHelper = DatabaseHelper(cacheFile: ':memory:');
-      await dbHelper.init();
-      
-      // Initialize required schemas
-      await dbHelper.createCache(IndexPriceSchema());
-      await dbHelper.createCache(AssetConfigSchema());
-      
-      // Register the test asset in the DB
-      await dbHelper.saveOne(AssetConfigSchema(), testAsset);
-
       // Create a temporary directory for test CSV files
       tempDir = await Directory.systemTemp.createTemp('price_importer_test');
       csvFile = File('${tempDir.path}/TEST_ASSET.csv');
 
       container = ProviderContainer(
-        overrides: [
-          loadPriceProvider(CacheKeyType.memoryCache, keepAlive).overrideWith((ref) => dbHelper),
-        ],
+        overrides: [],
       );
-
-      // Setup the importer with our temp directory path
-      // await container.read(loadPriceProvider(CacheKeyType.memoryCache, keepAlive).future);
-
-      // container.listen(priceControllerProvider(CacheKeyType.memoryCache, keepAlive), (_, _) {});
-      container.listen(priceImporterProvider(CacheKeyType.memoryCache, tempDir.path), (_, _){});
     });
 
     tearDown(() async {
       await tempDir.delete(recursive: true);
-      dbHelper.dispose();
       container.dispose();
     });
 

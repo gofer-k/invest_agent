@@ -8,6 +8,7 @@ import 'package:invest_agent/model/price_result.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/model_config.dart';
 import 'package:invest_agent/providers/price_controller.dart';
+import 'package:invest_agent/providers/price_importer_csv.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 import 'package:test/test.dart';
@@ -46,6 +47,7 @@ void main() {
   group('PriceController Tests', () {
     late ProviderContainer container;
     late DatabaseHelper dbHelper;
+
     final assetSchema = AssetConfigSchema();
     final priceSchema = IndexPriceSchema();
     const cacheTYpe = CacheKeyType.memoryCache;
@@ -56,6 +58,10 @@ void main() {
       currency: FiatEur(),
       stockExchange: StockExchange.xEtra,
     );
+
+    // Price from a file
+    late Directory tempDir;
+    File? csvFile;
 
     setUp(() async {
       dbHelper = DatabaseHelper(cacheFile: cacheTYpe.key);
@@ -74,12 +80,17 @@ void main() {
       
       // Ensure provider is initialized and database is ready
       await container.read(loadPriceProvider(cacheTYpe, keepAlive).future);
-      
+      // container.listen(sortedAssetsProvider, ())
       container.listen(priceControllerProvider(cacheTYpe, keepAlive), (_, _) {});
+
+      // Create a temporary directory for test CSV files
+      tempDir = await Directory.systemTemp.createTemp('price_importer_test');
+      csvFile = File('${tempDir.path}/${testAsset.symbol}.csv');
     });
 
-    tearDown(() {
+    tearDown(() async{
       dbHelper.dispose();
+      await tempDir.delete(recursive: true);
       container.dispose();
     });
 
@@ -262,6 +273,29 @@ void main() {
       final details = container.read(assetPriceDetailsProvider(cacheTYpe, keepAlive));
       expect(details.containsKey(testAsset.id), isTrue);
       expect(details[testAsset.id], contains('2023-01-01'));
+    });
+
+    test('importAssetPrices add new prices from csv', () async {
+      await csvFile?.writeAsString(
+          '''
+      "Date","Price","Open","High","Low","Vol.","Change %"
+      "06/01/2023","120.50","118.00","122.00","117.50","5.5K","2.1%"
+      "06/02/2023","125.00","121.00","126.00","120.00","1.2M","3.7%"
+      ''');
+
+      final importer = container.read(priceImporterProvider(CacheKeyType.memoryCache, tempDir.path).notifier);
+      final importedPrices = await importer.importFromCsv(testAsset);
+
+      final controller = container.read(priceControllerProvider(cacheTYpe, keepAlive).notifier);
+      await controller.importAssetPrices(testAsset, importedPrices);
+      final items = await controller.fetchAll(priceSchema);
+      expect(items.length, 2);
+      final day1 = items.firstWhere((p) => p.dateTime.day == 1);
+      expect(day1.closePrice, 120.50);
+      expect(day1.volume, 5500.0);
+      final day2 = items.firstWhere((p) => p.dateTime.day == 2);
+      expect(day2.closePrice, 125.00);
+      expect(day2.volume, 1200000.0);
     });
   });
 }

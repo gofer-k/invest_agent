@@ -11,13 +11,10 @@ part 'price_importer_csv.g.dart';
 
 @riverpod
 class PriceImporter extends _$PriceImporter {
-  String csvPath = "";
-
   @override
-  Future<void> build(CacheKeyType cacheTYpe, [String? path]) async {
+  Future<String> build(CacheKeyType cacheTYpe, [String? path]) async {
     if (cacheTYpe == CacheKeyType.memoryCache) {
-      csvPath = path ?? '';
-      return;
+      return  path ?? '';
     }
 
     final directory = await getApplicationSupportDirectory();
@@ -25,13 +22,15 @@ class PriceImporter extends _$PriceImporter {
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);
     }
-    csvPath = dbDir.path;
+    return dbDir.path;
   }
 
   /// Imports CSV data from the given [filePath] for a specific [assetId].
   /// Expects schema similar to: "Date","Price","Open","High","Low","Vol.","Change %"
   Future<List<IndexPriceItem>> importFromCsv(AssetConfig asset) async {
-    final file = await _downloadedFile(asset);
+    final csvPath = await future;
+
+    final file = await _downloadedFile(asset, csvPath);
     if (file == null) {
       log("No CSV file found for asset: ${asset.symbol}");
       return [];
@@ -102,8 +101,8 @@ class PriceImporter extends _$PriceImporter {
     return items;
   }
 
-  Future<File?> _downloadedFile(AssetConfig asset) async {
-    final dbDir = Directory(csvPath);
+  Future<File?> _downloadedFile(AssetConfig asset, String path) async {
+    final dbDir = Directory(path);
     if (!await dbDir.exists()) return null;
 
     final List<FileSystemEntity> entities = await dbDir.list().toList();

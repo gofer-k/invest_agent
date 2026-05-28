@@ -44,7 +44,12 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     final assetsToRefresh = assets.where((asset) => _refreshingIds.contains(asset.id)).toList();
                     try {
                       if (accounts.isEmpty) throw Exception('No accounts selected');
-                      ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
+                      for (final asset in assetsToRefresh) {
+                        final importer = ref.watch(priceImporterProvider(CacheKeyType.priceCache).notifier);
+                        final importedPrices = await importer.importFromCsv(asset);
+                        ref.read(priceControllerProvider().notifier).importAssetPrices(asset, importedPrices);
+                      }
+                      // ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),
@@ -144,7 +149,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
         ),
         IconButton(
           icon: const Icon(Icons.download, size: 18),
-          tooltip: 'Download historical data',
+          tooltip: 'Download ${asset.symbol} historical data',
           onPressed: () => _handleDownload(context, ref, asset)
         ),
         IconButton(
@@ -200,7 +205,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
     );
 
     if (confirmed == true) {
-      await ref.read(removeMultiChartByProvider(CacheKeyType.analysisCache, asset));
+      await ref.read(removeMultiChartByProvider(CacheKeyType.analysisCache, asset).future);
       await ref.read(priceControllerProvider().notifier).deleteAssetAll(IndexPriceSchema(), asset);
       await ref.read(modelConfigProvider.notifier).removeAsset(asset);
       await ref.read(refreshAllDetailsProvider.future);
@@ -221,7 +226,7 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
       if (await canLaunchUrl(url)) {
         final result = await launchUrl(url, mode: LaunchMode.externalApplication);
         if (result) {
-          _refreshDownloadedPrices(ref, asset);;
+          _refreshingIds.add(asset.id);
         }
         return;
       }
@@ -232,9 +237,5 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
         SnackBar(content: Text('Could not launch links for ${asset.symbol}')),
       );
     }
-  }
-
-  void _refreshDownloadedPrices(WidgetRef ref, AssetConfig asset) async{
-    ref.read(priceImporterProvider(CacheKeyType.priceCache).notifier).importFromCsv(asset);
   }
 }

@@ -14,7 +14,8 @@ enum CacheKeyType {
   configCache("cache.db"),
   priceCache("cache.db"),
   analysisCache("analysis.db"),
-  memoryCache(":memory:");
+  memoryCache(":memory:"),
+  tempFile("temp");
 
   const CacheKeyType(this.key);
   final String key;

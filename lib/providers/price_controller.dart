@@ -276,6 +276,29 @@ class PriceController extends _$PriceController {
     }
   }
 
+  Future<void> importAssetPrices(AssetConfig asset, List<IndexPriceItem> prices) async {
+    final link = ref.keepAlive();
+    try {
+      final db = await _getDb();
+      final schema = IndexPriceSchema();
+      await db.transaction((con) async {
+        for (final price in prices) {
+          if (!ref.mounted) break;
+          await con.execute(schema.saveOne(price));
+        }
+      });
+      if (ref.mounted) await refreshAllDetails();
+    } finally {
+      if (ref.mounted) {
+        state = state.copyWith(
+            remoteRequests: state.remoteRequests
+                .where((r) => r != asset)
+                .toList());
+      }
+      link.close();
+    }
+  }
+
   RemoteRequest? getRequestForAsset(AssetConfig asset) {
     final symbol = '${asset.symbol}${asset.stockExchange.suffix}';
     for (final request in state.remoteRequests) {
