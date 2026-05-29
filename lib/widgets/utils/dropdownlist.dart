@@ -56,7 +56,8 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
       // The hint text is shown when no item is selected.
       hint: Text(widget.hint ?? 'Select an item', style: dropdownTextStyle,),
       value: effectiveValue,
-      icon: const Icon(Icons.arrow_downward),
+      icon: const Icon(Icons.expand_more),
+      // keyboard_arrow_down_sharp),
       elevation: 2,
       isExpanded: widget.isExpanded,
       dropdownColor: widget.backgroundColor,
