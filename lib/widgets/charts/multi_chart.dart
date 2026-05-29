@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/indicator_result.dart';
+import 'package:invest_agent/widgets/charts/overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
@@ -23,7 +25,6 @@ class MultiChartView extends ConsumerStatefulWidget {
   final double chartHeight;
   final bool showCrosshair;
   final int prefixDomain;
-  final ChartStyle chartStyle;
 
   const MultiChartView({
     super.key,
@@ -33,7 +34,6 @@ class MultiChartView extends ConsumerStatefulWidget {
     this.periodType = PeriodType.year,
     this.showCrosshair = true,
     this.prefixDomain = 20, // 20 days before visualize a result data.
-    this.chartStyle = ChartStyle.line,
   });
 
   @override
@@ -99,15 +99,37 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   Widget build(BuildContext context) {
     final chartConfigs = ref.watch(
         multiChartsByProvider(
-            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType, widget.chartStyle));
+            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType, widget.priceData.style));
     if (chartConfigs.isNotEmpty) {
-      return Padding(padding: EdgeInsets.all(10),
-          child: Column(
-            children: [
-              for (var chart in chartConfigs)
-                Expanded(flex: 5, child: _buildChart(chart)),
-            ],
-          )
+      return Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          children: [
+            for (var chart in chartConfigs)
+              Expanded(
+                flex: 5,
+                child: Stack(
+                  children: [
+                    _buildChart(chart),
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        color: Colors.transparent,
+                        child: OverlayTaskbar(
+                          asset: widget.assetConfig,
+                          priceData: widget.priceData,
+                          period: widget.periodType,
+                          chartConfig: chart,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       );
     }
     return const Center(child: Text("No chart configs available"));
@@ -173,6 +195,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   OverlayChart _showOverlayChart(ChartConfig chart) {
+    log("Display overlay supplement chart");
     return EmptyOverlayChart();
     //TODO: Display overlay supplement chart
     // return switch (chartType) {
@@ -232,4 +255,3 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     };
   }
 }
-

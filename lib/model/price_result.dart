@@ -352,6 +352,27 @@ class IndexPrice extends BaseIndicatorResult {
     _maxValue = maxPriceItem.closePrice;
    return _maxValue;
   }
+
+  double getChangeFor(int days) {
+    if (priceData.isEmpty)  return 0.0;
+
+    List<IndexPriceItem> priceDataFiltered = const [];
+    if (days == -2 || priceData.length < days) {  // all available period
+      priceDataFiltered = priceData;
+    }
+    else if(days == -1){  // current year
+      final currentYear = DateTime.now().year;
+      priceDataFiltered = priceData.where((element) => element.dateTime.year == currentYear).toList();
+    }
+    else {
+      priceDataFiltered = priceData.sublist(priceData.length - days);
+    }
+    final firstPrice = priceDataFiltered.first.closePrice;
+    final lastPrice = priceDataFiltered.last.closePrice;
+    return 100.0 * (lastPrice - firstPrice) / firstPrice; // in precents
+  }
+
+  double getCurrent() => priceData.isNotEmpty ?  priceData.last.closePrice : 0;
 }
 
 class VolumeResult extends IndexPrice {
