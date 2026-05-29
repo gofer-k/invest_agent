@@ -15,7 +15,6 @@ import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/task_bar_icon.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
-import 'package:invest_agent/utils/load_json_data.dart';
 import 'package:invest_agent/model/price_result.dart';
 import '../model/indicator_result.dart';
 import '../providers/load_database_provider.dart';
@@ -356,13 +355,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     } else {
       notifier.updateMultiChart(newIndicatorConfig);
     }
-  }
-
-  Future<AnalysisRespond?> receiveCompressedAnalysisResult(Map<String, dynamic> result) {
-    final filePath = result["response_file"];
-    final data = loadFinancialDataFromGzip(filePath);
-
-    return data;
   }
 
   // Build the analysis panel UI
