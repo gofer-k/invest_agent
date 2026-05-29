@@ -173,7 +173,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   OverlayChart _showOverlayChart(ChartConfig chart) {
-    throw UnimplementedError();
+    return EmptyOverlayChart();
+    //TODO: Display overlay supplement chart
     // return switch (chartType) {
   //     SupplementChart.bb =>
   //       OverlayBellingerBand(
