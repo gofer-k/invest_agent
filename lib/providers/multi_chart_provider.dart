@@ -5,6 +5,7 @@ import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../model/asset_config.dart';
+import '../model/indicator_result.dart';
 import 'cache_notifier.dart';
 import 'load_database_provider.dart';
 
@@ -125,9 +126,11 @@ List<MultiChartConfig> sortedMultiCharts(Ref ref, CacheKeyType? type) {
 }
 
 @riverpod
-List<MultiChartConfig> multiChartsBy(Ref ref, CacheKeyType? type, AssetConfig asset, PeriodType periodType) {
+List<MultiChartConfig> multiChartsBy(Ref ref, CacheKeyType? type, AssetConfig asset, PeriodType periodType, ChartStyle style) {
   final charts = ref.watch(multiChartProvider(type, periodType).select((s) => s.cachedCharts));
-  return charts.where((chart) => chart.asset.id == asset.id).toList();
+  final result = charts.where((chart) => chart.asset.id == asset.id && chart.periodType == periodType).toList();
+  result.removeWhere((element) => element.mainChart.chartStyle != style);
+  return result;
 }
 
 

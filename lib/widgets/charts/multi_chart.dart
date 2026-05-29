@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/model/indicator_result.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
@@ -22,6 +23,7 @@ class MultiChartView extends ConsumerStatefulWidget {
   final double chartHeight;
   final bool showCrosshair;
   final int prefixDomain;
+  final ChartStyle chartStyle;
 
   const MultiChartView({
     super.key,
@@ -30,7 +32,8 @@ class MultiChartView extends ConsumerStatefulWidget {
     required this.chartHeight,
     this.periodType = PeriodType.year,
     this.showCrosshair = true,
-    this.prefixDomain = 20,// 20 days before visualize a result data.
+    this.prefixDomain = 20, // 20 days before visualize a result data.
+    this.chartStyle = ChartStyle.line,
   });
 
   @override
@@ -96,7 +99,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   Widget build(BuildContext context) {
     final chartConfigs = ref.watch(
         multiChartsByProvider(
-            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType));
+            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType, widget.chartStyle));
     if (chartConfigs.isNotEmpty) {
       return Padding(padding: EdgeInsets.all(10),
           child: Column(

@@ -87,7 +87,7 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       }
     });
     ref.listen<List<MultiChartConfig>>(multiChartsByProvider(
-        CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod), (previous, next) {
+        CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod, _selectedChartStyle), (previous, next) {
       if (previous != next && next.isNotEmpty) {
           _displayedCharts.clear();
           _displayedCharts.addAll(next);

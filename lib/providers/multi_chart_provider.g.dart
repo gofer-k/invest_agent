@@ -216,7 +216,8 @@ final class MultiChartsByProvider
     with $Provider<List<MultiChartConfig>> {
   MultiChartsByProvider._({
     required MultiChartsByFamily super.from,
-    required (CacheKeyType?, AssetConfig, PeriodType) super.argument,
+    required (CacheKeyType?, AssetConfig, PeriodType, ChartStyle)
+    super.argument,
   }) : super(
          retry: null,
          name: r'multiChartsByProvider',
@@ -243,8 +244,15 @@ final class MultiChartsByProvider
 
   @override
   List<MultiChartConfig> create(Ref ref) {
-    final argument = this.argument as (CacheKeyType?, AssetConfig, PeriodType);
-    return multiChartsBy(ref, argument.$1, argument.$2, argument.$3);
+    final argument =
+        this.argument as (CacheKeyType?, AssetConfig, PeriodType, ChartStyle);
+    return multiChartsBy(
+      ref,
+      argument.$1,
+      argument.$2,
+      argument.$3,
+      argument.$4,
+    );
   }
 
   /// {@macro riverpod.override_with_value}
@@ -266,13 +274,13 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'97e24f5cb807cd7e52f6e10a5a04ad399a04696e';
+String _$multiChartsByHash() => r'4f466a5830cb609f6c4050d1709fe87b03577792';
 
 final class MultiChartsByFamily extends $Family
     with
         $FunctionalFamilyOverride<
           List<MultiChartConfig>,
-          (CacheKeyType?, AssetConfig, PeriodType)
+          (CacheKeyType?, AssetConfig, PeriodType, ChartStyle)
         > {
   MultiChartsByFamily._()
     : super(
@@ -287,7 +295,11 @@ final class MultiChartsByFamily extends $Family
     CacheKeyType? type,
     AssetConfig asset,
     PeriodType periodType,
-  ) => MultiChartsByProvider._(argument: (type, asset, periodType), from: this);
+    ChartStyle style,
+  ) => MultiChartsByProvider._(
+    argument: (type, asset, periodType, style),
+    from: this,
+  );
 
   @override
   String toString() => r'multiChartsByProvider';
