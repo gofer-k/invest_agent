@@ -4,6 +4,7 @@ import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/price_result.dart';
 import 'package:invest_agent/utils/dropdown_periods.dart';
+import 'package:invest_agent/widgets/utils/math_icons.dart';
 
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
@@ -29,6 +30,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
   late PeriodType _selectedPeriod = PeriodType.year;
   late Indicator _selectedIndicator = Indicator.defaultIndicator();
   late ChartStyle _selectedChartStyle = ChartStyle.line;
+  bool _showIndicatorSelector = false;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +55,9 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                 setState(() {
                   _selectedChartStyle = chartStyle;
                 });
-            }),
+              },
+            ),
+            const SizedBox(width: 8,),
             choiceChartParameter<PeriodType>(
               Theme.of(context).textTheme.labelMedium,
               Colors.transparent,
@@ -63,18 +67,27 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                 setState(() {
                   _selectedPeriod = period;
                 });
-            }),
-            const SizedBox(width: 4),
-            choiceChartParameter<Indicator>(
-              Theme.of(context).textTheme.labelMedium,
-              Colors.transparent,
-              _selectedIndicator,
-              indicators,
-              (Indicator indicator) {
-                setState(() {
-                  _selectedIndicator = indicator;
-                });
-            }),
+              },
+            ),
+            const SizedBox(width: 8,),
+            if (!_showIndicatorSelector)
+              IconButton(
+                onPressed: () => setState(() => _showIndicatorSelector = true),
+                icon: MathIntegralIcon(size: 20, color: Colors.white),
+              )
+            else
+              choiceChartParameter<Indicator>(
+                Theme.of(context).textTheme.labelMedium,
+                Colors.transparent,
+                _selectedIndicator,
+                indicators,
+                    (Indicator indicator) {
+                  setState(() {
+                    _selectedIndicator = indicator;
+                    _showIndicatorSelector = false;
+                  });
+                },
+              ),
           ],
         ),
         const SizedBox(height: 4),
