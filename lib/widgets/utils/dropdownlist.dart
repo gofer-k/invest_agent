@@ -54,14 +54,25 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
 
     return DropdownButton<T>(
       // The hint text is shown when no item is selected.
-      hint: Text(widget.hint ?? 'Select an item', style: dropdownTextStyle,),
+      // Shrink the list's elements space as short as possible.
+      hint: widget.hint != null ? Text(widget.hint!, style: dropdownTextStyle) : null,
       value: effectiveValue,
-      icon: const Icon(Icons.expand_more),
-      // keyboard_arrow_down_sharp),
+      icon:  const Icon(Icons.expand_more, size: 20),
       elevation: 2,
       isExpanded: widget.isExpanded,
+      isDense: true,
+      padding: EdgeInsets.zero,
+      alignment: Alignment.centerLeft,
       dropdownColor: widget.backgroundColor,
       style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black),
+      selectedItemBuilder: (BuildContext context) {
+        return widget.choices.map<Widget>((T value) {
+          return Container(
+            alignment: Alignment.centerLeft,
+            child: Text(value.toString().trim(), style: dropdownTextStyle),
+          );
+        }).toList();
+      },
       items: widget.choices.map<DropdownMenuItem<T>>((T value) {
         return DropdownMenuItem(
           value: value,
