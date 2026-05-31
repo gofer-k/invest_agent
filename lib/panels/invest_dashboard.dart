@@ -61,7 +61,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   // TODO: add to the indicator's cache and the visualization config
   Indicator _selectedIndicator = Indicator.defaultIndicator();
   final Indicator _priceConfig = Indicator.priceIndicator();
-  final List<Indicator> _displayedIndicators = [];
   final List<MultiChartConfig> _displayedCharts = [];
   late MultiChartConfig _currentChartConfig = MultiChartConfig.defaultMultiChart();
 
@@ -397,19 +396,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       );
     }
     return const Center(child: Text("Run analysis to see settings"));
-    //----
-
-    // if (isLoading) {
-    //   return const Center(child: CircularProgressIndicator());
-    // }
-    // if (errorMessage != null) {
-    //   return Center(
-    //     child: Text(
-    //       "Error: $errorMessage",
-    //       style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-    //     ),
-    //   );
-    // }
 
     // final AnalysisRespond? currentResult = analysisResult;
     // if (currentResult == null) {
@@ -423,17 +409,5 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     //     child: Text("Run analysis to see settings"),
     //   );
     // }
-
-    // return LayoutBuilder(builder: (context, constraints) {
-    //   if (currentRequest != null) {
-    //     return MultiChartView(
-    //         chartTitle: [currentRequest.symbolTicker],
-    //         analysisRequest: currentRequest,
-    //         results: currentResult,
-    //         chartConfig: configurationCharts,
-    //         chartHeight: constraints.maxHeight);
-    //     }
-    //     return const Center(child: Text("No analysis to see results"));
-    //   }
   }
 }
