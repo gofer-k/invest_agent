@@ -13,7 +13,8 @@ part of 'investing_data_client.dart';
 final investingDataClientProvider = InvestingDataClientFamily._();
 
 final class InvestingDataClientProvider
-    extends $NotifierProvider<InvestingDataClient, void> {
+    extends
+        $AsyncNotifierProvider<InvestingDataClient, InvestingDataClientState> {
   InvestingDataClientProvider._({
     required InvestingDataClientFamily super.from,
     required RemoteRequest super.argument,
@@ -39,14 +40,6 @@ final class InvestingDataClientProvider
   @override
   InvestingDataClient create() => InvestingDataClient();
 
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(void value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<void>(value),
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     return other is InvestingDataClientProvider && other.argument == argument;
@@ -59,15 +52,15 @@ final class InvestingDataClientProvider
 }
 
 String _$investingDataClientHash() =>
-    r'2d8ace9239a514bb4654c7dd858de41ec04c0d89';
+    r'0da5268745f1aac4bdd8c130a636df780dbe7098';
 
 final class InvestingDataClientFamily extends $Family
     with
         $ClassFamilyOverride<
           InvestingDataClient,
-          void,
-          void,
-          void,
+          AsyncValue<InvestingDataClientState>,
+          InvestingDataClientState,
+          FutureOr<InvestingDataClientState>,
           RemoteRequest
         > {
   InvestingDataClientFamily._()
@@ -79,27 +72,36 @@ final class InvestingDataClientFamily extends $Family
         isAutoDispose: true,
       );
 
-  InvestingDataClientProvider call(RemoteRequest endpoint) =>
-      InvestingDataClientProvider._(argument: endpoint, from: this);
+  InvestingDataClientProvider call(RemoteRequest endPoint) =>
+      InvestingDataClientProvider._(argument: endPoint, from: this);
 
   @override
   String toString() => r'investingDataClientProvider';
 }
 
-abstract class _$InvestingDataClient extends $Notifier<void> {
+abstract class _$InvestingDataClient
+    extends $AsyncNotifier<InvestingDataClientState> {
   late final _$args = ref.$arg as RemoteRequest;
-  RemoteRequest get endpoint => _$args;
+  RemoteRequest get endPoint => _$args;
 
-  void build(RemoteRequest endpoint);
+  FutureOr<InvestingDataClientState> build(RemoteRequest endPoint);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<void, void>;
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<InvestingDataClientState>,
+              InvestingDataClientState
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<void, void>,
-              void,
+              AnyNotifier<
+                AsyncValue<InvestingDataClientState>,
+                InvestingDataClientState
+              >,
+              AsyncValue<InvestingDataClientState>,
               Object?,
               Object?
             >;
