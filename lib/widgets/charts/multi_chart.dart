@@ -120,7 +120,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                         child: OverlayTaskbar(
                           asset: widget.assetConfig,
                           priceData: widget.priceData,
-                          period: widget.periodType,
                           chartConfig: chart,
                         ),
                       ),

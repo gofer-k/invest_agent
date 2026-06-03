@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/price_result.dart';
-import 'package:invest_agent/utils/dropdown_periods.dart';
+import 'package:invest_agent/utils/choice_chart_parameter.dart';
 import 'package:invest_agent/widgets/utils/math_icons.dart';
 
 import '../../model/indicator_result.dart';
@@ -31,6 +31,8 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
   late Indicator _selectedIndicator = Indicator.defaultIndicator();
   late ChartStyle _selectedChartStyle = ChartStyle.line;
   bool _showIndicatorSelector = false;
+  bool _showPeriodSelector = false;
+  bool _showChartStyleSelector = false;
 
   @override
   Widget build(BuildContext context) {
@@ -46,33 +48,59 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            choiceChartParameter<ChartStyle>(
-              Theme.of(context).textTheme.labelMedium,
-              Colors.transparent,
-              _selectedChartStyle,
-              ChartStyle.values,
-              (ChartStyle chartStyle) {
-                setState(() {
-                  _selectedChartStyle = chartStyle;
-                });
-              },
-            ),
+            if (!_showChartStyleSelector)
+              IconButton(
+                onPressed: () => setState(() => _showChartStyleSelector = true),
+                icon: _selectedChartStyle.icon,
+              )
+            else
+              choiceChartParameter<ChartStyle>(
+                Theme.of(context).textTheme.labelMedium,
+                Colors.transparent,
+                _selectedChartStyle,
+                ChartStyle.values,
+                (ChartStyle chartStyle) {
+                  setState(() {
+                    if (_selectedChartStyle != chartStyle) {
+                      _selectedChartStyle = chartStyle;
+                      _showChartStyleSelector = false;
+                    }
+                  });
+                },
+                iconBuilder: (style) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      style.icon,
+                      const SizedBox(width: 8),
+                      Text(style.toString().split('.').last),
+                    ],
+                  );
+                },
+              ),
             const SizedBox(width: 8,),
-            choiceChartParameter<PeriodType>(
-              Theme.of(context).textTheme.labelMedium,
-              Colors.transparent,
-              _selectedPeriod,
-              PeriodType.values,
-              (PeriodType period) {
-                setState(() {
-                  _selectedPeriod = period;
-                });
-              },
-            ),
+            if (!_showPeriodSelector)
+              TextButton(onPressed: () => setState(() => _showPeriodSelector = true),
+              child: Text(_selectedPeriod.value))
+            else
+              choiceChartParameter<PeriodType>(
+                Theme.of(context).textTheme.labelMedium,
+                Colors.transparent,
+                _selectedPeriod,
+                PeriodType.values,
+                (PeriodType period) {
+                  setState(() {
+                    _selectedPeriod = period;
+                    _showPeriodSelector = false;
+                  });
+                },
+              ),
             const SizedBox(width: 8,),
             if (!_showIndicatorSelector)
               IconButton(
-                onPressed: () => setState(() => _showIndicatorSelector = true),
+                onPressed: () {
+                  setState(() => _showIndicatorSelector = true);
+                },
                 icon: MathIntegralIcon(size: 20, color: Colors.white),
               )
             else
@@ -81,7 +109,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                 Colors.transparent,
                 _selectedIndicator,
                 indicators,
-                    (Indicator indicator) {
+                (Indicator indicator) {
                   setState(() {
                     _selectedIndicator = indicator;
                     _showIndicatorSelector = false;

@@ -1,13 +1,17 @@
 
+import 'package:flutter/material.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 
-enum ChartStyle {
-  candlestickPrice("Candlestick"),
-  line("Line"),
-  bars("Bars");
+import '../widgets/utils/math_icons.dart';
 
-  const ChartStyle(this.name);
+enum ChartStyle {
+  candlestickPrice("Candlestick", CandlestickIcon(size: 20, color: Colors.white)),
+  line("Line", Icon(Icons.trending_up, color: Colors.white, size: 20)),
+  bars("Bars", Icon(Icons.bar_chart, color: Colors.white, size: 20));
+
+  const ChartStyle(this.name, this.icon);
   final String name;
+  final Widget icon;
 
   @override
   String toString() => name;

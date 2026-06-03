@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class DropdownList<T> extends StatefulWidget {
   final List<T> choices;
   final Function(T) onSelected;
+  final Widget Function(T parameter)? iconBuilder;
   final T choiceType;
   final String? hint;
   final bool isExpanded;
@@ -17,7 +18,7 @@ class DropdownList<T> extends StatefulWidget {
     required this.backgroundColor,
     this.hint,
     this.isExpanded = false,
-    this.textStyle,
+    this.textStyle, this.iconBuilder,
   });
 
   @override
@@ -69,14 +70,18 @@ class _DropdownListState<T> extends State<DropdownList<T>> {
         return widget.choices.map<Widget>((T value) {
           return Container(
             alignment: Alignment.centerLeft,
-            child: Text(value.toString().trim(), style: dropdownTextStyle),
+            child: widget.iconBuilder != null
+                ? widget.iconBuilder!(value)
+                : Text(value.toString().trim(), style: dropdownTextStyle),
           );
         }).toList();
       },
-      items: widget.choices.map<DropdownMenuItem<T>>((T value) {
-        return DropdownMenuItem(
+      items: widget.choices.map((T value) {
+        return DropdownMenuItem<T>(
           value: value,
-          child: Text(value.toString(), style: dropdownTextStyle),
+          child: widget.iconBuilder != null
+              ? widget.iconBuilder!(value)
+              : Text(value.toString()), // Fallback to text
         );
       }).toList(),
       onChanged: (T? newValue) {
