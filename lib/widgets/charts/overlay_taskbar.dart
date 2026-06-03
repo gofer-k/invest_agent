@@ -64,6 +64,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                     if (_selectedChartStyle != chartStyle) {
                       _selectedChartStyle = chartStyle;
                       _showChartStyleSelector = false;
+                      // TODO: Update chart style
                     }
                   });
                 },
@@ -92,6 +93,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                   setState(() {
                     _selectedPeriod = period;
                     _showPeriodSelector = false;
+                    // TODO: Update period
                   });
                 },
               ),
@@ -113,6 +115,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                   setState(() {
                     _selectedIndicator = indicator;
                     _showIndicatorSelector = false;
+                    // TODO: Update indicator
                   });
                 },
               ),

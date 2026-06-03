@@ -38,7 +38,7 @@ class _IntegralPainter extends CustomPainter {
 
     // 1. Draw stylized "Area under the curve"
     final areaPaint = Paint()
-      ..color = color.withAlpha((0.15 * 255) as int)
+      ..color = color.withAlpha(30)
       ..style = PaintingStyle.fill;
 
     final areaPath = Path();

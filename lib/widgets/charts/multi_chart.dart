@@ -111,19 +111,21 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                 child: Stack(
                   children: [
                     _buildChart(chart),
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        color: Colors.transparent,
-                        child: OverlayTaskbar(
-                          asset: widget.assetConfig,
-                          priceData: widget.priceData,
-                          chartConfig: chart,
+                    if (chartConfigs.first == chart)
+                      Positioned(
+                        top: 5,
+                        left: 5,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          color: Colors.transparent,
+                          child:
+                            OverlayTaskbar(
+                              asset: widget.assetConfig,
+                              priceData: widget.priceData,
+                              chartConfig: chart,
+                            ),
                         ),
-                      ),
-                    ),
+                      )
                   ],
                 ),
               ),
