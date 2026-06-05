@@ -13,23 +13,30 @@ import '../../providers/indicator_provider.dart';
 
 class OverlayTaskbar extends ConsumerStatefulWidget {
   final AssetConfig asset;
-  final MultiChartConfig chartConfig;
   final IndexPrice priceData;
+  final PeriodType selectedPeriod;
+  final Indicator selectedIndicator;
+  final ChartStyle selectedChartStyle;
+  final Function(PeriodType) onPeriodChange;
+  final Function(Indicator) onIndicatorChange;
+  final Function(ChartStyle) onChartStyleChange;
 
   const OverlayTaskbar({
     super.key,
     required this.asset,
-    required this.chartConfig,
-    required this.priceData});
+    required this.priceData,
+    required this.selectedPeriod,
+    required this.selectedIndicator,
+    required this.selectedChartStyle,
+    required this.onPeriodChange,
+    required this.onIndicatorChange,
+    required this.onChartStyleChange});
 
   @override
   ConsumerState<OverlayTaskbar> createState() => _OverlayTaskbarState();
 }
 
 class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
-  late PeriodType _selectedPeriod = PeriodType.year;
-  late Indicator _selectedIndicator = Indicator.defaultIndicator();
-  late ChartStyle _selectedChartStyle = ChartStyle.line;
   bool _showIndicatorSelector = false;
   bool _showPeriodSelector = false;
   bool _showChartStyleSelector = false;
@@ -37,7 +44,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
   @override
   Widget build(BuildContext context) {
     final currentPrice = widget.priceData.getCurrent().toStringAsFixed(3);
-    final princeChange = widget.priceData.getChangeFor(_selectedPeriod.days);
+    final princeChange = widget.priceData.getChangeFor(widget.selectedPeriod.days);
     final princeChangeStr = princeChange.toStringAsFixed(2);
     final color = princeChange < 0 ? Colors.red : Colors.green;
     final indicators = ref.watch(sortedIndicatorsProvider);
@@ -51,22 +58,21 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
             if (!_showChartStyleSelector)
               IconButton(
                 onPressed: () => setState(() => _showChartStyleSelector = true),
-                icon: _selectedChartStyle.icon,
+                icon: widget.selectedChartStyle.icon,
               )
             else
               choiceChartParameter<ChartStyle>(
                 Theme.of(context).textTheme.labelMedium,
                 Colors.transparent,
-                _selectedChartStyle,
+                widget.selectedChartStyle,
                 ChartStyle.values,
                 (ChartStyle chartStyle) {
                   setState(() {
-                    if (_selectedChartStyle != chartStyle) {
-                      _selectedChartStyle = chartStyle;
-                      _showChartStyleSelector = false;
-                      // TODO: Update chart style
-                    }
+                    _showChartStyleSelector = false;
                   });
+                  if (widget.selectedChartStyle != chartStyle) {
+                    widget.onChartStyleChange(chartStyle);
+                  }
                 },
                 iconBuilder: (style) {
                   return Row(
@@ -82,19 +88,20 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
             const SizedBox(width: 8,),
             if (!_showPeriodSelector)
               TextButton(onPressed: () => setState(() => _showPeriodSelector = true),
-              child: Text(_selectedPeriod.value))
+              child: Text(widget.selectedPeriod.value))
             else
               choiceChartParameter<PeriodType>(
                 Theme.of(context).textTheme.labelMedium,
                 Colors.transparent,
-                _selectedPeriod,
+                widget.selectedPeriod,
                 PeriodType.values,
                 (PeriodType period) {
                   setState(() {
-                    _selectedPeriod = period;
                     _showPeriodSelector = false;
-                    // TODO: Update period
                   });
+                  if (widget.selectedPeriod != period) {
+                    widget.onPeriodChange(period);
+                  }
                 },
               ),
             const SizedBox(width: 8,),
@@ -109,22 +116,22 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
               choiceChartParameter<Indicator>(
                 Theme.of(context).textTheme.labelMedium,
                 Colors.transparent,
-                _selectedIndicator,
+                widget.selectedIndicator,
                 indicators,
                 (Indicator indicator) {
                   setState(() {
-                    _selectedIndicator = indicator;
                     _showIndicatorSelector = false;
-                    // TODO: Update indicator
                   });
+                  if (widget.selectedIndicator != indicator) {
+                    widget.onIndicatorChange(indicator);
+                  }
                 },
               ),
           ],
         ),
         const SizedBox(height: 4),
-        Text("${widget.asset.symbol} - $_selectedPeriod - ${widget.asset.currency.code}",
+        Text("${widget.asset.symbol} - ${widget.selectedPeriod} - ${widget.asset.currency.code}",
           style: TextStyle(color: Colors.white.withAlpha(128))),
-        // TODO: Current price (+/- value % by period
         Text("$currentPrice ($princeChangeStr%)", style: TextStyle(color: color)),
       ],
     );

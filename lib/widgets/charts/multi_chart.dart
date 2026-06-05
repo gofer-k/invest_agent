@@ -8,6 +8,7 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
+import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
 import '../../model/price_result.dart';
@@ -21,7 +22,6 @@ import 'overlay_tooltip_marker.dart';
 class MultiChartView extends ConsumerStatefulWidget {
   final IndexPrice priceData;
   final AssetConfig assetConfig;
-  final PeriodType periodType;
   final double chartHeight;
   final bool showCrosshair;
   final int prefixDomain;
@@ -31,7 +31,6 @@ class MultiChartView extends ConsumerStatefulWidget {
     required this.priceData,
     required this.assetConfig,
     required this.chartHeight,
-    this.periodType = PeriodType.year,
     this.showCrosshair = true,
     this.prefixDomain = 20, // 20 days before visualize a result data.
   });
@@ -43,44 +42,40 @@ class MultiChartView extends ConsumerStatefulWidget {
 class _MultiChartViewState extends ConsumerState<MultiChartView> {
   late TimeController _chartController;
   CrosshairController? _crosshairController;
+  Indicator _selectedIndicator = Indicator.priceIndicator();
+  PeriodType _selectedPeriod = PeriodType.year;
+  ChartStyle _selectedChartStyle = ChartStyle.line;
 
+  late MultiChartConfig _currentChartConfig = MultiChartConfig.defaultMultiChart();
   void _initializeControllers() {
-    // If you are re-initializing, make sure to dispose the old controller
-    // if it's already been created. The 'late' keyword means we can't check for null,
-    // so a separate check or a different pattern might be needed if you call this
-    // outside of initState/didUpdateWidget. However, in this context,
-    // we can assume dispose will be handled correctly.
     _chartController = TimeController(
-        periodType: widget.periodType,
+        periodType: _selectedPeriod,
         domain: widget.priceData.dateTimeDomain(widget.prefixDomain));
     if (widget.showCrosshair && _crosshairController == null) {
       _crosshairController = CrosshairController();
     }
-
-    // Ensure the charts config data to be available
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   ref.read(multiChartProvider(CacheKeyType.analysisCache, widget.periodType).notifier).fetchAll();
-    // });
   }
 
   @override
   void initState() {
     super.initState();
     _initializeControllers();
-
+    _selectedChartStyle = widget.priceData.style;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(multiChartProvider(CacheKeyType.analysisCache, widget.periodType).notifier).fetchAll();
+      // Updated: provide the selected chart style to the provider
+      ref.read(multiChartProvider(CacheKeyType.analysisCache, _selectedPeriod, _selectedChartStyle).notifier).fetchAll();
     });
+    _changeMultiChartConfig(
+        newPeriodType: _selectedPeriod,
+        newIndicator: _selectedIndicator,
+        newStyle: _selectedChartStyle);
   }
 
-  // This method is called when the parent widget is rebuilt with new properties.
   @override
   void didUpdateWidget(MultiChartView oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    if (widget.assetConfig != oldWidget.assetConfig ||
-        widget.periodType != oldWidget.periodType) {
-      // Re-initialize the controller with the new data.
+    if (widget.assetConfig != oldWidget.assetConfig) {
       _chartController.dispose();
       _initializeControllers();
     }
@@ -97,21 +92,29 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   @override
   Widget build(BuildContext context) {
-    final chartConfigs = ref.watch(
-        multiChartsByProvider(
-            CacheKeyType.analysisCache, widget.assetConfig, widget.periodType, widget.priceData.style));
-    if (chartConfigs.isNotEmpty) {
+    final displayedCharts = ref.watch(multiChartsByProvider(
+        CacheKeyType.analysisCache,
+        widget.assetConfig,
+        _selectedPeriod,
+        _selectedChartStyle));
+
+    if (displayedCharts.isNotEmpty) {
+      // Sync local config state with what's actually being displayed to maintain ID
+      if (_currentChartConfig.id == -1 || (_currentChartConfig.id != displayedCharts.first.id && displayedCharts.first.asset.id == widget.assetConfig.id)) {
+        _currentChartConfig = displayedCharts.first;
+      }
+
       return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            for (var chart in chartConfigs)
+            for (var chart in displayedCharts)
               Expanded(
                 flex: 5,
                 child: Stack(
                   children: [
                     _buildChart(chart),
-                    if (chartConfigs.first == chart)
+                    if (displayedCharts.first == chart)
                       Positioned(
                         top: 5,
                         left: 5,
@@ -122,7 +125,37 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                             OverlayTaskbar(
                               asset: widget.assetConfig,
                               priceData: widget.priceData,
-                              chartConfig: chart,
+                              onPeriodChange: (PeriodType newPeriod) {
+                                if (newPeriod != _selectedPeriod) {
+                                  // Updated: include the chart style when calling changePeriodType
+                                  // ref.read(multiChartProvider(
+                                  //     CacheKeyType.analysisCache,
+                                  //     _selectedPeriod,
+                                  //     _selectedChartStyle).notifier).changePeriodType(newPeriod);
+                                  setState(() {
+                                    _selectedPeriod = newPeriod;
+                                  });
+                                  _chartController.dispose();
+                                  _initializeControllers();
+                                  _changeMultiChartConfig(newPeriodType: _selectedPeriod);
+                                }
+                              },
+                              onIndicatorChange: (Indicator newIndicator) {
+                                if (newIndicator != _selectedIndicator) {
+                                  setState(() {
+                                    _selectedIndicator = newIndicator;
+                                    _changeMultiChartConfig(newIndicator: _selectedIndicator);
+                                  });
+                                }
+                              },
+                              onChartStyleChange: (ChartStyle newChartStyle) {
+                                if (newChartStyle != _selectedChartStyle) {
+                                  setState(() {
+                                    _selectedChartStyle = newChartStyle;
+                                    _changeMultiChartConfig(newStyle: _selectedChartStyle);
+                                  });
+                                }
+                              },
                             ),
                         ),
                       )
@@ -138,6 +171,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   Widget _buildChart(MultiChartConfig chart) {
     final mainChart = chart.mainChart;
+    if (mainChart == null) return const Center(child: Text("Missing main chart configuration"));
 
     return SyncChart(
       controller: _chartController,
@@ -254,5 +288,58 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       IndicatorType.roc => throw UnimplementedError(),
       IndicatorType.undefined => throw UnimplementedError(),
     };
+  }
+
+  void _changeMultiChartConfig({PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator}) {
+    final targetPeriod = newPeriodType ?? _selectedPeriod;
+    final targetIndicator = newIndicator ?? _selectedIndicator;
+    final targetStyle = newStyle ?? _selectedChartStyle;
+
+    final List<ChartConfig> updatedCharts = List.from(_currentChartConfig.charts);
+    
+    // Update or add the main chart configuration
+    bool found = false;
+    for (int i = 0; i < updatedCharts.length; i++) {
+      if (updatedCharts[i].mainChart) {
+        updatedCharts[i] = updatedCharts[i].copyWith(
+          newIndicatorConfig: targetIndicator,
+          drawingType: targetStyle,
+        );
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      updatedCharts.add(
+        ChartConfig(
+            indicatorConfig: targetIndicator,
+            chartStyle: targetStyle,
+            mainChart: true,
+        ));
+    }
+
+    final newChartConfig = _currentChartConfig.copyWith(
+      newAsset: widget.assetConfig,
+      newPeriodType: targetPeriod,
+      newCharts: updatedCharts,
+      newTitle: "${widget.assetConfig.symbol} - ${targetPeriod.name} - ${targetStyle.name}",
+    );
+
+    if (newChartConfig == _currentChartConfig && newChartConfig.id != -1) return;
+
+    _currentChartConfig = newChartConfig;
+
+    // Use the notifier to persist changes to the database
+    final notifier = ref.read(multiChartProvider(
+        CacheKeyType.analysisCache,
+        targetPeriod,
+        targetStyle).notifier);
+
+    if (newChartConfig.id == -1) {
+      notifier.addEntry(newChartConfig);
+    } else {
+      notifier.updateMultiChart(newChartConfig);
+    }
   }
 }

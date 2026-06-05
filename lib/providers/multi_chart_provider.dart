@@ -15,11 +15,19 @@ part 'multi_chart_provider.g.dart';
 class MultiChartNotifierState {
   final List<MultiChartConfig> cachedCharts;
   final PeriodType periodType;
-  const MultiChartNotifierState({this.periodType = PeriodType.year, this.cachedCharts = const []});
+  final ChartStyle chartStyle;
+  const MultiChartNotifierState({
+    this.periodType = PeriodType.year,
+    this.cachedCharts = const [],
+    this.chartStyle = ChartStyle.line});
 
-  MultiChartNotifierState copyWith({PeriodType? periodTypeCache, List<MultiChartConfig>? cache}) {
+  MultiChartNotifierState copyWith({
+    PeriodType? periodTypeCache,
+    ChartStyle? chartStyle,
+    List<MultiChartConfig>? cache}) {
     return MultiChartNotifierState(
         periodType: periodTypeCache ?? periodType,
+        chartStyle: chartStyle ?? this.chartStyle,
         cachedCharts: cache ?? cachedCharts);
   }
 
@@ -36,14 +44,18 @@ class MultiChartNotifier extends _$MultiChartNotifier {
   String get dbPath => _dbPath;
 
   Future<String> _getDbPath() async {
-    return await ref.read(
+    if (!ref.mounted) return _dbPath;
+    final path = await ref.read(
         loadDatabaseProvider(type ?? CacheKeyType.analysisCache).future);
+    if (ref.mounted) _dbPath = path;
+    return _dbPath;
   }
 
   @override
   MultiChartNotifierState build([
     CacheKeyType? type,
     PeriodType? periodType,
+    ChartStyle? chartStyle,
     bool? keepAlive]) {
     if (keepAlive == true) ref.keepAlive();
 
@@ -57,9 +69,11 @@ class MultiChartNotifier extends _$MultiChartNotifier {
         final cacheAsync = ref.watch(
             cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
                 _schema, path));
+
         return MultiChartNotifierState(
             periodType: periodType ?? PeriodType.year,
-            cachedCharts: cacheAsync.value ?? const []);
+            chartStyle: chartStyle ?? ChartStyle.line,
+            cachedCharts: _filter(cacheAsync.value ?? const []));
       },
       orElse: () {
         _dbPath = "";
@@ -68,54 +82,93 @@ class MultiChartNotifier extends _$MultiChartNotifier {
     );
   }
 
+  List<MultiChartConfig> _filter(List<MultiChartConfig> items) {
+    var charts = items;
+    if (periodType != null) {
+      charts = charts.where((c) => c.periodType == periodType).toList();
+    }
+    if (chartStyle != null) {
+      charts = charts.where((c) => c.mainChart?.chartStyle == chartStyle).toList();
+    }
+    return charts;
+  }
+
   Future<List<MultiChartConfig>> fetchAll() async {
-    await _getDbPath();
+    if (!ref.mounted) return [];
+    final path = await _getDbPath();
+    if (!ref.mounted) return [];
+    
     final items = await ref.read(
         cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
-            _schema, _dbPath).notifier).fetchAll();
+            _schema, path).notifier).fetchAll();
+            
     if (!ref.mounted) return items;
-    state = state.copyWith(cache: items);
+    state = state.copyWith(cache: _filter(items));
     return items;
   }
 
   Future<void> addEntry(MultiChartConfig entry) async {
-    await _getDbPath();
+    if (!ref.mounted) return;
+    final path = await _getDbPath();
+    if (!ref.mounted) return;
+    
     final notifier = ref.read(
         cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
-            _schema, _dbPath).notifier);
+            _schema, path).notifier);
     await notifier.addEntry(entry);
+    
+    if (!ref.mounted) return;
     await fetchAll();
   }
 
   Future<void> updateMultiChart(MultiChartConfig entry) async {
-    await _getDbPath();
+    if (!ref.mounted) return;
+    final path = await _getDbPath();
+    if (!ref.mounted) return;
+    
     final notifier = ref.read(
         cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
-            _schema, _dbPath).notifier);
+            _schema, path).notifier);
     await notifier.updateEntry(entry);
+    
+    if (!ref.mounted) return;
     await fetchAll();
   }
 
   Future<void> deleteEntry(MultiChartConfig entry) async {
-    await _getDbPath();
+    if (!ref.mounted) return;
+    final path = await _getDbPath();
+    if (!ref.mounted) return;
+    
     final notifier = ref.read(
         cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
-            _schema, _dbPath).notifier);
+            _schema, path).notifier);
     await notifier.deleteEntry(entry);
+    
+    if (!ref.mounted) return;
     await fetchAll();
   }
 
   Future<void> clearAll() async {
-    await _getDbPath();
+    if (!ref.mounted) return;
+    final path = await _getDbPath();
+    if (!ref.mounted) return;
+    
     final notifier = ref.read(
         cacheProvider<MultiChartConfig, MultiChartConfigSchema>(
-            _schema, _dbPath).notifier);
+            _schema, path).notifier);
     await notifier.clearAll();
+    
+    if (!ref.mounted) return;
     await fetchAll();
   }
 
   Future<void> changePeriodType(PeriodType periodType) async {
     state = state.copyWith(periodTypeCache: periodType);
+  }
+
+  Future<void> changeChartStyle(ChartStyle style) async {
+    state = state.copyWith(chartStyle: style);
   }
 }
 
@@ -126,11 +179,13 @@ List<MultiChartConfig> sortedMultiCharts(Ref ref, CacheKeyType? type) {
 }
 
 @riverpod
-List<MultiChartConfig> multiChartsBy(Ref ref, CacheKeyType? type, AssetConfig asset, PeriodType periodType, ChartStyle style) {
-  final charts = ref.watch(multiChartProvider(type, periodType).select((s) => s.cachedCharts));
-  final result = charts.where((chart) => chart.asset.id == asset.id && chart.periodType == periodType).toList();
-  result.removeWhere((element) => element.mainChart.chartStyle != style);
-  return result;
+List<MultiChartConfig> multiChartsBy(Ref ref,
+    CacheKeyType? type,
+    AssetConfig asset,
+    PeriodType periodType,
+    ChartStyle style) {
+  final charts = ref.watch(multiChartProvider(type, periodType, style).select((s) => s.cachedCharts));
+  return charts.where((chart) => chart.asset.id == asset.id).toList();
 }
 
 

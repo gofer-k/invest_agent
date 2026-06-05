@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
-import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
-import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
-import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/model/analysis_respond.dart';
-import 'package:invest_agent/providers/indicator_provider.dart';
-import 'package:invest_agent/providers/multi_chart_provider.dart';
 import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/widgets/app_logo.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
@@ -17,7 +12,6 @@ import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import 'package:invest_agent/model/price_result.dart';
 import '../model/indicator_result.dart';
-import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
 import 'analysis_settings_panel.dart';
 import 'main_settings_panel.dart';
@@ -43,26 +37,14 @@ class InvestDashboard extends ConsumerStatefulWidget {
 
 class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   ChartsConfiguration configurationCharts = ChartsConfiguration();
-  AnalysisRequest? analysisRequest;
   AnalysisRespond? analysisResult;
 
   bool isLoading = false;
   String? errorMessage;
-
-  double visibleMinY = 0.0;
-  double visibleMaxY = 0.0;
   String chartTitle = "";
 
   var activePanelIndex = PanelIndex.notUsed;
   AssetConfig _selectedAsset = AssetConfig.defaultAsset();
-  PeriodType _selectedPeriod = PeriodType.year;
-  ChartStyle _selectedChartStyle = ChartStyle.line;
-  
-  // TODO: add to the indicator's cache and the visualization config
-  Indicator _selectedIndicator = Indicator.defaultIndicator();
-  final Indicator _priceConfig = Indicator.priceIndicator();
-  final List<MultiChartConfig> _displayedCharts = [];
-  late MultiChartConfig _currentChartConfig = MultiChartConfig.defaultMultiChart();
 
   @override
   void initState() {
@@ -78,29 +60,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
         });
       }
     });
-    ref.listen<List<Indicator>>(sortedIndicatorsProvider, (previous, next) {
-      if (!_selectedIndicator.isDefault() && next.isNotEmpty) {
-        setState(() {
-          _selectedIndicator = next.first;
-        });
-      }
-    });
-    ref.listen<List<MultiChartConfig>>(multiChartsByProvider(
-        CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod, _selectedChartStyle), (previous, next) {
-      if (previous != next && next.isNotEmpty) {
-          _displayedCharts.clear();
-          _displayedCharts.addAll(next);
-          _currentChartConfig = _displayedCharts.last;
-          _selectedPeriod = _currentChartConfig.periodType;
-      }
-    });
-
-    if (_displayedCharts.isEmpty) {
-      _changeMultiChartConfig(
-        newAsset: _selectedAsset,
-        newPeriodType: _selectedPeriod,
-        newIndicator: _priceConfig);
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -122,12 +81,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
                 AppLogo(size: 24, color: AppTheme.of(context).indicatorRate),
                 const SizedBox(width: 24,),
                 _displayAssetsList(),
-                const SizedBox(width: 4,),
-                _displayIndicatorsList(),
-                const SizedBox(width: 4,),
-                _displayChartStyles(),
-                const SizedBox(width: 4,),
-                _displayPeriodList(),
               ],
               overflowActions: [
                 VerticalDivider(width: 1, thickness: 1,color: Theme.of(context).dividerColor),
@@ -249,9 +202,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       onSelected: (AssetConfig asset) {
         setState(() {
           _selectedAsset = asset;
-          if (!_selectedAsset.isDefault()) {
-            _changeMultiChartConfig(newAsset: _selectedAsset);
-          }
         });
       },
       choiceType: _selectedAsset, 
@@ -259,110 +209,31 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     ); 
   }
 
-  Widget _displayIndicatorsList() {
-    final indicators = ref.watch(sortedIndicatorsProvider);
-
-    return DropdownList<Indicator>(
-      textStyle: Theme.of(context).textTheme.labelLarge,
-      backgroundColor:  Colors.grey.shade600.withAlpha(128),
-      onSelected: (Indicator indicator) {
-        setState(() {
-          _selectedIndicator = indicator;
-          if (!_selectedIndicator.isDefault()) {
-            _changeMultiChartConfig(newIndicator: _selectedIndicator);
-          }
-        });
-      },
-      choiceType: indicators.contains(_selectedIndicator)
-          ? _selectedIndicator
-          : (indicators.isNotEmpty ? indicators.first : _selectedIndicator),
-        choices: indicators,
-    );
-  }
-
-  Widget _displayPeriodList() {
-    final periods = PeriodType.values.toList();
-    return DropdownList<PeriodType>(
-      textStyle: Theme.of(context).textTheme.labelLarge,
-      backgroundColor:  Colors.grey.shade600.withAlpha(128),
-      onSelected: (PeriodType period) {
-        if (_selectedPeriod == period) return;
-        setState(() {
-          _selectedPeriod = period;
-          _changeMultiChartConfig(newPeriodType: _selectedPeriod);
-        });
-      },
-      choiceType: periods.contains(_selectedPeriod)
-          ? _selectedPeriod
-          : periods.first,
-      choices: periods,
-    );
-  }
-
-  Widget _displayChartStyles() {
-    final styles = ChartStyle.values.toList();
-    return DropdownList<ChartStyle>(
-      textStyle: Theme.of(context).textTheme.labelLarge,
-        backgroundColor:  Colors.grey.shade600.withAlpha(128),
-      onSelected: (ChartStyle style) {
-        if (_selectedChartStyle == style) return;
-        setState(() {
-          _selectedChartStyle = style;
-          _changeMultiChartConfig(newChartStyle :_selectedChartStyle);
-        });
-      },
-      choiceType: styles.contains(_selectedChartStyle)
-          ? _selectedChartStyle
-          : styles.first,
-      choices: styles.toList()
-    );
-  }
-
-  void _changeMultiChartConfig({AssetConfig? newAsset, PeriodType? newPeriodType,
-    ChartStyle? newChartStyle, Indicator? newIndicator}) {
-
-    final targetAsset = newAsset ?? _selectedAsset;
-    final targetPeriod = newPeriodType ?? _selectedPeriod;
-    if (targetAsset.isDefault()) return;
-
-    final List<ChartConfig> updatedCharts = List.from(_currentChartConfig.charts);
-    if (newIndicator != null && !updatedCharts.any((c) => c.indicatorConfig == newIndicator)) {
-      updatedCharts.add(
-        ChartConfig(
-          indicatorConfig: newIndicator,
-          chartStyle: newChartStyle ?? ChartStyle.line,
-          mainChart: newIndicator.isMainChart(),
-          drawingData: [
-            //TODO: add user's drawing features in the current chart
-          ]
-       ));
-    }
-
-    final newIndicatorConfig =_currentChartConfig.copyWith(
-      newAsset: targetAsset,
-      newPeriodType: targetPeriod,
-      newCharts: updatedCharts,
-      newTitle: "${targetAsset.symbol} - ${targetPeriod.name} - ${(newChartStyle ?? _selectedChartStyle).name}",
-    );
-
-    // Update the multi chart in the cache
-    if (newIndicatorConfig == _currentChartConfig) return;
-
-    final notifier = ref.read(multiChartProvider(CacheKeyType.analysisCache, targetPeriod).notifier);
-    if (newIndicatorConfig.id  < 0) {
-      notifier.addEntry(newIndicatorConfig);
-    } else {
-      notifier.updateMultiChart(newIndicatorConfig);
-    }
-  }
+  // TODO: consider remove thet dead code
+  // Widget _displayIndicatorsList() {
+  //   final indicators = ref.watch(sortedIndicatorsProvider);
+  //
+  //   return DropdownList<Indicator>(
+  //     textStyle: Theme.of(context).textTheme.labelLarge,
+  //     backgroundColor:  Colors.grey.shade600.withAlpha(128),
+  //     onSelected: (Indicator indicator) {
+  //       setState(() {
+  //         _selectedIndicator = indicator;
+  //         if (!_selectedIndicator.isDefault()) {
+  //           _changeMultiChartConfig(newIndicator: _selectedIndicator);
+  //         }
+  //       });
+  //     },
+  //     choiceType: indicators.contains(_selectedIndicator)
+  //         ? _selectedIndicator
+  //         : (indicators.isNotEmpty ? indicators.first : _selectedIndicator),
+  //       choices: indicators,
+  //   );
+  // }
 
   // Build the analysis panel UI
   Widget _buildAnalysisPanel(WidgetRef ref) {
-    //TODO: add floating charts configs
-    // _displayedCharts = ref.read(multiChartsByProvider(CacheKeyType.analysisCache, _selectedAsset, _selectedPeriod));
-
     if (!_selectedAsset.isDefault()) {
-      //----
       final assetPriceAsync = ref.watch(assetPricesProvider(_selectedAsset.id));
       return assetPriceAsync.when(
         data: (priceData) {
@@ -372,13 +243,12 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           return LayoutBuilder(builder: (context, constraints) {
             final priceResult = IndexPrice(
                 priceData : priceData,
-                config: _priceConfig,
-                style: _selectedChartStyle,
+                config: Indicator.priceIndicator(),
+                style: ChartStyle.line,
             );
             return MultiChartView(
               priceData: priceResult,
               assetConfig: _selectedAsset,
-              periodType: _selectedPeriod,
               chartHeight: constraints.maxHeight,
               prefixDomain: 0); // TODO: check out this
               // prefixDomain: _selectedIndicator.isDefault() ? 0 : 20);
@@ -396,18 +266,5 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       );
     }
     return const Center(child: Text("Run analysis to see settings"));
-
-    // final AnalysisRespond? currentResult = analysisResult;
-    // if (currentResult == null) {
-    //   return const Center(
-    //     child: Text("Run analysis to see results"),
-    //   );
-    // }
-    // final currentRequest = analysisRequest;
-    // if (analysisRequest == null) {
-    //   return const Center(
-    //     child: Text("Run analysis to see settings"),
-    //   );
-    // }
   }
 }

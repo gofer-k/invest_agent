@@ -16,7 +16,7 @@ final class MultiChartNotifierProvider
     extends $NotifierProvider<MultiChartNotifier, MultiChartNotifierState> {
   MultiChartNotifierProvider._({
     required MultiChartNotifierFamily super.from,
-    required (CacheKeyType?, PeriodType?, bool?) super.argument,
+    required (CacheKeyType?, PeriodType?, ChartStyle?, bool?) super.argument,
   }) : super(
          retry: null,
          name: r'multiChartProvider',
@@ -59,7 +59,7 @@ final class MultiChartNotifierProvider
 }
 
 String _$multiChartNotifierHash() =>
-    r'd25c360aeecfbdfb8f96dd3da649caf5c36457ca';
+    r'199c19bf25272779f55b4a678e85d9b31094798d';
 
 final class MultiChartNotifierFamily extends $Family
     with
@@ -68,7 +68,7 @@ final class MultiChartNotifierFamily extends $Family
           MultiChartNotifierState,
           MultiChartNotifierState,
           MultiChartNotifierState,
-          (CacheKeyType?, PeriodType?, bool?)
+          (CacheKeyType?, PeriodType?, ChartStyle?, bool?)
         > {
   MultiChartNotifierFamily._()
     : super(
@@ -82,9 +82,10 @@ final class MultiChartNotifierFamily extends $Family
   MultiChartNotifierProvider call([
     CacheKeyType? type,
     PeriodType? periodType,
+    ChartStyle? chartStyle,
     bool? keepAlive,
   ]) => MultiChartNotifierProvider._(
-    argument: (type, periodType, keepAlive),
+    argument: (type, periodType, chartStyle, keepAlive),
     from: this,
   );
 
@@ -93,14 +94,17 @@ final class MultiChartNotifierFamily extends $Family
 }
 
 abstract class _$MultiChartNotifier extends $Notifier<MultiChartNotifierState> {
-  late final _$args = ref.$arg as (CacheKeyType?, PeriodType?, bool?);
+  late final _$args =
+      ref.$arg as (CacheKeyType?, PeriodType?, ChartStyle?, bool?);
   CacheKeyType? get type => _$args.$1;
   PeriodType? get periodType => _$args.$2;
-  bool? get keepAlive => _$args.$3;
+  ChartStyle? get chartStyle => _$args.$3;
+  bool? get keepAlive => _$args.$4;
 
   MultiChartNotifierState build([
     CacheKeyType? type,
     PeriodType? periodType,
+    ChartStyle? chartStyle,
     bool? keepAlive,
   ]);
   @$mustCallSuper
@@ -116,7 +120,10 @@ abstract class _$MultiChartNotifier extends $Notifier<MultiChartNotifierState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2, _$args.$3));
+    element.handleCreate(
+      ref,
+      () => build(_$args.$1, _$args.$2, _$args.$3, _$args.$4),
+    );
   }
 }
 
@@ -274,7 +281,7 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'4f466a5830cb609f6c4050d1709fe87b03577792';
+String _$multiChartsByHash() => r'f7b65488d44c0313f8b65b7d7a34c09078a459be';
 
 final class MultiChartsByFamily extends $Family
     with
