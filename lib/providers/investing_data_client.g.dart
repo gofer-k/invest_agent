@@ -52,7 +52,7 @@ final class InvestingDataClientProvider
 }
 
 String _$investingDataClientHash() =>
-    r'0da5268745f1aac4bdd8c130a636df780dbe7098';
+    r'da9a4f0ece9ec0870017b88f065aba10778df8c6';
 
 final class InvestingDataClientFamily extends $Family
     with
