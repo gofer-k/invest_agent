@@ -70,9 +70,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                   setState(() {
                     _showChartStyleSelector = false;
                   });
-                  if (widget.selectedChartStyle != chartStyle) {
-                    widget.onChartStyleChange(chartStyle);
-                  }
+                  widget.onChartStyleChange(chartStyle);
                 },
                 iconBuilder: (style) {
                   return Row(
@@ -99,9 +97,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                   setState(() {
                     _showPeriodSelector = false;
                   });
-                  if (widget.selectedPeriod != period) {
-                    widget.onPeriodChange(period);
-                  }
+                  widget.onPeriodChange(period);
                 },
               ),
             const SizedBox(width: 8,),
@@ -122,9 +118,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
                   setState(() {
                     _showIndicatorSelector = false;
                   });
-                  if (widget.selectedIndicator != indicator) {
-                    widget.onIndicatorChange(indicator);
-                  }
+                  widget.onIndicatorChange(indicator);
                 },
               ),
           ],

@@ -125,6 +125,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                             OverlayTaskbar(
                               asset: widget.assetConfig,
                               priceData: widget.priceData,
+                              selectedIndicator: _selectedIndicator,
+                              selectedPeriod: _selectedPeriod,
+                              selectedChartStyle: _selectedChartStyle,
                               onPeriodChange: (PeriodType newPeriod) {
                                 if (newPeriod != _selectedPeriod) {
                                   // Updated: include the chart style when calling changePeriodType
@@ -171,7 +174,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   Widget _buildChart(MultiChartConfig chart) {
     final mainChart = chart.mainChart;
-    if (mainChart == null) return const Center(child: Text("Missing main chart configuration"));
 
     return SyncChart(
       controller: _chartController,
