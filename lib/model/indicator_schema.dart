@@ -3,19 +3,23 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 
 enum IndicatorType {
-  price("Price"),
-  bellingerBands("Bollinger Bands"),
-  sma("Simple Moving Average"),
-  ema("Exponential Moving Average"),
-  macd("Moving Average Convergence/Divergence"),
-  rsi("Relative Strength Index"),
-  volume("Volume"),
-  undefined("Undefined"),
-  kst("Know Sure Thing"),
-  roc("Rate of Change"),;
+  price("Price", "Price"),
+  bellingerBands("Bollinger Bands", "Bollinger Bands"),
+  sma("Simple Moving Average", "SMA"),
+  ema("Exponential Moving Average", "EMA"),
+  macd("Moving Average Convergence/Divergence", "MACD"),
+  rsi("Relative Strength Index", "RSI"),
+  volume("Volume", "Volume"),
+  undefined("Undefined", ""),
+  kst("Know Sure Thing", "KST"),
+  roc("Rate of Change", "ROC"),;
 
-  const IndicatorType(this.name);
+  const IndicatorType(this.name, this.shortName);
   final String name;
+  final String shortName;
+
+  @override
+  String toString() => shortName;
 }
 
 class IndicatorSchema implements CacheSchema {

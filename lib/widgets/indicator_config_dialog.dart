@@ -73,7 +73,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                   Text("Main chart", style: Theme.of(context).textTheme.labelLarge),
                   Switch(
                     padding: EdgeInsets.symmetric(horizontal: 8),
-                    value: parameters["main_chart"] ?? false,
+                    value: parameters[Indicator.mainChart] ?? false,
                     onChanged: (bool value) => setState(() => parameters[Indicator.mainChart] = value)),
                   Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
                 ]
@@ -91,7 +91,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               ),
               if (addingParameter) _handleAddParameter(context),
               const SizedBox(height: 8),
-              for (var parameter in parameters.entries)
+              for (var parameter in parameters.entries.where((e) => e.key != Indicator.mainChart))
                 Shrinkable(
                   expanded: false,
                   title: parameter.key,
@@ -105,7 +105,6 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                   ],
                   body: _buildIndicatorParameter(context, parameter),
                ),
-               // const SizedBox(height: 8),
             ],
           ),
         ),
@@ -190,7 +189,6 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
       onSubmitted: (v) {
         if (v.trim().isNotEmpty) {
           setState(() {
-            // Initialize as an empty mutable list
             parameters[v.trim()] = [];
             addingParameter = false;
           });

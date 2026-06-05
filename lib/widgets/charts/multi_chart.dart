@@ -14,6 +14,7 @@ import '../../model/multi_chart_schema.dart';
 import '../../model/price_result.dart';
 import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
+import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_chart.dart';
 import 'overlay_price_chart.dart';
@@ -130,14 +131,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                               selectedChartStyle: _selectedChartStyle,
                               onPeriodChange: (PeriodType newPeriod) {
                                 if (newPeriod != _selectedPeriod) {
-                                  // Updated: include the chart style when calling changePeriodType
-                                  // ref.read(multiChartProvider(
-                                  //     CacheKeyType.analysisCache,
-                                  //     _selectedPeriod,
-                                  //     _selectedChartStyle).notifier).changePeriodType(newPeriod);
-                                  setState(() {
-                                    _selectedPeriod = newPeriod;
-                                  });
+                                  setState(() => _selectedPeriod = newPeriod);
                                   _chartController.dispose();
                                   _initializeControllers();
                                   _changeMultiChartConfig(newPeriodType: _selectedPeriod);
@@ -145,10 +139,13 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                               },
                               onIndicatorChange: (Indicator newIndicator) {
                                 if (newIndicator != _selectedIndicator) {
-                                  setState(() {
-                                    _selectedIndicator = newIndicator;
+                                  showIndicator(context, newIndicator,
+                                    (Indicator? indicator) {
+                                    // TODO: Add new chart in the board
                                     _changeMultiChartConfig(newIndicator: _selectedIndicator);
+
                                   });
+                                  setState(() => _selectedIndicator = newIndicator);
                                 }
                               },
                               onChartStyleChange: (ChartStyle newChartStyle) {
