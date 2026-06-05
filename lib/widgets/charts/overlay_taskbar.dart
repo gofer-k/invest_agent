@@ -8,7 +8,6 @@ import 'package:invest_agent/widgets/utils/math_icons.dart';
 
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
-import '../../model/multi_chart_schema.dart';
 import '../../providers/indicator_provider.dart';
 
 class OverlayTaskbar extends ConsumerStatefulWidget {
