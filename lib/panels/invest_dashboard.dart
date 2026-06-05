@@ -209,28 +209,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     ); 
   }
 
-  // TODO: consider remove thet dead code
-  // Widget _displayIndicatorsList() {
-  //   final indicators = ref.watch(sortedIndicatorsProvider);
-  //
-  //   return DropdownList<Indicator>(
-  //     textStyle: Theme.of(context).textTheme.labelLarge,
-  //     backgroundColor:  Colors.grey.shade600.withAlpha(128),
-  //     onSelected: (Indicator indicator) {
-  //       setState(() {
-  //         _selectedIndicator = indicator;
-  //         if (!_selectedIndicator.isDefault()) {
-  //           _changeMultiChartConfig(newIndicator: _selectedIndicator);
-  //         }
-  //       });
-  //     },
-  //     choiceType: indicators.contains(_selectedIndicator)
-  //         ? _selectedIndicator
-  //         : (indicators.isNotEmpty ? indicators.first : _selectedIndicator),
-  //       choices: indicators,
-  //   );
-  // }
-
   // Build the analysis panel UI
   Widget _buildAnalysisPanel(WidgetRef ref) {
     if (!_selectedAsset.isDefault()) {
