@@ -1,5 +1,5 @@
 import 'dart:developer' as dev;
-import 'dart:math' as Math;
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/price_result.dart';
@@ -225,7 +225,7 @@ class PriceController extends _$PriceController {
 
         final respond = MarketStackManagerRespond.fromEod(responseMap);
         currentResultsOffset = respond.offset + respond.count;
-        totalCountResults = Math.min(respond.total, totalCountResults);
+        totalCountResults = math.min(respond.total, totalCountResults);
         dev.log('currentResultsOffset: $currentResultsOffset, totalCountResults: $totalCountResults');
 
         final db = await _getDb();

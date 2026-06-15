@@ -144,7 +144,7 @@ class ModelConfig extends _$ModelConfig {
 
   Future<bool> removeAsset(AssetConfig asset) async {
     try {
-      final db = await _getDb();
+      await _getDb();
 
       final allPortfolios = state.getItems<PortfolioConfig>();
       final portfoliosWithAsset = allPortfolios.where(

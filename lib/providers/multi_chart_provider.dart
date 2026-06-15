@@ -88,7 +88,7 @@ class MultiChartNotifier extends _$MultiChartNotifier {
       charts = charts.where((c) => c.periodType == periodType).toList();
     }
     if (chartStyle != null) {
-      charts = charts.where((c) => c.mainChart?.chartStyle == chartStyle).toList();
+      charts = charts.where((c) => c.mainChart.chartStyle == chartStyle).toList();
     }
     return charts;
   }

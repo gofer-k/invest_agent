@@ -59,7 +59,7 @@ final class MultiChartNotifierProvider
 }
 
 String _$multiChartNotifierHash() =>
-    r'199c19bf25272779f55b4a678e85d9b31094798d';
+    r'e697ee3f287313edc5594e055a2a5fead6ddc4b0';
 
 final class MultiChartNotifierFamily extends $Family
     with
@@ -281,7 +281,7 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'f7b65488d44c0313f8b65b7d7a34c09078a459be';
+String _$multiChartsByHash() => r'52e1eec59b3a783a2f9c7afc081dde4857c77ab5';
 
 final class MultiChartsByFamily extends $Family
     with

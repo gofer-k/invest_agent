@@ -261,6 +261,6 @@ class _SyncChartState extends ConsumerState<SyncChart> {
     // catch(r) {
     //   log(r.toString());
     // }
-    // return null;
+    return null;
   }
 }
