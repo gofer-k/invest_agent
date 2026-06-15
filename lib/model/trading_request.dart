@@ -1,9 +1,11 @@
 import 'dart:developer';
 
+import 'analysis_request.dart';
+
 enum ResourceUri {
   marketStack("MarketStack", "https://api.marketstack.com/v2/", false),
   binance("Binance", "https://accounts.binance.com/", false),
-  localHost("LocalHost", "http://127.0.0.1:8000/", true);
+  localHost("LocalHost", "http://127.0.0.1", true);
 
   final String name;
   final String baseUrl;
@@ -253,7 +255,10 @@ class MarketStackManagerRespond {
 }
 
 class LocalRequest extends RemoteRequest {
-  LocalRequest();
+  final AnalysisRequest request;
+
+  LocalRequest({required this.request});
+
 
   @override
   ResourceUri get resource => ResourceUri.localHost;

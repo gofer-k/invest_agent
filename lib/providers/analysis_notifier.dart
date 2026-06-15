@@ -1,9 +1,23 @@
+import 'package:flutter/cupertino.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
+import 'package:invest_agent/model/indicator_result.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'cache_notifier.dart';
 
 part 'analysis_notifier.g.dart';
+
+@immutable
+class AnalysisState {
+
+  final List<BaseIndicatorResult> computedIndicators;
+
+  const AnalysisState({required this.computedIndicators});
+
+  AnalysisState copyWith({List<BaseIndicatorResult>? computedIndicators}) {
+    return AnalysisState(computedIndicators: computedIndicators ?? this.computedIndicators);
+  }
+}
 
 @riverpod
 class AnalysisNotifier extends _$AnalysisNotifier {
@@ -33,4 +47,6 @@ class AnalysisNotifier extends _$AnalysisNotifier {
   Future<void> clearAll() async {
     await ref.read(cacheProvider<AnalysisEntry, AnalysisSchema>(_schema, dbPath).notifier).clearAll();
   }
+
+
 }

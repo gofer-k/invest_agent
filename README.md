@@ -15,6 +15,10 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+Install:
+sudo apt  install protobuf-compiler
+dart pub global activate protoc_plugin
+
 #TODO:
 - save/lodd/update persist app's cache source 
 - load portfolio assets frm db cache
