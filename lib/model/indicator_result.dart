@@ -39,6 +39,16 @@ abstract class BaseIndicatorResult {
 
   double getMin(DateTime? startDate, DateTime? endDate);
   double getMax(DateTime? startDate, DateTime? endDate);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BaseIndicatorResult) return false;
+    return style == other.style && config == other.config;
+  }
+
+  @override
+  int get hashCode => style.hashCode ^ config.hashCode;
 }
 
 class SimpleMovingAverage extends BaseIndicatorValue {
@@ -140,6 +150,16 @@ class SmaResult extends BaseIndicatorResult {
             .map((p) => min(p.rollingMean ?? double.infinity, p.rollingStd ?? double.infinity))
             .reduce(min);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SmaResult) return false;
+    return super == other && points == other.points;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ points.hashCode;
 
   Iterable<SimpleMovingAverage> _filterPoints(DateTime? start, DateTime? end) {
     if (start == null && end == null) return points;

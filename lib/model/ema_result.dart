@@ -96,4 +96,14 @@ class EmaResult extends BaseIndicatorResult {
       return true;
     });
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! EmaResult) return false;
+    return super == other && points == other.points;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ points.hashCode;
 }

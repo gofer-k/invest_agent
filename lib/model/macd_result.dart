@@ -133,4 +133,14 @@ class MacdResult extends BaseIndicatorResult {
       return true;
     });
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! MacdResult) return false;
+    return super == other && data == other.data;
+  }
+
+  @override
+  int get hashCode => super.hashCode ^ data.hashCode;
 }
