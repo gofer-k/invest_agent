@@ -1,7 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/analysis_respond.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
+
+import '../../model/macd_result.dart';
 
 enum _OverlayType {
   signal,
@@ -9,7 +10,8 @@ enum _OverlayType {
 }
 
 class OverlayMacd extends OverlayChart {
-  final List<MACD> data;
+  final MacdResult data;
+  // final List<MACD> data;
   final Color signalColor;
   final Color macdColor;
   final Color upColor;
@@ -28,7 +30,7 @@ class OverlayMacd extends OverlayChart {
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0 || data.isEmpty) return;
+    if (size.width <= 0 || data.data.isEmpty) return;
 
     Size valuesSize = Size(size.width, size.height * 0.66);
     _paintCurve(ctx, canvas, valuesSize, signalColor, _OverlayType.signal);
@@ -44,16 +46,27 @@ class OverlayMacd extends OverlayChart {
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    final visibleData = data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    /*
+     double minMacd = filtered.isEmpty
+        ? 0
+        : filtered.map((p) => p.macd ?? double.infinity).reduce(min);
+    double minSignal = filtered.isEmpty
+        ? 0
+        : filtered.map((p) => p.signal ?? double.infinity).reduce(min);
+    return min(minMacd, minSignal);
+     */
+    final visibleData = data.data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
     if (visibleData.isEmpty) return;
 
     final minValue = switch(type) {
-      _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal <= next.signal ? curr : next).signal,
-      _OverlayType.indicatorValue => visibleData.reduce((curr, next) => curr.macd <= next.macd ? curr : next).macd
+      // _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal! <= next.signal ? curr : next).signal,
+      _OverlayType.signal => visibleData.map((p) => p.signal ?? double.infinity).reduce(min),
+      _OverlayType.indicatorValue => visibleData.map((p) => p.macd ?? double.infinity).reduce(min),
     };
     final maxValue = switch(type) {
-      _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal > next.signal ? curr : next).signal,
-      _OverlayType.indicatorValue => visibleData.reduce((curr, next) => curr.macd > next.macd ? curr : next).macd
+      // _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal! >= next.signal ? curr : next).signal,
+      _OverlayType.signal => visibleData.map((p) => p.signal ?? -double.infinity).reduce(max),
+      _OverlayType.indicatorValue => visibleData.map((p) => p.macd ?? -double.infinity).reduce(max),
     };
 
     if (minValue == maxValue) return;
@@ -62,7 +75,7 @@ class OverlayMacd extends OverlayChart {
     bool started = false;
 
     for (var elem in visibleData) {
-      final val = type == _OverlayType.signal ? elem.signal : elem.macd;
+      final val = (type == _OverlayType.signal ? elem.signal : elem.macd) ?? 0.0;
       final x = ctx.dateToPos(elem.dateTime, size);
       final y = ctx.indicatorToPos(val, size.height, minValue, maxValue);
       
@@ -87,18 +100,19 @@ class OverlayMacd extends OverlayChart {
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
-    final visibleData = data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = data.data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
     if (visibleData.isEmpty) return;
 
-    double maxHistAbs = visibleData.map((e) => e.hist.abs()).reduce(max);
+    double maxHistAbs = visibleData.map((e) => e.hist?.abs() ?? 0.0).reduce(max);
     if (maxHistAbs == 0) return;
 
     final halfHeight = size.height * 0.5;
     final zeroY = halfHeight;
     for (final macd in visibleData) {
       final x = ctx.dateToPos(macd.dateTime, size);
-      final hist = (macd.hist / maxHistAbs) * halfHeight;
-      canvas.drawLine(Offset(x, zeroY), Offset(x, zeroY - hist), macd.hist >= 0 ? painHistUp : painHistDown);
+      final inMasc = macd.macd ?? 0.0;
+      final hist = (inMasc / maxHistAbs) * halfHeight;
+      canvas.drawLine(Offset(x, zeroY), Offset(x, zeroY - hist), inMasc >= 0 ? painHistUp : painHistDown);
     }
   }
 }
