@@ -21,7 +21,9 @@ class SyncChart extends ConsumerStatefulWidget {
   final double Function(DateTime? startDate, DateTime? endDate) maxFunc;
   const SyncChart({super.key, required this.controller, this.crosshairController,
     // required this.indicatorResult,
-    this.overLayCharts = const[], required this.minFunc, required this.maxFunc, required ChartConfig mainChartConfig});
+    this.overLayCharts = const[],
+    required this.minFunc, required this.maxFunc,
+    required ChartConfig mainChartConfig});
 
   @override
   ConsumerState<SyncChart> createState() => _SyncChartState();

@@ -70,12 +70,14 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Main chart", style: Theme.of(context).textTheme.labelLarge),
+                  Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
                   Switch(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     value: parameters[Indicator.mainChart] ?? false,
-                    onChanged: (bool value) => setState(() => parameters[Indicator.mainChart] = value)),
-                  Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
+                    onChanged: (bool value) => setState(() {
+                      parameters[Indicator.mainChart] = value;
+                    })),
+                  Text("Main chart", style: Theme.of(context).textTheme.labelLarge),
                 ]
               ),
               const Divider(height: 4),

@@ -142,6 +142,10 @@ class Indicator extends Cache {
   @override
   String toString() => name;
 
+  String toInfoString() {
+    return "$name ${parameters.values.toString()}";
+  }
+
   static Indicator defaultIndicator() {
     return Indicator(
       id: -1,

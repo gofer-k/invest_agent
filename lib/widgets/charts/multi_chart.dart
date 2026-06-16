@@ -2,7 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/widgets/charts/overlay_taskbar.dart';
+import 'package:invest_agent/providers/trading_service.dart';
+import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
+import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
@@ -123,39 +125,71 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                           padding: const EdgeInsets.all(5),
                           color: Colors.transparent,
                           child:
-                            OverlayTaskbar(
-                              asset: widget.assetConfig,
-                              priceData: widget.priceData,
-                              selectedIndicator: _selectedIndicator,
-                              selectedPeriod: _selectedPeriod,
-                              selectedChartStyle: _selectedChartStyle,
-                              onPeriodChange: (PeriodType newPeriod) {
-                                if (newPeriod != _selectedPeriod) {
-                                  setState(() => _selectedPeriod = newPeriod);
-                                  _chartController.dispose();
-                                  _initializeControllers();
-                                  _changeMultiChartConfig(newPeriodType: _selectedPeriod);
-                                }
-                              },
-                              onIndicatorChange: (Indicator newIndicator) {
-                                if (newIndicator != _selectedIndicator) {
-                                  showIndicator(context, newIndicator,
-                                    (Indicator? indicator) {
-                                    // TODO: Add new chart in the board
-                                    _changeMultiChartConfig(newIndicator: _selectedIndicator);
-
-                                  });
-                                  setState(() => _selectedIndicator = newIndicator);
-                                }
-                              },
-                              onChartStyleChange: (ChartStyle newChartStyle) {
-                                if (newChartStyle != _selectedChartStyle) {
-                                  setState(() {
-                                    _selectedChartStyle = newChartStyle;
-                                    _changeMultiChartConfig(newStyle: _selectedChartStyle);
-                                  });
-                                }
-                              },
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                MainOverlayTaskbar(
+                                  asset: widget.assetConfig,
+                                  priceData: widget.priceData,
+                                  selectedIndicator: _selectedIndicator,
+                                  selectedPeriod: _selectedPeriod,
+                                  selectedChartStyle: _selectedChartStyle,
+                                  onPeriodChange: (PeriodType newPeriod) {
+                                    if (newPeriod != _selectedPeriod) {
+                                      setState(() => _selectedPeriod = newPeriod);
+                                      _chartController.dispose();
+                                      _initializeControllers();
+                                      _changeMultiChartConfig(newPeriodType: _selectedPeriod);
+                                    }
+                                  },
+                                  onIndicatorChange: (Indicator newIndicator) {
+                                    if (newIndicator != _selectedIndicator) {
+                                      showIndicator(context, newIndicator,
+                                              (Indicator? indicator) {
+                                            // TODO: Add new chart in the board
+                                            // 1. When indicator.mainChart == true, add a new chart (boRD) or if not add this one into the current chart (overlay one)).
+                                            // 2. Request the indicator data from the server.
+                                            // 3. Handle the respond the data into the provider's state
+                                            // 4. Add the indicator's chart and display it.
+                                            // 5. Add overlay indicator config bar to the current chart's board. <- to do onw
+                                            if (indicator != null) {
+                                              setState(() => _selectedIndicator = indicator);
+                                              _changeMultiChartConfig(newIndicator: _selectedIndicator);
+                                            }
+                                          });
+                                    }
+                                  },
+                                  onChartStyleChange: (ChartStyle newChartStyle) {
+                                    if (newChartStyle != _selectedChartStyle) {
+                                      setState(() {
+                                        _selectedChartStyle = newChartStyle;
+                                        _changeMultiChartConfig(newStyle: _selectedChartStyle);
+                                      });
+                                    }
+                                  },
+                                ),
+                                for (var chart in _currentChartConfig.charts)
+                                  if (chart.indicatorConfig.type != IndicatorType.price)
+                                    // Expanded(flex: 5,
+                                    //   child:
+                                      IndicatorOverlayTaskbar(
+                                        indicator: chart.indicatorConfig,
+                                        onChange: () {
+                                          setState(() {
+                                            showIndicator(
+                                                context, chart.indicatorConfig,
+                                                    (Indicator? indicator) {
+                                                  // TODO: Handle this case.
+                                                });
+                                          });
+                                        },
+                                        onDelete: () {
+                                          setState(() {
+                                            // _currentChartConfig.charts.remove(chart);
+                                          });
+                                        }
+                                      )
+                              ]
                             ),
                         ),
                       )
@@ -260,33 +294,20 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   double _getMaxValue(IndicatorType chartType, DateTime? startDate, DateTime? endDate) {
-    return switch (chartType) {
-      IndicatorType.price => widget.priceData.getMax(startDate, endDate),
-      IndicatorType.macd => 0.0,  // TODO: widget.results.getMaxMACD(MACDType.MACD_12_26, startDate, endDate),
-      IndicatorType.volume => 0.0,  // TODO: widget.priceData.getMaxVolume(startDate, endDate),
-      IndicatorType.rsi => 0.0, // TODO: widget.results.getMaxRsi(startDate, endDate),
-      IndicatorType.bellingerBands => 0.0, // TODO: widget.results.getMaxBollingerBand(BollingerBandType.upperBB, startDate, endDate),
-      IndicatorType.sma => throw UnimplementedError(),
-      IndicatorType.ema => throw UnimplementedError(),
-      IndicatorType.undefined => throw UnimplementedError(),
-      IndicatorType.kst => throw UnimplementedError(),
-      IndicatorType.roc => throw UnimplementedError(),
-    };
+    final notifier = ref.watch(tradingServiceProvider.notifier);
+    return notifier.getMax(chartType, startDate: startDate, endDate: endDate) ?? 0.0;
   }
 
   double _getMinValue(IndicatorType chartType, DateTime? startDate, DateTime? endDate) {
-    return switch (chartType) {
-      IndicatorType.price => widget.priceData.getMin(startDate, endDate),
-      IndicatorType.macd => 0.0,  // TODO: widget.results.getMaxMACD(MACDType.MACD_12_26, startDate, endDate),
-      IndicatorType.volume => 0.0,  // TODO: widget.priceData.getMaxVolume(startDate, endDate),
-      IndicatorType.rsi => 0.0, // TODO: widget.results.getMaxRsi(startDate, endDate),
-      IndicatorType.bellingerBands => 0.0, // TODO: widget.results.getMaxBollingerBand(BollingerBandType.upperBB, startDate, endDate),
-      IndicatorType.sma => throw UnimplementedError(),
-      IndicatorType.ema => throw UnimplementedError(),
-      IndicatorType.kst => throw UnimplementedError(),
-      IndicatorType.roc => throw UnimplementedError(),
-      IndicatorType.undefined => throw UnimplementedError(),
-    };
+    final notifier = ref.watch(tradingServiceProvider.notifier);
+    return notifier.getMin(chartType, startDate: startDate, endDate: endDate) ?? 0.0;
+  }
+
+  Future<bool> _requestIndicator(Indicator indicator) async {
+    final notifier = ref.read(tradingServiceProvider.notifier);
+    notifier.calculateIndicators(widget.priceData.priceData, [indicator]);
+
+    return true;
   }
 
   void _changeMultiChartConfig({PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator}) {
@@ -295,26 +316,14 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     final targetStyle = newStyle ?? _selectedChartStyle;
 
     final List<ChartConfig> updatedCharts = List.from(_currentChartConfig.charts);
-    
-    // Update or add the main chart configuration
-    bool found = false;
-    for (int i = 0; i < updatedCharts.length; i++) {
-      if (updatedCharts[i].mainChart) {
-        updatedCharts[i] = updatedCharts[i].copyWith(
-          newIndicatorConfig: targetIndicator,
-          drawingType: targetStyle,
-        );
-        found = true;
-        break;
-      }
-    }
 
-    if (!found) {
+    // if (!found) {
+    if (newIndicator != null) {
       updatedCharts.add(
         ChartConfig(
-            indicatorConfig: targetIndicator,
-            chartStyle: targetStyle,
-            mainChart: true,
+          indicatorConfig: targetIndicator,
+          chartStyle: targetStyle,
+          mainChart: targetIndicator.isMainChart(),
         ));
     }
 

@@ -10,7 +10,7 @@ import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../providers/indicator_provider.dart';
 
-class OverlayTaskbar extends ConsumerStatefulWidget {
+class MainOverlayTaskbar extends ConsumerStatefulWidget {
   final AssetConfig asset;
   final IndexPrice priceData;
   final PeriodType selectedPeriod;
@@ -20,7 +20,7 @@ class OverlayTaskbar extends ConsumerStatefulWidget {
   final Function(Indicator) onIndicatorChange;
   final Function(ChartStyle) onChartStyleChange;
 
-  const OverlayTaskbar({
+  const MainOverlayTaskbar({
     super.key,
     required this.asset,
     required this.priceData,
@@ -32,10 +32,10 @@ class OverlayTaskbar extends ConsumerStatefulWidget {
     required this.onChartStyleChange});
 
   @override
-  ConsumerState<OverlayTaskbar> createState() => _OverlayTaskbarState();
+  ConsumerState<MainOverlayTaskbar> createState() => _OverlayTaskbarState();
 }
 
-class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
+class _OverlayTaskbarState extends ConsumerState<MainOverlayTaskbar>{
   bool _showIndicatorSelector = false;
   bool _showPeriodSelector = false;
   bool _showChartStyleSelector = false;
@@ -43,9 +43,9 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
   @override
   Widget build(BuildContext context) {
     final currentPrice = widget.priceData.getCurrent().toStringAsFixed(3);
-    final princeChange = widget.priceData.getChangeFor(widget.selectedPeriod.days);
-    final princeChangeStr = princeChange.toStringAsFixed(2);
-    final color = princeChange < 0 ? Colors.red : Colors.green;
+    final priceChange = widget.priceData.getChangeFor(widget.selectedPeriod.days);
+    final priceChangeStr = priceChange.toStringAsFixed(2);
+    final color = priceChange < 0 ? Colors.red : Colors.green;
     final indicators = ref.watch(sortedIndicatorsProvider);
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +125,7 @@ class _OverlayTaskbarState extends ConsumerState<OverlayTaskbar>{
         const SizedBox(height: 4),
         Text("${widget.asset.symbol} - ${widget.selectedPeriod} - ${widget.asset.currency.code}",
           style: TextStyle(color: Colors.white.withAlpha(128))),
-        Text("$currentPrice ($princeChangeStr%)", style: TextStyle(color: color)),
+        Text("$currentPrice ($priceChangeStr%)", style: TextStyle(color: color)),
       ],
     );
   }
