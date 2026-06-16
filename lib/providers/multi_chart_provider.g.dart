@@ -59,7 +59,7 @@ final class MultiChartNotifierProvider
 }
 
 String _$multiChartNotifierHash() =>
-    r'e697ee3f287313edc5594e055a2a5fead6ddc4b0';
+    r'd3f3441b6b8a014bb18393348da6dbd5fa67b340';
 
 final class MultiChartNotifierFamily extends $Family
     with

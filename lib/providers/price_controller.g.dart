@@ -58,7 +58,7 @@ final class PriceControllerProvider
   }
 }
 
-String _$priceControllerHash() => r'61e4f3ba8b016ab9202263ffee347276151a4bc5';
+String _$priceControllerHash() => r'b75da89199ec4779fc6b691497d33515f454e84c';
 
 final class PriceControllerFamily extends $Family
     with

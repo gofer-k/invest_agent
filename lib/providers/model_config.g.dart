@@ -44,7 +44,7 @@ final class ModelConfigProvider
   }
 }
 
-String _$modelConfigHash() => r'6407ac61f4a4ca67a5027650563a820f152af753';
+String _$modelConfigHash() => r'8877194c1df2249e67880f8d5d134622a295bfff';
 
 /// Riverpod 3.0 style (Modern Riverpod) Notifier for managing app data.
 
