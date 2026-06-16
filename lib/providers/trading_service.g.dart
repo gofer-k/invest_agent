@@ -13,7 +13,7 @@ part of 'trading_service.dart';
 final tradingServiceProvider = TradingServiceProvider._();
 
 final class TradingServiceProvider
-    extends $NotifierProvider<TradingService, IndicatorResultMap> {
+    extends $NotifierProvider<TradingService, TradingServiceState> {
   TradingServiceProvider._()
     : super(
         from: null,
@@ -33,27 +33,27 @@ final class TradingServiceProvider
   TradingService create() => TradingService();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(IndicatorResultMap value) {
+  Override overrideWithValue(TradingServiceState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<IndicatorResultMap>(value),
+      providerOverride: $SyncValueProvider<TradingServiceState>(value),
     );
   }
 }
 
-String _$tradingServiceHash() => r'd6945d7220a7441120be90649879d0de454dc5a7';
+String _$tradingServiceHash() => r'e36a48bd06a7f8b0d92f4e690f8f44ab6ab4280e';
 
-abstract class _$TradingService extends $Notifier<IndicatorResultMap> {
-  IndicatorResultMap build();
+abstract class _$TradingService extends $Notifier<TradingServiceState> {
+  TradingServiceState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<IndicatorResultMap, IndicatorResultMap>;
+    final ref = this.ref as $Ref<TradingServiceState, TradingServiceState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<IndicatorResultMap, IndicatorResultMap>,
-              IndicatorResultMap,
+              AnyNotifier<TradingServiceState, TradingServiceState>,
+              TradingServiceState,
               Object?,
               Object?
             >;

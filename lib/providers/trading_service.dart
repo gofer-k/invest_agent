@@ -1,6 +1,7 @@
 // lib/providers/trading_service.dart
 import 'dart:async';
 import 'dart:developer';
+import 'package:flutter/cupertino.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_wkt;
@@ -18,6 +19,18 @@ part 'trading_service.g.dart';
 /// Alias for the generated gRPC client
 typedef TradingServiceClient = InvestAgentServiceClient;
 
+@immutable
+class TradingServiceState {
+
+  final IndicatorResultMap cache;
+
+  const TradingServiceState({this.cache = const {}});
+
+  TradingServiceState copyWith({IndicatorResultMap? results}) {
+    return TradingServiceState(cache: results ?? cache);
+  }
+}
+
 @riverpod
 class TradingService extends _$TradingService {
   late ClientChannel _channel;
@@ -27,7 +40,7 @@ class TradingService extends _$TradingService {
   StreamSubscription? _incomingSubscription;
 
   @override
-  IndicatorResultMap build() {
+  TradingServiceState build() {
     // Initialize gRPC channel
     _channel = ClientChannel(
       'invest-agent-service',
@@ -42,7 +55,7 @@ class TradingService extends _$TradingService {
       _channel.shutdown();
     });
 
-    return {};
+    return TradingServiceState(cache: {});
   }
 
   /// Establishes the bidirectional stream
@@ -54,7 +67,8 @@ class TradingService extends _$TradingService {
     final responseStream = _client.calculateIndicators(_outgoingController!.stream);
 
     _incomingSubscription = responseStream.listen((response) {
-      state = _mapResponse(response);
+     final results = _mapResponse(response);
+     state = TradingServiceState(cache: results);
     }, onError: (error) {
       log("Failed remote respond call: $error ");
     });
@@ -122,6 +136,7 @@ class TradingService extends _$TradingService {
       ) ?? schema.IndicatorType.undefined;
 
       // Skip non-SMA values as requested
+      // TODO: Handle the other indicators
       if (type != schema.IndicatorType.sma) return;
 
       final results = list.items
@@ -161,6 +176,24 @@ class TradingService extends _$TradingService {
   }
 
   void clearResults() {
-    state = {};
+    state = TradingServiceState();
+  }
+
+  double? getMax(schema.IndicatorType indicatorType, {DateTime? startDate, DateTime? endDate}) {
+    final results = state.cache[indicatorType];
+    if (results == null || results.isEmpty) return null;
+
+    return results
+        .map((res) => res.getMax(startDate, endDate))
+        .reduce((a, b) => a > b ? a : b);
+  }
+
+  double? getMin(schema.IndicatorType indicatorType, {DateTime? startDate, DateTime? endDate}) {
+    final results = state.cache[indicatorType];
+    if (results == null || results.isEmpty) return null;
+
+    return results
+        .map((res) => res.getMin(startDate, endDate))
+        .reduce((a, b) => a < b ? a : b);
   }
 }
