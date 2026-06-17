@@ -17,11 +17,11 @@ import 'package:protobuf/protobuf.dart' as $pb;
 /// Maps to lib/model/indicator_schema.dart: IndicatorType
 class IndicatorType extends $pb.ProtobufEnum {
   static const IndicatorType UNDEFINED =
-      IndicatorType._(0, _omitEnumNames ? '' : 'UNDEFINED');
+      IndicatorType._(0, _omitEnumNames ? '' : '-');
   static const IndicatorType PRICE =
-      IndicatorType._(1, _omitEnumNames ? '' : 'PRICE');
+      IndicatorType._(1, _omitEnumNames ? '' : 'Price');
   static const IndicatorType BOLLINGER_BANDS =
-      IndicatorType._(2, _omitEnumNames ? '' : 'BOLLINGER_BANDS');
+      IndicatorType._(2, _omitEnumNames ? '' : 'Bollinger Bands');
   static const IndicatorType SMA =
       IndicatorType._(3, _omitEnumNames ? '' : 'SMA');
   static const IndicatorType EMA =
@@ -31,7 +31,7 @@ class IndicatorType extends $pb.ProtobufEnum {
   static const IndicatorType RSI =
       IndicatorType._(6, _omitEnumNames ? '' : 'RSI');
   static const IndicatorType VOLUME =
-      IndicatorType._(7, _omitEnumNames ? '' : 'VOLUME');
+      IndicatorType._(7, _omitEnumNames ? '' : 'Volume');
   static const IndicatorType KST =
       IndicatorType._(8, _omitEnumNames ? '' : 'KST');
   static const IndicatorType ROC =

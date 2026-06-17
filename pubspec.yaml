@@ -36,6 +36,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   test: ^1.24.0
+  mockito: ^5.2.0
   riverpod_generator: ^4.0.0+1
   build_runner: ^2.13.1
   custom_lint: ^0.8.1

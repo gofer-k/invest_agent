@@ -4,8 +4,8 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:grpc/grpc.dart';
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_wkt;
-import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $pb_wkt;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
+import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $pb_struct;
 import 'package:collection/collection.dart';
 
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem;
@@ -19,9 +19,19 @@ part 'trading_service.g.dart';
 /// Alias for the generated gRPC client
 typedef TradingServiceClient = InvestAgentServiceClient;
 
+@riverpod
+TradingServiceClient tradingClient(Ref ref) {
+  final channel = ClientChannel(
+    'invest-agent-service',
+    port: 50051,
+    options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
+  );
+  ref.onDispose(() => channel.shutdown());
+  return TradingServiceClient(channel);
+}
+
 @immutable
 class TradingServiceState {
-
   final IndicatorResultMap cache;
 
   const TradingServiceState({this.cache = const {}});
@@ -33,7 +43,6 @@ class TradingServiceState {
 
 @riverpod
 class TradingService extends _$TradingService {
-  late ClientChannel _channel;
   late TradingServiceClient _client;
 
   StreamController<$pb.TradingRequest>? _outgoingController;
@@ -41,21 +50,14 @@ class TradingService extends _$TradingService {
 
   @override
   TradingServiceState build() {
-    // Initialize gRPC channel
-    _channel = ClientChannel(
-      'invest-agent-service',
-      port: 50051,
-      options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
-    );
-    _client = TradingServiceClient(_channel);
+    _client = ref.watch(tradingClientProvider);
 
     ref.onDispose(() {
       _incomingSubscription?.cancel();
       _outgoingController?.close();
-      _channel.shutdown();
     });
 
-    return TradingServiceState(cache: {});
+    return const TradingServiceState(cache: {});
   }
 
   /// Establishes the bidirectional stream
@@ -100,15 +102,21 @@ class TradingService extends _$TradingService {
       ..low = item.lowPrice
       ..close = item.closePrice
       ..volume = item.volume
-      ..dateTime = $pb_wkt.Timestamp.fromDateTime(item.dateTime);
+      ..dateTime = $pb_ts.Timestamp.fromDateTime(item.dateTime);
   }
 
   $pb.Indicator _toProtoIndicator(schema.Indicator indicator) {
-    return $pb.Indicator()
+    final proto = $pb.Indicator()
       ..id = indicator.id
       ..name = indicator.name
-      ..type = _toProtoIndicatorType(indicator.type)
-      ..parameters = $pb_wkt.Struct.create()..mergeFromProto3Json(indicator.parameters);
+      ..type = _toProtoIndicatorType(indicator.type);
+    
+    if (indicator.parameters.isNotEmpty) {
+      // Use ensureParameters() to get a mutable Struct instance.
+      // Modifying the field directly via getter returns a read-only default instance.
+      proto.ensureParameters().mergeFromProto3Json(indicator.parameters);
+    }
+    return proto;
   }
 
   $pb.IndicatorType _toProtoIndicatorType(schema.IndicatorType type) {
@@ -132,15 +140,16 @@ class TradingService extends _$TradingService {
     final IndicatorResultMap resultMap = {};
     response.results.forEach((key, list) {
       final type = schema.IndicatorType.values.firstWhereOrNull(
-            (e) => e.name == key || e.name.toUpperCase() == key.toUpperCase(),
+        (e) => e.name.toUpperCase() == key.toUpperCase() || e.shortName.toUpperCase() == key.toUpperCase(),
       ) ?? schema.IndicatorType.undefined;
 
-      // Skip non-SMA values as requested
-      // TODO: Handle the other indicators
+      // Only handle SMA for now as per previous requirement
       if (type != schema.IndicatorType.sma) return;
 
       final results = list.items
-          .map((series) => _mapSeries(series)).nonNulls.toList();
+          .map((series) => _mapSeries(series))
+          .whereType<BaseIndicatorResult>()
+          .toList();
       
       if (results.isNotEmpty) {
         resultMap[type] = results;
@@ -152,7 +161,6 @@ class TradingService extends _$TradingService {
   BaseIndicatorResult? _mapSeries($pb.IndicatorSeries series) {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
     
-    // Only handle SMA and skip others as requested
     if (indicatorType != schema.IndicatorType.sma) {
       return null;
     }
@@ -176,7 +184,7 @@ class TradingService extends _$TradingService {
   }
 
   void clearResults() {
-    state = TradingServiceState();
+    state = const TradingServiceState();
   }
 
   double? getMax(schema.IndicatorType indicatorType, {DateTime? startDate, DateTime? endDate}) {

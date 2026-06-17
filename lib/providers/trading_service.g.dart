@@ -9,6 +9,53 @@ part of 'trading_service.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(tradingClient)
+final tradingClientProvider = TradingClientProvider._();
+
+final class TradingClientProvider
+    extends
+        $FunctionalProvider<
+          TradingServiceClient,
+          TradingServiceClient,
+          TradingServiceClient
+        >
+    with $Provider<TradingServiceClient> {
+  TradingClientProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'tradingClientProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$tradingClientHash();
+
+  @$internal
+  @override
+  $ProviderElement<TradingServiceClient> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TradingServiceClient create(Ref ref) {
+    return tradingClient(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TradingServiceClient value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TradingServiceClient>(value),
+    );
+  }
+}
+
+String _$tradingClientHash() => r'0be4fd9771eec28bdd728f278a4ce6b5043a2ff0';
+
 @ProviderFor(TradingService)
 final tradingServiceProvider = TradingServiceProvider._();
 
@@ -41,7 +88,7 @@ final class TradingServiceProvider
   }
 }
 
-String _$tradingServiceHash() => r'e36a48bd06a7f8b0d92f4e690f8f44ab6ab4280e';
+String _$tradingServiceHash() => r'48e706c8613e0a7c575111f968b4f04696b17957';
 
 abstract class _$TradingService extends $Notifier<TradingServiceState> {
   TradingServiceState build();
