@@ -145,18 +145,17 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                   onIndicatorChange: (Indicator newIndicator) {
                                     if (newIndicator != _selectedIndicator) {
                                       showIndicator(context, newIndicator,
-                                              (Indicator? indicator) {
-                                            // TODO: Add new chart in the board
-                                            // 1. When indicator.mainChart == true, add a new chart (boRD) or if not add this one into the current chart (overlay one)).
-                                            // 2. Request the indicator data from the server.
-                                            // 3. Handle the respond the data into the provider's state
-                                            // 4. Add the indicator's chart and display it.
-                                            // 5. Add overlay indicator config bar to the current chart's board. <- to do onw
-                                            if (indicator != null) {
-                                              setState(() => _selectedIndicator = indicator);
-                                              _changeMultiChartConfig(newIndicator: _selectedIndicator);
-                                            }
-                                          });
+                                        (Indicator? indicator) {
+                                        // TODO: Add new chart in the board
+                                        // 1. When indicator.mainChart == true, add a new chart (boRD) or if not add this one into the current chart (overlay one)).
+                                        // 2. Request the indicator data from the server.
+                                        // 3. Handle the respond the data into the provider's state
+                                        // 4. Add the indicator's chart and display it.
+                                        if (indicator != null) {
+                                          setState(() => _selectedIndicator = indicator);
+                                          _changeMultiChartConfig(newIndicator: _selectedIndicator);
+                                        }
+                                      });
                                     }
                                   },
                                   onChartStyleChange: (ChartStyle newChartStyle) {
@@ -168,27 +167,29 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                     }
                                   },
                                 ),
-                                for (var chart in _currentChartConfig.charts)
-                                  if (chart.indicatorConfig.type != IndicatorType.price)
-                                    // Expanded(flex: 5,
-                                    //   child:
-                                      IndicatorOverlayTaskbar(
-                                        indicator: chart.indicatorConfig,
-                                        onChange: () {
-                                          setState(() {
-                                            showIndicator(
-                                                context, chart.indicatorConfig,
-                                                    (Indicator? indicator) {
-                                                  // TODO: Handle this case.
-                                                });
+                                for (int i = 0; i < _currentChartConfig.charts.length; i++)
+                                  if (_currentChartConfig.charts[i].indicatorConfig.type != IndicatorType.price)
+                                    IndicatorOverlayTaskbar(
+                                      indicator: _currentChartConfig.charts[i].indicatorConfig,
+                                      onChange: () {
+                                        showIndicator(
+                                          context, _currentChartConfig.charts[i].indicatorConfig,
+                                          (Indicator? updateIndicator) {
+                                            if (updateIndicator != null) {
+                                              setState(() {
+                                                _currentChartConfig.charts[i] = _currentChartConfig.charts[i].copyWith(
+                                                newIndicatorConfig: updateIndicator);
+                                              });
+                                            }
                                           });
-                                        },
-                                        onDelete: () {
-                                          setState(() {
-                                            // _currentChartConfig.charts.remove(chart);
-                                          });
-                                        }
-                                      )
+                                      },
+                                      onDelete: () {
+                                        setState(() {
+                                          _currentChartConfig.charts.remove(_currentChartConfig.charts[i]);
+                                          // TODO:refresh the chart
+                                        });
+                                      }
+                                    )
                               ]
                             ),
                         ),
