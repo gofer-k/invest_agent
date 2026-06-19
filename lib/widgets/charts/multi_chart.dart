@@ -19,6 +19,7 @@ import '../../providers/multi_chart_provider.dart';
 import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_chart.dart';
+import 'overlay_moving_average.dart';
 import 'overlay_price_chart.dart';
 import 'overlay_tooltip_marker.dart';
 
@@ -264,8 +265,63 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   OverlayChart _showOverlayChart(ChartConfig chart) {
-    log("Display overlay supplement chart");
-    return EmptyOverlayChart();
+    final indicatorResultAsync = ref.watch(indicatorResultProvider(
+    prices: widget.priceData.priceData,
+    indicator: chart.indicatorConfig,
+  ));
+
+    return indicatorResultAsync.when(
+      data: (results) {
+        log("Displaying overlay supplement chart for ${chart.indicatorConfig.name}");
+        switch (chart.indicatorConfig.type) {
+          // case IndicatorType.bellingerBands:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+          case IndicatorType.sma:
+            if (results is SmaResult) {
+              final smaResult = results as SmaResult;
+              return OverlayMovingAverage(data: smaResult.getPoints(), lineColor: chart.indicatorConfig.color());
+            }
+          // case IndicatorType.ema:
+          //   if (results is EmaResult) {
+          //     final emaResult = results as EmaResult;
+          //     return OverlayExponentialMovingAverage(data: emaResult.getPoints(), lineColor: chart.indicatorConfig.color());
+          //   }
+          // case IndicatorType.macd:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+          // case IndicatorType.rsi:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+          // case IndicatorType.volume:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+          // case IndicatorType.kst:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+          // case IndicatorType.roc:
+          //   // TODO: Handle this case.
+          //   throw UnimplementedError();
+
+          // Suppress here: IndicatorType.price:
+          // IndicatorType.undefined:
+          case _:
+            return EmptyOverlayChart();
+        }
+        return EmptyOverlayChart();
+      },
+      error: (error, stackTrace) {
+        log("Error loading indicator: $error");
+        if (context.mounted) {
+          // Note: Showing SnackBars from build methods is generally discouraged.
+          // Consider using ref.listen in a Consumer widget instead.
+        }
+        return EmptyOverlayChart();
+      },
+      loading: () => EmptyOverlayChart(), // Don't return Center() here if it expects an OverlayChart
+    );
+  }
+  // OverlayChart _showOverlayChart(ChartConfig chart) {
     //TODO: Display overlay supplement chart
     // return switch (chartType) {
   //     SupplementChart.bb =>
@@ -292,7 +348,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   //       OverlayOBV(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
   //     SupplementChart.sma =>
   //       OverlayMovingAverage(data: widget.results.getSMA(20);
-  }
+  // }
 
   double _getMaxValue(IndicatorType chartType, DateTime? startDate, DateTime? endDate) {
     final notifier = ref.watch(tradingServiceProvider.notifier);
@@ -302,13 +358,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   double _getMinValue(IndicatorType chartType, DateTime? startDate, DateTime? endDate) {
     final notifier = ref.watch(tradingServiceProvider.notifier);
     return notifier.getMin(chartType, startDate: startDate, endDate: endDate) ?? 0.0;
-  }
-
-  Future<bool> _requestIndicator(Indicator indicator) async {
-    final notifier = ref.read(tradingServiceProvider.notifier);
-    notifier.calculateIndicators(widget.priceData.priceData, [indicator]);
-
-    return true;
   }
 
   void _changeMultiChartConfig({PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator}) {

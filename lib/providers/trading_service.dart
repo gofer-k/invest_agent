@@ -2,19 +2,24 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
-import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $pb_struct;
 import 'package:collection/collection.dart';
 
-import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem;
+// Hide conflicting types from the gRPC generated code to avoid global namespace pollution
+import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
-import '../model/price_result.dart';
 import '../model/indicator_schema.dart' as schema;
+import '../model/price_result.dart' as model;
 
 part 'trading_service.g.dart';
+
+// Unique aliases to ensure the Riverpod generator uses non-conflicting names in .g.dart
+typedef InternalIndexPriceItem = model.IndexPriceItem;
+typedef InternalIndicator = schema.Indicator;
 
 /// Alias for the generated gRPC client
 typedef TradingServiceClient = InvestAgentServiceClient;
@@ -77,7 +82,7 @@ class TradingService extends _$TradingService {
   }
 
   /// Sends prices and indicators to the service for calculation
-  void calculateIndicators(List<IndexPriceItem> prices, List<schema.Indicator> indicators) {
+  void calculateIndicators(List<InternalIndexPriceItem> prices, List<InternalIndicator> indicators) {
     if (indicators.every((ind) => ind.type == schema.IndicatorType.undefined)) return;
 
     if (_outgoingController == null || _outgoingController!.isClosed) {
@@ -93,7 +98,7 @@ class TradingService extends _$TradingService {
 
   // --- Mappers: Internal to Proto ---
 
-  $pb.IndexPriceItem _toProtoPrice(IndexPriceItem item) {
+  $pb.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
     return $pb.IndexPriceItem()
       ..id = item.id
       ..assetId = item.assetId
@@ -105,7 +110,7 @@ class TradingService extends _$TradingService {
       ..dateTime = $pb_ts.Timestamp.fromDateTime(item.dateTime);
   }
 
-  $pb.Indicator _toProtoIndicator(schema.Indicator indicator) {
+  $pb.Indicator _toProtoIndicator(InternalIndicator indicator) {
     final proto = $pb.Indicator()
       ..id = indicator.id
       ..name = indicator.name
@@ -204,4 +209,22 @@ class TradingService extends _$TradingService {
         .map((res) => res.getMin(startDate, endDate))
         .reduce((a, b) => a < b ? a : b);
   }
+}
+
+@riverpod
+AsyncValue<IndicatorResult> indicatorResult(Ref ref,
+  {required List<InternalIndexPriceItem> prices,
+   required InternalIndicator indicator}) {
+  // Watch the cache in the TradingService state
+  final cache = ref.watch(tradingServiceProvider.select((s) => s.cache[indicator.type]));
+
+  if (cache == null) {
+    // If not in cache, trigger calculation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [indicator]);
+    });
+    return const AsyncValue.loading();
+  }
+
+  return AsyncValue.data(cache);
 }

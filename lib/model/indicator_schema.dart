@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
 import 'package:collection/collection.dart';
@@ -175,7 +178,11 @@ class Indicator extends Cache {
         type: newType ?? type,
         parameters: newParams);
   }
-  
+
+  Color color() {
+    return parameters["color"] != null ? Color(parameters["color"]) : Colors.blueAccent;
+  }
+
   bool isDefault() {
     return id == -1 && type == IndicatorType.undefined;
   }

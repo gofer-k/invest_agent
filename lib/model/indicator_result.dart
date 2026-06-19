@@ -117,6 +117,10 @@ class SmaResult extends BaseIndicatorResult {
     );
   }
 
+  List<SimpleMovingAverage> getPoints({int rollingWindow = 20}) {
+    return points.where((p) => p.rollingWindow == rollingWindow).toList();
+  }
+
   @override
   double get maxValue => points.isEmpty
       ? 0

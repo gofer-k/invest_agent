@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../model/indicator_schema.dart';
-import '../utils/math_icons.dart';
 
 class IndicatorOverlayTaskbar extends StatefulWidget {
   final Indicator indicator;

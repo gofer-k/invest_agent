@@ -88,7 +88,7 @@ final class TradingServiceProvider
   }
 }
 
-String _$tradingServiceHash() => r'48e706c8613e0a7c575111f968b4f04696b17957';
+String _$tradingServiceHash() => r'bdb3a581eb22252e6916d3441f4e132959bf7cc3';
 
 abstract class _$TradingService extends $Notifier<TradingServiceState> {
   TradingServiceState build();
@@ -106,4 +106,109 @@ abstract class _$TradingService extends $Notifier<TradingServiceState> {
             >;
     element.handleCreate(ref, build);
   }
+}
+
+@ProviderFor(indicatorResult)
+final indicatorResultProvider = IndicatorResultFamily._();
+
+final class IndicatorResultProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<IndicatorResult>,
+          AsyncValue<IndicatorResult>,
+          AsyncValue<IndicatorResult>
+        >
+    with $Provider<AsyncValue<IndicatorResult>> {
+  IndicatorResultProvider._({
+    required IndicatorResultFamily super.from,
+    required ({
+      List<InternalIndexPriceItem> prices,
+      InternalIndicator indicator,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'indicatorResultProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$indicatorResultHash();
+
+  @override
+  String toString() {
+    return r'indicatorResultProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<AsyncValue<IndicatorResult>> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  AsyncValue<IndicatorResult> create(Ref ref) {
+    final argument =
+        this.argument
+            as ({
+              List<InternalIndexPriceItem> prices,
+              InternalIndicator indicator,
+            });
+    return indicatorResult(
+      ref,
+      prices: argument.prices,
+      indicator: argument.indicator,
+    );
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AsyncValue<IndicatorResult> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AsyncValue<IndicatorResult>>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is IndicatorResultProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$indicatorResultHash() => r'8b394f5bfe1311d7efc9bf7a5053e314939be200';
+
+final class IndicatorResultFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          AsyncValue<IndicatorResult>,
+          ({List<InternalIndexPriceItem> prices, InternalIndicator indicator})
+        > {
+  IndicatorResultFamily._()
+    : super(
+        retry: null,
+        name: r'indicatorResultProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  IndicatorResultProvider call({
+    required List<InternalIndexPriceItem> prices,
+    required InternalIndicator indicator,
+  }) => IndicatorResultProvider._(
+    argument: (prices: prices, indicator: indicator),
+    from: this,
+  );
+
+  @override
+  String toString() => r'indicatorResultProvider';
 }
