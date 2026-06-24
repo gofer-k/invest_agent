@@ -17,8 +17,9 @@ enum IndicatorType {
   kst("Know Sure Thing", "KST"),
   roc("Rate of Change", "ROC"),;
 
-  const IndicatorType(this.name, this.shortName);
-  final String name;
+  // Renamed 'name' to 'label' to avoid shadowing built-in Enum.name
+  const IndicatorType(this.label, this.shortName);
+  final String label;
   final String shortName;
 
   @override
@@ -112,7 +113,17 @@ class Indicator extends Cache {
   factory Indicator.from(List<Object?> item) {
     if (item.length >= 4) {
       final jsonParameters = jsonDecode(item[3] as String);
-      final jsonType = IndicatorType.values.firstWhere((e) => e.name == item[2] as String);
+      final typeString = item[2] as String;
+      
+      // Resilience: check enum name (sma), label (Simple Moving Average), and shortName (SMA)
+      final jsonType = IndicatorType.values.firstWhere(
+        (e) => e.name == typeString || 
+               e.label == typeString || 
+               e.shortName == typeString ||
+               e.name.toLowerCase() == typeString.toLowerCase(),
+        orElse: () => IndicatorType.undefined
+      );
+      
       return Indicator(
         id: item[0] as int,
         name: item[1] as String,
@@ -124,11 +135,24 @@ class Indicator extends Cache {
   }
 
   factory Indicator.fromMap(Map<String, dynamic> item) {
+    final typeData = item['type'];
+    IndicatorType type;
+    if (typeData is String) {
+      // Resilience: check enum name (sma), label (Simple Moving Average), and shortName (SMA)
+      type = IndicatorType.values.firstWhere(
+        (e) => e.name == typeData || 
+               e.label == typeData || 
+               e.shortName == typeData ||
+               e.name.toLowerCase() == typeData.toLowerCase(),
+        orElse: () => IndicatorType.undefined
+      );
+    } else {
+      type = typeData as IndicatorType? ?? IndicatorType.undefined;
+    }
+
     return Indicator(
       id: item['id'] as int? ?? -1,
-      type: item['type'] is String 
-          ? IndicatorType.values.firstWhere((e) => e.name == item['type'])
-          : item['type'] as IndicatorType,
+      type: type,
       name: item['name'] as String? ?? '',
       parameters: item['parameters'] as Map<String, dynamic>? ?? {},
     );
@@ -138,14 +162,14 @@ class Indicator extends Cache {
   Map<String, dynamic> toMap() =>   {
     'id': id,
     'name': name,
-    'type': type.name,
+    'type': type.name, // Persist using standard enum name (e.g. "sma")
     'parameters': parameters,
   };
 
   @override
   String toString() => name;
 
-  String toInfoString() {
+  String toDetailedString() {
     return "$name ${parameters.values.toString()}";
   }
 
@@ -161,7 +185,7 @@ class Indicator extends Cache {
   static Indicator priceIndicator() {
     return Indicator(
       id: -2,
-      name: 'Asset;s price',
+      name: 'Asset price',
       type: IndicatorType.price,
       parameters: {
         mainChart: true

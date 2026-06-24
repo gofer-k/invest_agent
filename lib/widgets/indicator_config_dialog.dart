@@ -35,7 +35,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   void initState() {
     super.initState();
     controllerName = TextEditingController(text: widget.indicator?.name ?? '');
-    // controllerType = TextEditingController(text: widget.indicator?.type ?? '');
+    _selectedType = widget.indicator?.type ?? IndicatorType.undefined;
     // Ensure parameters is a mutable copy
     parameters = Map<String, dynamic>.from(widget.indicator?.parameters ?? {});
   }

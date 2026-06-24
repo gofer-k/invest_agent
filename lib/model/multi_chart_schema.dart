@@ -104,7 +104,9 @@ class ChartConfig extends Cache {
   };
 
   @override
-  String toString() => chartStyle.name;
+  String toString() {
+   return "${chartStyle.name}, [${indicatorConfig.toDetailedString()}]";
+  }
 
   @override
   bool operator ==(Object other) =>

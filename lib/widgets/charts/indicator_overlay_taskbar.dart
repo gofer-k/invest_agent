@@ -29,7 +29,7 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
       return TextButton(
         onPressed: () => setState(() => _showTaskBar = true),
         child: Text(
-          widget.indicator.toInfoString(),
+          widget.indicator.toDetailedString(),
           style: textStyle,
         ),
       );
@@ -46,7 +46,7 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(widget.indicator.toInfoString(),
+            Text(widget.indicator.toDetailedString(),
               style: TextStyle(color: Colors.white.withAlpha(128))),
             IconButton(
               onPressed: () {
