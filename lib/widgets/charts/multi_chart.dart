@@ -129,6 +129,29 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    log("MANUAL TRIGGER: Analyzing ${_currentChartConfig.charts.length} charts...");
+                                    
+                                    final List<Indicator> indicatorsToSend = [];
+                                    for (var c in _currentChartConfig.charts) {
+                                      final ind = c.indicatorConfig;
+                                      log("Found Indicator: '${ind.name}' | Type: ${ind.type}");
+                                      
+                                      // Only skip the base price chart
+                                      if (ind.type != IndicatorType.price) {
+                                        indicatorsToSend.add(ind);
+                                      }
+                                    }
+
+                                    log("Manual Trigger: Sending ${indicatorsToSend.length} indicators to gRPC...");
+                                    ref.read(tradingServiceProvider.notifier).calculateIndicators(
+                                        widget.priceData.priceData,
+                                        indicatorsToSend
+                                    );
+                                  },
+                                  child: const Text("Test Connection"),
+                                ),
                                 MainOverlayTaskbar(
                                   asset: widget.assetConfig,
                                   priceData: widget.priceData,
@@ -147,11 +170,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                     if (newIndicator != _selectedIndicator) {
                                       showIndicator(context, newIndicator,
                                         (Indicator? indicator) {
-                                        // TODO: Add new chart in the board
-                                        // 1. When indicator.mainChart == true, add a new chart (boRD) or if not add this one into the current chart (overlay one)).
-                                        // 2. Request the indicator data from the server.
-                                        // 3. Handle the respond the data into the provider's state
-                                        // 4. Add the indicator's chart and display it.
                                         if (indicator != null) {
                                           setState(() => _selectedIndicator = indicator);
                                           _changeMultiChartConfig(newIndicator: _selectedIndicator);
@@ -178,8 +196,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                           (Indicator? updateIndicator) {
                                             if (updateIndicator != null) {
                                               setState(() {
-                                                _currentChartConfig.charts[i] = _currentChartConfig.charts[i].copyWith(
-                                                newIndicatorConfig: updateIndicator);
+                                                _selectedIndicator = updateIndicator;
+                                                _changeMultiChartConfig(newIndicator: _selectedIndicator);
                                               });
                                             }
                                           });
@@ -187,7 +205,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                       onDelete: () {
                                         setState(() {
                                           _currentChartConfig.charts.remove(_currentChartConfig.charts[i]);
-                                          // TODO:refresh the chart
                                         });
                                       }
                                     )
@@ -265,6 +282,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   OverlayChart _showOverlayChart(ChartConfig chart) {
+    log("Displaying overlay chart for ${chart.indicatorConfig.toDetailedString()}");
     final indicatorResultAsync = ref.watch(indicatorResultProvider(
     prices: widget.priceData.priceData,
     indicator: chart.indicatorConfig,
@@ -274,37 +292,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       data: (results) {
         log("Displaying overlay supplement chart for ${chart.indicatorConfig.name}");
         switch (chart.indicatorConfig.type) {
-          // case IndicatorType.bellingerBands:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
           case IndicatorType.sma:
             if (results is SmaResult) {
               final smaResult = results as SmaResult;
               return OverlayMovingAverage(data: smaResult.getPoints(), lineColor: chart.indicatorConfig.color());
             }
-          // case IndicatorType.ema:
-          //   if (results is EmaResult) {
-          //     final emaResult = results as EmaResult;
-          //     return OverlayExponentialMovingAverage(data: emaResult.getPoints(), lineColor: chart.indicatorConfig.color());
-          //   }
-          // case IndicatorType.macd:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
-          // case IndicatorType.rsi:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
-          // case IndicatorType.volume:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
-          // case IndicatorType.kst:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
-          // case IndicatorType.roc:
-          //   // TODO: Handle this case.
-          //   throw UnimplementedError();
-
-          // Suppress here: IndicatorType.price:
-          // IndicatorType.undefined:
           case _:
             return EmptyOverlayChart();
         }
@@ -312,13 +304,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       },
       error: (error, stackTrace) {
         log("Error loading indicator: $error");
-        if (context.mounted) {
-          // Note: Showing SnackBars from build methods is generally discouraged.
-          // Consider using ref.listen in a Consumer widget instead.
-        }
         return EmptyOverlayChart();
       },
-      loading: () => EmptyOverlayChart(), // Don't return Center() here if it expects an OverlayChart
+      loading: () => EmptyOverlayChart(), 
     );
   }
   // OverlayChart _showOverlayChart(ChartConfig chart) {
@@ -367,7 +355,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     final List<ChartConfig> updatedCharts = List.from(_currentChartConfig.charts);
 
-    // if (!found) {
     if (newIndicator != null) {
       updatedCharts.add(
         ChartConfig(
@@ -386,9 +373,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     if (newChartConfig == _currentChartConfig && newChartConfig.id != -1) return;
 
-    _currentChartConfig = newChartConfig;
-
-    // Use the notifier to persist changes to the database
     final notifier = ref.read(multiChartProvider(
         CacheKeyType.analysisCache,
         targetPeriod,
@@ -399,5 +383,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     } else {
       notifier.updateMultiChart(newChartConfig);
     }
+    _currentChartConfig = newChartConfig;
   }
 }

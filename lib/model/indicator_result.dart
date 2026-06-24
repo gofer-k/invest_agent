@@ -102,11 +102,19 @@ class SmaResult extends BaseIndicatorResult {
     );
 
     final points = protoResult.points.map((p) {
+      // Safe extraction of the rolling window, handling both scalar and list types
+      final dynamic windowValue = p.values['window'] ?? config.parameters['window'];
+      final int? window = (windowValue is num)
+          ? windowValue.toInt()
+          : (windowValue is List && windowValue.isNotEmpty)
+              ? parseNum(windowValue.first)?.toInt()
+              : parseNum(windowValue)?.toInt();
+
       return SimpleMovingAverage(
         dateTime: p.dateTime.toDateTime(),
         rollingMean: p.values['mean'] ?? p.values['rolling_mean'],
         rollingStd: p.values['std'] ?? p.values['rolling_std'],
-        rollingWindow: (config.parameters['window'] as num?)?.toInt(),
+        rollingWindow: window,
       );
     }).toList();
 

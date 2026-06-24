@@ -1,6 +1,7 @@
 // lib/providers/trading_service.dart
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -24,66 +25,114 @@ typedef InternalIndicator = schema.Indicator;
 /// Alias for the generated gRPC client
 typedef TradingServiceClient = InvestAgentServiceClient;
 
+// Use 'localhost' as it handles IPv4/IPv6 better on some Linux setups than 127.0.0.1
+final String host = String.fromEnvironment(
+  'GRPC_HOST', 
+  defaultValue: Platform.isAndroid ? '10.0.2.2' : 'localhost'
+);
+
+/// Interceptor to log raw gRPC traffic for verification
+class GrpcLoggingInterceptor implements ClientInterceptor {
+  @override
+  ResponseStream<R> interceptStreaming<Q, R>(
+      ClientMethod<Q, R> method, Stream<Q> requests, CallOptions options, ClientStreamingInvoker<Q, R> invoker) {
+    log("gRPC STREAM CALL: ${method.path}");
+    return invoker(method, requests.map((q) {
+      log("gRPC SENDING MESSAGE: $q");
+      return q;
+    }), options);
+  }
+
+  @override
+  ResponseFuture<R> interceptUnary<Q, R>(ClientMethod<Q, R> method, Q request, CallOptions options, ClientUnaryInvoker<Q, R> invoker) {
+    log("gRPC UNARY CALL: ${method.path} | REQ: $request");
+    return invoker(method, request, options);
+  }
+}
+
 @riverpod
 TradingServiceClient tradingClient(Ref ref) {
+  log("Creating gRPC channel for host: $host port: 50051");
   final channel = ClientChannel(
-    'invest-agent-service',
+    host,
     port: 50051,
-    options: const ChannelOptions(credentials: ChannelCredentials.insecure()),
+    options: const ChannelOptions(
+      credentials: ChannelCredentials.insecure(),
+      idleTimeout: Duration(minutes: 5),
+    ),
   );
-  ref.onDispose(() => channel.shutdown());
-  return TradingServiceClient(channel);
+  ref.onDispose(() {
+    log("Shutting down gRPC channel");
+    channel.shutdown();
+  });
+  
+  // Interceptors are passed to the Client constructor, not ChannelOptions
+  return TradingServiceClient(
+    channel,
+    interceptors: [GrpcLoggingInterceptor()],
+  );
 }
 
 @immutable
 class TradingServiceState {
   final IndicatorResultMap cache;
-
   const TradingServiceState({this.cache = const {}});
-
-  TradingServiceState copyWith({IndicatorResultMap? results}) {
-    return TradingServiceState(cache: results ?? cache);
-  }
 }
 
 @riverpod
 class TradingService extends _$TradingService {
   late TradingServiceClient _client;
-
   StreamController<$pb.TradingRequest>? _outgoingController;
   StreamSubscription? _incomingSubscription;
 
   @override
   TradingServiceState build() {
     _client = ref.watch(tradingClientProvider);
-
     ref.onDispose(() {
       _incomingSubscription?.cancel();
       _outgoingController?.close();
     });
-
     return const TradingServiceState(cache: {});
   }
 
-  /// Establishes the bidirectional stream
   Future<void> _initStream() async {
     if (_incomingSubscription != null) return;
-
+    log("Initializing gRPC bidirectional stream...");
     _outgoingController = StreamController<$pb.TradingRequest>();
 
-    final responseStream = _client.calculateIndicators(_outgoingController!.stream);
-
-    _incomingSubscription = responseStream.listen((response) {
-     final results = _mapResponse(response);
-     state = TradingServiceState(cache: results);
-    }, onError: (error) {
-      log("Failed remote respond call: $error ");
-    });
+    try {
+      final responseStream = _client.calculateIndicators(_outgoingController!.stream);
+      _incomingSubscription = responseStream.listen((response) {
+        log("gRPC Response received with ${response.results.length} results");
+        state = TradingServiceState(cache: _mapResponse(response));
+      }, onError: (error) {
+        log("gRPC Stream Error: $error");
+        _incomingSubscription?.cancel();
+        _incomingSubscription = null;
+      }, onDone: () {
+        log("gRPC Stream closed by server");
+        _incomingSubscription = null;
+      });
+    } catch (e) {
+      log("Error initializing stream: $e");
+    }
   }
 
-  /// Sends prices and indicators to the service for calculation
   void calculateIndicators(List<InternalIndexPriceItem> prices, List<InternalIndicator> indicators) {
-    if (indicators.every((ind) => ind.type == schema.IndicatorType.undefined)) return;
+    log("calculateIndicators called with ${indicators.length} indicators");
+    
+    // Check for empty list
+    if (indicators.isEmpty) {
+      log("ABORT: No indicators provided in the list.");
+      return;
+    }
+
+    // Check for undefined types
+    final validIndicators = indicators.where((ind) => ind.type != schema.IndicatorType.undefined).toList();
+    if (validIndicators.isEmpty) {
+      log("ABORT: All indicators provided have type 'undefined'. Check your Indicator objects.");
+      return;
+    }
 
     if (_outgoingController == null || _outgoingController!.isClosed) {
       _initStream();
@@ -91,12 +140,11 @@ class TradingService extends _$TradingService {
 
     final request = $pb.TradingRequest()
       ..prices.addAll(prices.map(_toProtoPrice))
-      ..indicators.addAll(indicators.map(_toProtoIndicator));
+      ..indicators.addAll(validIndicators.map(_toProtoIndicator));
 
+    log("Pushing TradingRequest to stream...");
     _outgoingController?.add(request);
   }
-
-  // --- Mappers: Internal to Proto ---
 
   $pb.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
     return $pb.IndexPriceItem()
@@ -117,8 +165,6 @@ class TradingService extends _$TradingService {
       ..type = _toProtoIndicatorType(indicator.type);
     
     if (indicator.parameters.isNotEmpty) {
-      // Use ensureParameters() to get a mutable Struct instance.
-      // Modifying the field directly via getter returns a read-only default instance.
       proto.ensureParameters().mergeFromProto3Json(indicator.parameters);
     }
     return proto;
@@ -139,8 +185,6 @@ class TradingService extends _$TradingService {
     };
   }
 
-  // --- Mappers: Proto to Internal ---
-
   IndicatorResultMap _mapResponse($pb.TradingResponse response) {
     final IndicatorResultMap resultMap = {};
     response.results.forEach((key, list) {
@@ -148,8 +192,7 @@ class TradingService extends _$TradingService {
         (e) => e.name.toUpperCase() == key.toUpperCase() || e.shortName.toUpperCase() == key.toUpperCase(),
       ) ?? schema.IndicatorType.undefined;
 
-      // Only handle SMA for now as per previous requirement
-      if (type != schema.IndicatorType.sma) return;
+      if (type == schema.IndicatorType.undefined) return;
 
       final results = list.items
           .map((series) => _mapSeries(series))
@@ -165,12 +208,10 @@ class TradingService extends _$TradingService {
 
   BaseIndicatorResult? _mapSeries($pb.IndicatorSeries series) {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
-    
-    if (indicatorType != schema.IndicatorType.sma) {
-      return null;
-    }
-
-    return SmaResult.fromProto(series, indicatorType);
+    return switch (indicatorType) {
+      schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
+      _ => null,
+    };
   }
 
   schema.IndicatorType _fromProtoIndicatorType($pb.IndicatorType type) {
@@ -188,26 +229,16 @@ class TradingService extends _$TradingService {
     };
   }
 
-  void clearResults() {
-    state = const TradingServiceState();
+  void clearResults() => state = const TradingServiceState();
+
+  double? getMax(schema.IndicatorType type, {DateTime? startDate, DateTime? endDate}) {
+    final res = state.cache[type];
+    return (res == null || res.isEmpty) ? null : res.map((r) => r.getMax(startDate, endDate)).reduce((a, b) => a > b ? a : b);
   }
 
-  double? getMax(schema.IndicatorType indicatorType, {DateTime? startDate, DateTime? endDate}) {
-    final results = state.cache[indicatorType];
-    if (results == null || results.isEmpty) return null;
-
-    return results
-        .map((res) => res.getMax(startDate, endDate))
-        .reduce((a, b) => a > b ? a : b);
-  }
-
-  double? getMin(schema.IndicatorType indicatorType, {DateTime? startDate, DateTime? endDate}) {
-    final results = state.cache[indicatorType];
-    if (results == null || results.isEmpty) return null;
-
-    return results
-        .map((res) => res.getMin(startDate, endDate))
-        .reduce((a, b) => a < b ? a : b);
+  double? getMin(schema.IndicatorType type, {DateTime? startDate, DateTime? endDate}) {
+    final res = state.cache[type];
+    return (res == null || res.isEmpty) ? null : res.map((r) => r.getMin(startDate, endDate)).reduce((a, b) => a < b ? a : b);
   }
 }
 
@@ -215,16 +246,19 @@ class TradingService extends _$TradingService {
 AsyncValue<IndicatorResult> indicatorResult(Ref ref,
   {required List<InternalIndexPriceItem> prices,
    required InternalIndicator indicator}) {
-  // Watch the cache in the TradingService state
+  
+  if (indicator.type == schema.IndicatorType.undefined) {
+    return const AsyncValue.data([]); 
+  }
+
   final cache = ref.watch(tradingServiceProvider.select((s) => s.cache[indicator.type]));
 
   if (cache == null) {
-    // If not in cache, trigger calculation
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    log("IndicatorResult: No cache for ${indicator.type}. Requesting calculation...");
+    Future.microtask(() {
       ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [indicator]);
     });
     return const AsyncValue.loading();
   }
-
   return AsyncValue.data(cache);
 }
