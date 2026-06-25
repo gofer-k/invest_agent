@@ -38,7 +38,8 @@ class GrpcLoggingInterceptor implements ClientInterceptor {
       ClientMethod<Q, R> method, Stream<Q> requests, CallOptions options, ClientStreamingInvoker<Q, R> invoker) {
     log("gRPC STREAM CALL: ${method.path}");
     return invoker(method, requests.map((q) {
-      log("gRPC SENDING MESSAGE: $q");
+      // log("gRPC SENDING MESSAGE: $q");log("gRPC SENDING MESSAGE: $q");
+      log("gRPC SENDING MESSAGE");
       return q;
     }), options);
   }
@@ -52,7 +53,6 @@ class GrpcLoggingInterceptor implements ClientInterceptor {
 
 @riverpod
 TradingServiceClient tradingClient(Ref ref) {
-  log("Creating gRPC channel for host: $host port: 50051");
   final channel = ClientChannel(
     host,
     port: 50051,
@@ -119,8 +119,6 @@ class TradingService extends _$TradingService {
   }
 
   void calculateIndicators(List<InternalIndexPriceItem> prices, List<InternalIndicator> indicators) {
-    log("calculateIndicators called with ${indicators.length} indicators");
-    
     // Check for empty list
     if (indicators.isEmpty) {
       log("ABORT: No indicators provided in the list.");
@@ -142,7 +140,6 @@ class TradingService extends _$TradingService {
       ..prices.addAll(prices.map(_toProtoPrice))
       ..indicators.addAll(validIndicators.map(_toProtoIndicator));
 
-    log("Pushing TradingRequest to stream...");
     _outgoingController?.add(request);
   }
 
