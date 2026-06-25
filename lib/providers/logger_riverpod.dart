@@ -6,8 +6,8 @@ final class LoggerRiverpod extends ProviderObserver{
   const LoggerRiverpod();
 
   static const List<String> _loggingProviders = [
-    'tradingServiceProvider',
-    "tradingClientProvider",
+    // 'tradingServiceProvider',
+    // "tradingClientProvider",
     // 'indicatorResultProvider',
     // 'multiChartProvider',
     // 'multiChartsByProvider',
