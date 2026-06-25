@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
 
 import 'analysis_period.dart';
@@ -254,7 +254,7 @@ class MultiChartConfig extends Cache {
   };
 
   @override
-  String toString() => title;
+  String toString() => "$title, ${asset.toString()}, $periodType, [$charts]";
 
   static MultiChartConfig defaultMultiChart() =>
       MultiChartConfig(
@@ -273,12 +273,14 @@ class MultiChartConfig extends Cache {
           id == other.id &&
           asset == other.asset &&
           title == other.title &&
-          periodType == other.periodType;
+          periodType == other.periodType &&
+          const ListEquality().equals(charts, other.charts);
 
   @override
   int get hashCode =>
       id.hashCode ^
       asset.hashCode ^
       title.hashCode ^
-      periodType.hashCode;
+      periodType.hashCode ^
+      const ListEquality().hash(charts);
 }
