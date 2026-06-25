@@ -16,11 +16,9 @@ class SyncChart extends ConsumerStatefulWidget {
   final TimeController controller;
   final CrosshairController? crosshairController;
   final List<OverlayChart> overLayCharts;
-  // final BaseIndicatorResult indicatorResult;
   final double Function(DateTime? startDate, DateTime? endDate) minFunc;
   final double Function(DateTime? startDate, DateTime? endDate) maxFunc;
   const SyncChart({super.key, required this.controller, this.crosshairController,
-    // required this.indicatorResult,
     this.overLayCharts = const[],
     required this.minFunc, required this.maxFunc,
     required ChartConfig mainChartConfig});

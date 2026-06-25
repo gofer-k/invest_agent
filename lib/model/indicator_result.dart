@@ -126,7 +126,8 @@ class SmaResult extends BaseIndicatorResult {
   }
 
   List<SimpleMovingAverage> getPoints({int rollingWindow = 20}) {
-    return points.where((p) => p.rollingWindow == rollingWindow).toList();
+    return points;
+    // return points.where((p) => p.rollingWindow == rollingWindow).toList();
   }
 
   @override

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
+import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
@@ -129,29 +130,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    log("MANUAL TRIGGER: Analyzing ${_currentChartConfig.charts.length} charts...");
-                                    
-                                    final List<Indicator> indicatorsToSend = [];
-                                    for (var c in _currentChartConfig.charts) {
-                                      final ind = c.indicatorConfig;
-                                      log("Found Indicator: '${ind.name}' | Type: ${ind.type}");
-                                      
-                                      // Only skip the base price chart
-                                      if (ind.type != IndicatorType.price) {
-                                        indicatorsToSend.add(ind);
-                                      }
-                                    }
-
-                                    log("Manual Trigger: Sending ${indicatorsToSend.length} indicators to gRPC...");
-                                    ref.read(tradingServiceProvider.notifier).calculateIndicators(
-                                        widget.priceData.priceData,
-                                        indicatorsToSend
-                                    );
-                                  },
-                                  child: const Text("Test Connection"),
-                                ),
                                 MainOverlayTaskbar(
                                   asset: widget.assetConfig,
                                   priceData: widget.priceData,
@@ -225,19 +203,23 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   Widget _buildChart(MultiChartConfig chart) {
     final mainChart = chart.mainChart;
 
+    List<OverlayChart> availableOverlayCharts = [_showMainChart(mainChart)];
+    for(var overlayChart in chart.overlayCharts) {
+      // _showOverlayChart(overlayChart),
+      availableOverlayCharts.addAll(_showOverlayIndicatorCharts(overlayChart));
+    }
+    if (widget.showCrosshair) {
+      availableOverlayCharts.add(OverlayTooltipMarker(
+          overlayType: OverlayType.tooltipMarker,
+          controller: _crosshairController!));
+    }
     return SyncChart(
       controller: _chartController,
       crosshairController: _crosshairController,
       mainChartConfig: mainChart,
       minFunc: (startDate, endDate) => _getMinValue(mainChart.indicatorConfig.type, _chartController.visibleStart, _chartController.visibleEnd),
       maxFunc: (startDate, endDate) => _getMaxValue(mainChart.indicatorConfig.type, _chartController.visibleStart, _chartController.visibleEnd),
-      overLayCharts: [
-        _showMainChart(mainChart),
-        for(var overlayChart in chart.overlayCharts)
-          _showOverlayChart(overlayChart),
-        if (widget.showCrosshair)
-          OverlayTooltipMarker(overlayType: OverlayType.tooltipMarker, controller: _crosshairController!),
-      ]
+      overLayCharts: availableOverlayCharts
     );
   }
 
@@ -281,32 +263,35 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   //   };
   }
 
-  OverlayChart _showOverlayChart(ChartConfig chart) {
+  List<OverlayChart> _showOverlayIndicatorCharts(ChartConfig chart) {
     log("Displaying overlay chart for ${chart.indicatorConfig.toDetailedString()}");
     final indicatorResultAsync = ref.watch(indicatorResultProvider(
-    prices: widget.priceData.priceData,
-    indicator: chart.indicatorConfig,
-  ));
+      prices: widget.priceData.priceData,
+      indicator: chart.indicatorConfig,
+    ));
 
+    List<OverlayChart> overlayCharts = [];
     return indicatorResultAsync.when(
       data: (results) {
         log("Displaying overlay supplement chart for ${chart.indicatorConfig.name}");
-        switch (chart.indicatorConfig.type) {
-          case IndicatorType.sma:
-            if (results is SmaResult) {
-              final smaResult = results as SmaResult;
-              return OverlayMovingAverage(data: smaResult.getPoints(), lineColor: chart.indicatorConfig.color());
-            }
-          case _:
-            return EmptyOverlayChart();
+        for (var result in results) {
+          switch (result.config.type) {
+            case IndicatorType.sma:
+              final smaResult = result as SmaResult;
+              overlayCharts.add(OverlayMovingAverage(
+                data: smaResult.getPoints(),
+                lineColor: AppTheme.rollingChartColor()));
+            case _:
+              overlayCharts.add(EmptyOverlayChart());
+          }
         }
-        return EmptyOverlayChart();
+        return overlayCharts;
       },
       error: (error, stackTrace) {
         log("Error loading indicator: $error");
-        return EmptyOverlayChart();
+        return [EmptyOverlayChart()];
       },
-      loading: () => EmptyOverlayChart(), 
+      loading: () => [EmptyOverlayChart()],
     );
   }
   // OverlayChart _showOverlayChart(ChartConfig chart) {
