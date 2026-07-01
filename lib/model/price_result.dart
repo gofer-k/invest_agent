@@ -240,7 +240,7 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
             id == other.id &&
             assetId == other.assetId &&
             dateTime == other.dateTime &&
-            openPrice == other.openPrice && // TODO: Consider not use thore below
+            openPrice == other.openPrice &&
             closePrice == other.closePrice &&
             highPrice == other.highPrice &&
             lowPrice == other.lowPrice &&
@@ -251,7 +251,7 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
       id.hashCode ^
       assetId.hashCode ^
       dateTime.hashCode ^
-      openPrice.hashCode ^  // TODO: Consider not use thore below
+      openPrice.hashCode ^
       closePrice.hashCode ^
       highPrice.hashCode ^
       lowPrice.hashCode ^

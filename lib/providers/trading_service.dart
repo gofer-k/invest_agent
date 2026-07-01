@@ -104,7 +104,11 @@ class TradingService extends _$TradingService {
       final responseStream = _client.calculateIndicators(_outgoingController!.stream);
       _incomingSubscription = responseStream.listen((response) {
         log("gRPC Response received with ${response.results.length} results");
-        state = TradingServiceState(cache: _mapResponse(response));
+        final newResults = _mapResponse(response);
+        state = TradingServiceState(cache: {
+          ...state.cache,
+          ...newResults,
+        });
       }, onError: (error) {
         log("gRPC Stream Error: $error");
         _incomingSubscription?.cancel();

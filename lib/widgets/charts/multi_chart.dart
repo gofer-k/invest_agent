@@ -73,10 +73,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           CacheKeyType.analysisCache, _selectedPeriod, _selectedChartStyle)
           .notifier).fetchAll();
     });
-    _changeMultiChartConfig(
-        newPeriodType: _selectedPeriod,
-        newIndicator: _selectedIndicator,
-        newStyle: _selectedChartStyle);
   }
 
   @override
@@ -199,11 +195,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                         },
                                         onDelete: () {
                                           setState(() {
-                                            // _currentChartConfig.charts.removeWhere((chart) => chart.indicatorConfig == _currentChartConfig.charts[i].indicatorConfig);
                                             _currentChartConfig.charts.remove(
                                                 _currentChartConfig.charts[i]);
-                                            // _changeMultiChartConfig(
-                                            //     newIndicator: _selectedIndicator);
                                           });
                                         }
                                     )
@@ -227,7 +220,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     List<OverlayChart> availableOverlayCharts = [_showMainChart(mainChart)];
     for (var overlayChart in chart.overlayCharts) {
       // _showOverlayChart(overlayChart),
-      availableOverlayCharts.addAll(_showOverlayIndicatorCharts(overlayChart));
+      if (overlayChart.indicatorConfig.type != IndicatorType.price)
+        availableOverlayCharts.addAll(_showOverlayIndicatorCharts(overlayChart));
     }
     if (widget.showCrosshair) {
       availableOverlayCharts.add(OverlayTooltipMarker(
@@ -372,13 +366,32 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     final List<ChartConfig> updatedCharts = List.from(
         _currentChartConfig.charts);
 
+    // TODO:: c_currentChartConfig logic:
+    // 1. _currentChartConfig.charts[i].indicatorConfig.indicator.type == targetIndicator.type -> update the currentChart.indicator
+    // 2. _currentChartConfig.charts[i].indicatorConfig.indicator.type != targetIndicator.type -> add the currentChart.indicator
     if (newIndicator != null) {
-      updatedCharts.add(
-          ChartConfig(
-            indicatorConfig: targetIndicator,
-            chartStyle: targetStyle,
-            mainChart: targetIndicator.isMainChart(),
-          ));
+      final existingIndex = updatedCharts.indexWhere(
+              (c) => c.indicatorConfig.type == targetIndicator.type
+      );
+      final newConfig = ChartConfig(
+        indicatorConfig: targetIndicator,
+        chartStyle: targetStyle,
+        mainChart: targetIndicator.isMainChart(),
+      );
+
+      if (existingIndex != -1) {
+        // 1. Update existing indicator of same type
+        updatedCharts[existingIndex] = newConfig;
+      } else {
+        // 2. Add as new indicator
+        updatedCharts.add(newConfig);
+      }
+      // updatedCharts.add(
+      //     ChartConfig(
+      //       indicatorConfig: targetIndicator,
+      //       chartStyle: targetStyle,
+      //       mainChart: targetIndicator.isMainChart(),
+      //     ));
     }
 
     final newChartConfig = _currentChartConfig.copyWith(

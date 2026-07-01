@@ -78,7 +78,7 @@ class _RequestSettingsPanelState extends State<RequestSettingsPanel> {
       datasetSource: datasetSource!,
       rollingWindows: rollingWindows,
       interval: selectedInterval,
-      period: PeriodType.max,  //TODO:: remove this
+      period: PeriodType.max,
       strategy: StrategyParams(
         type: "sma",
         fast: smaFast,
