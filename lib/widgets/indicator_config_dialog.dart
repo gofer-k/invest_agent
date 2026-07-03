@@ -142,31 +142,28 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   Widget _buildIndicatorParameter(BuildContext context, MapEntry<String, dynamic> parameter) {
     if (parameter.value is List) {
       final list = parameter.value as List;
+
       return Column(
-        children: [
-          Wrap(
-            spacing: 8,
-            children: list.map<Widget>((item) =>
-                Chip(
-                  label: Text("$item"),
-                  onDeleted: () {
-                    // REMOVE ONLY THE VALUE FROM THE LIST
-                    setState(() {
-                      list.remove(item);
-                    });
-                  },
-                )
-            ).toList(),
-          ),
-          TextField(
-            decoration: InputDecoration(labelText: "Add to ${parameter.key}"),
-            onSubmitted: (v) {
-              if (v.trim().isEmpty) return;
-              final parsed = num.tryParse(v) ?? v.trim();
-              setState(() => list.add(parsed));
-            },
-          ),
-        ],
+        children: List.generate(list.length, (index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: TextFormField(
+              initialValue: list[index].toString(),
+              decoration: InputDecoration(
+                labelText: "${parameter.key} [${index + 1}]",
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: () => setState(() => list.removeAt(index)),
+                ),
+              ),
+              onChanged: (v) {
+                setState(() {
+                  list[index] = num.tryParse(v) ?? v.trim();
+                });
+              },
+            ),
+          );
+        }),
       );
     }
 
