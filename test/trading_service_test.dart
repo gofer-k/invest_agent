@@ -107,9 +107,11 @@ void main() {
       // Keep provider alive so it doesn't auto-dispose during async operations
       final subscription = container.listen(tradingServiceProvider, (prev, next) {});
 
+      final requestIndicator = schema.Indicator(id: 1, name: 'T', type: schema.IndicatorType.sma, parameters: {});
+
       // Initialize stream
       container.read(tradingServiceProvider.notifier).calculateIndicators([], [
-        schema.Indicator(id: 1, name: 'T', type: schema.IndicatorType.sma, parameters: {})
+        requestIndicator
       ]);
 
       // Simulate a server response
@@ -138,12 +140,12 @@ void main() {
 
       final state = container.read(tradingServiceProvider);
       expect(state.cache.isNotEmpty, true, reason: 'Cache should not be empty after receiving data');
-      expect(state.cache.containsKey(schema.IndicatorType.sma), isTrue);
+      expect(state.cache.containsKey(requestIndicator.uniqueKey), isTrue);
 
-      final results = state.cache[schema.IndicatorType.sma]!;
-      expect(results.first, isA<SmaResult>());
+      final result = state.cache[requestIndicator.uniqueKey]!;
+      expect(result, isA<SmaResult>());
 
-      final smaResult = results.first as SmaResult;
+      final smaResult = result as SmaResult;
       expect(smaResult.points.first.rollingMean, 102.5);
       
       subscription.close();
@@ -158,10 +160,10 @@ void main() {
     test('getMax should calculate highest value across series in cache', () async {
       // Keep provider alive
       final subscription = container.listen(tradingServiceProvider, (prev, next) {});
-
+      final requestIndicator = schema.Indicator(id: 1, name: 'T', type: schema.IndicatorType.sma, parameters: {});
        // Initialize with mock data by pushing to stream
       container.read(tradingServiceProvider.notifier).calculateIndicators([], [
-        schema.Indicator(id: 1, name: 'T', type: schema.IndicatorType.sma, parameters: {})
+        requestIndicator
       ]);
 
       final response = $pb.TradingResponse();
@@ -184,7 +186,7 @@ void main() {
       await pumpEventQueue();
 
       final notifier = container.read(tradingServiceProvider.notifier);
-      expect(notifier.getMax(schema.IndicatorType.sma), 150.0);
+      expect(notifier.getMax(requestIndicator), 150.0);
 
       subscription.close();
     });

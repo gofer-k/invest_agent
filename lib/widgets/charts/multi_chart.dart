@@ -220,8 +220,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     List<OverlayChart> availableOverlayCharts = [_showMainChart(mainChart)];
     for (var overlayChart in chart.overlayCharts) {
       // _showOverlayChart(overlayChart),
-      if (overlayChart.indicatorConfig.type != IndicatorType.price)
-        availableOverlayCharts.addAll(_showOverlayIndicatorCharts(overlayChart));
+      if (overlayChart.indicatorConfig.type != IndicatorType.price) {
+        availableOverlayCharts.addAll(
+            _showOverlayIndicatorCharts(overlayChart));
+      }
     }
     if (widget.showCrosshair) {
       availableOverlayCharts.add(OverlayTooltipMarker(
@@ -234,11 +236,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         mainChartConfig: mainChart,
         minFunc: (startDate, endDate) =>
             _getMinValue(
-            mainChart.indicatorConfig.type, _chartController.visibleStart,
+            mainChart.indicatorConfig, _chartController.visibleStart,
             _chartController.visibleEnd),
         maxFunc: (startDate, endDate) =>
             _getMaxValue(
-            mainChart.indicatorConfig.type, _chartController.visibleStart,
+            mainChart.indicatorConfig, _chartController.visibleStart,
             _chartController.visibleEnd),
         overLayCharts: availableOverlayCharts
     );
@@ -292,17 +294,15 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     List<OverlayChart> overlayCharts = [];
     return indicatorResultAsync.when(
-      data: (results) {
-        for (var result in results) {
-          switch (result.config.type) {
-            case IndicatorType.sma:
-              final smaResult = result as SmaResult;
-              overlayCharts.add(OverlayMovingAverage(
-                  data: smaResult.getPoints(),
-                  lineColor: AppTheme.rollingChartColor()));
-            case _:
-              overlayCharts.add(EmptyOverlayChart());
-          }
+      data: (result) {
+        switch (result?.config.type) {
+          case IndicatorType.sma:
+            final smaResult = result as SmaResult;
+            overlayCharts.add(OverlayMovingAverage(
+                data: smaResult.getPoints(),
+                lineColor: AppTheme.rollingChartColor()));
+          case _:
+            overlayCharts.add(EmptyOverlayChart());
         }
         return overlayCharts;
       },
@@ -343,17 +343,17 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   //       OverlayMovingAverage(data: widget.results.getSMA(20);
   // }
 
-  double _getMaxValue(IndicatorType chartType, DateTime? startDate,
+  double _getMaxValue(Indicator indicator, DateTime? startDate,
       DateTime? endDate) {
     final notifier = ref.watch(tradingServiceProvider.notifier);
-    return notifier.getMax(chartType, startDate: startDate, endDate: endDate) ??
+    return notifier.getMax(indicator, startDate: startDate, endDate: endDate) ??
         0.0;
   }
 
-  double _getMinValue(IndicatorType chartType, DateTime? startDate,
+  double _getMinValue(Indicator indicator, DateTime? startDate,
       DateTime? endDate) {
     final notifier = ref.watch(tradingServiceProvider.notifier);
-    return notifier.getMin(chartType, startDate: startDate, endDate: endDate) ??
+    return notifier.getMin(indicator, startDate: startDate, endDate: endDate) ??
         0.0;
   }
 

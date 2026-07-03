@@ -31,5 +31,4 @@ dart pub global activate protoc_plugin
 - custom style visualization, themes
 - improve performance of visualization 
 - add option to transfer dates via gRPC
-- various signals
-
+- various signals 

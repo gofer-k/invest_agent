@@ -26,8 +26,8 @@ abstract class BaseIndicatorValue {
   const BaseIndicatorValue({required this.dateTime});
 }
 
-typedef IndicatorResult = List<BaseIndicatorResult>;
-typedef IndicatorResultMap = Map<IndicatorType, IndicatorResult>;
+typedef IndicatorResult = BaseIndicatorResult;
+typedef IndicatorResultMap = Map<IndicatorKey, IndicatorResult>;
 
 // Base indicator result for held an indicator's data
 abstract class BaseIndicatorResult {

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
@@ -94,6 +92,8 @@ class IndicatorSchema implements CacheSchema {
   int get hashCode => runtimeType.hashCode;
 }
 
+typedef IndicatorKey = int;
+
 class Indicator extends Cache {
   final int id;
   final String name; // friendly an indicator's name
@@ -108,6 +108,31 @@ class Indicator extends Cache {
     required this.type,
     required this.parameters,
   }) : super.from([]);
+
+  IndicatorKey get uniqueKey {
+    // Normalize parameters to ensure stability across gRPC/JSON round-trips
+    final normalized = _normalize(parameters);
+    return "$name-$type-${jsonEncode(normalized)}".hashCode;
+  }
+
+  /// Recursively normalizes maps and lists for stable hashing/stringifying.
+  /// 1. Sorts map keys.
+  /// 2. Collapses single-element lists (common gRPC/Protobuf Struct artifact).
+  /// 3. Converts all numbers to doubles to avoid int/double mismatch.
+  static dynamic _normalize(dynamic value) {
+    if (value is Map) {
+      final sortedKeys = value.keys.map((e) => e.toString()).toList()..sort();
+      return {
+        for (final k in sortedKeys) k: _normalize(value[k])
+      };
+    } else if (value is List) {
+      if (value.length == 1) return _normalize(value[0]);
+      return value.map(_normalize).toList();
+    } else if (value is num) {
+      return value.toDouble();
+    }
+    return value;
+  }
 
   @override
   factory Indicator.from(List<Object?> item) {

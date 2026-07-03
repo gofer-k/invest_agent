@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
-import 'package:collection/collection.dart';
 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
@@ -189,19 +188,25 @@ class TradingService extends _$TradingService {
   IndicatorResultMap _mapResponse($pb.TradingResponse response) {
     final IndicatorResultMap resultMap = {};
     response.results.forEach((key, list) {
-      final type = schema.IndicatorType.values.firstWhereOrNull(
-        (e) => e.name.toUpperCase() == key.toUpperCase() || e.shortName.toUpperCase() == key.toUpperCase(),
-      ) ?? schema.IndicatorType.undefined;
-
-      if (type == schema.IndicatorType.undefined) return;
+      // final type = schema.IndicatorType.values.firstWhereOrNull(
+      //   (e) => e.name.toUpperCase() == key.toUpperCase() || e.shortName.toUpperCase() == key.toUpperCase(),
+      // ) ?? schema.IndicatorType.undefined;
+      //
+      // if (type == schema.IndicatorType.undefined) return;
 
       final results = list.items
           .map((series) => _mapSeries(series))
           .whereType<BaseIndicatorResult>()
           .toList();
-      
-      if (results.isNotEmpty) {
-        resultMap[type] = results;
+      for (var result in results) {
+        try {
+          final indicatorKey = result.config.uniqueKey;
+          log("Add result key $indicatorKey, value ${result.config.toDetailedString()}");
+          resultMap[indicatorKey] = result;
+        }
+        catch (e){
+          log("Unexpected result key: $key expect ${schema.IndicatorKey}");
+        }
       }
     });
     return resultMap;
@@ -232,34 +237,39 @@ class TradingService extends _$TradingService {
 
   void clearResults() => state = const TradingServiceState();
 
-  double? getMax(schema.IndicatorType type, {DateTime? startDate, DateTime? endDate}) {
-    final res = state.cache[type];
-    return (res == null || res.isEmpty) ? null : res.map((r) => r.getMax(startDate, endDate)).reduce((a, b) => a > b ? a : b);
+  void removeResult(InternalIndicator indicator) {
+    state.cache.remove(indicator.uniqueKey);
   }
 
-  double? getMin(schema.IndicatorType type, {DateTime? startDate, DateTime? endDate}) {
-    final res = state.cache[type];
-    return (res == null || res.isEmpty) ? null : res.map((r) => r.getMin(startDate, endDate)).reduce((a, b) => a < b ? a : b);
+  double? getMax(schema.Indicator indicator, {DateTime? startDate, DateTime? endDate}) {
+    final res = state.cache[indicator.uniqueKey];
+    return res?.getMax(startDate, endDate) ?? 0.0;
+  }
+
+  double? getMin(schema.Indicator indicator, {DateTime? startDate, DateTime? endDate}) {
+    final res = state.cache[indicator.uniqueKey];
+    return res?.getMin(startDate, endDate) ?? 0.0;
   }
 }
 
 @riverpod
-AsyncValue<IndicatorResult> indicatorResult(Ref ref,
+AsyncValue<IndicatorResult?> indicatorResult(Ref ref,
   {required List<InternalIndexPriceItem> prices,
    required InternalIndicator indicator}) {
   
   if (indicator.type == schema.IndicatorType.undefined) {
-    return const AsyncValue.data([]); 
+    return const AsyncValue.data(null);
   }
-
-  final cache = ref.watch(tradingServiceProvider.select((s) => s.cache[indicator.type]));
+  log("IndicatorResult: Requesting indicator result for ${indicator.uniqueKey} value ${indicator.toDetailedString()}");
+  final cache = ref.watch(tradingServiceProvider.select((s) => s.cache[indicator.uniqueKey]));
 
   if (cache == null) {
-    log("IndicatorResult: No cache for ${indicator.type}. Requesting calculation...");
+    log("IndicatorResult: No cache for ${indicator.uniqueKey}. Requesting calculation...");
     Future.microtask(() {
       ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [indicator]);
     });
     return const AsyncValue.loading();
   }
+  log("IndicatorResult: Response found in cache for ${cache.config.uniqueKey}");
   return AsyncValue.data(cache);
 }
