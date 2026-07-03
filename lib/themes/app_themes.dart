@@ -77,7 +77,7 @@ class AppTheme extends ThemeExtension<AppTheme> {
   final Color? taskHighlightColor;
 
   // 8-color rainbow Palette
-  static const List<Color> _Charrtcolors = [
+  static const List<Color> _charrtcolors = [
     Color(0xFFE6261F),
     Color(0xFFEB7532),
     Color(0xFFF7D038),
@@ -89,10 +89,10 @@ class AppTheme extends ThemeExtension<AppTheme> {
   ];
   static int _index = 0;
 
-  static rollingChartColor() {
-    int index = _index % _Charrtcolors.length;
+  static Color rollingChartColor() {
+    int index = _index % _charrtcolors.length;
     _index = index + 1;
-    return _Charrtcolors[index];
+    return _charrtcolors[index];
   }
 
   // Optional: Add a static method to easily access the extension from context
