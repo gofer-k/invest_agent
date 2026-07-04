@@ -6,22 +6,25 @@ import 'package:invest_agent/providers/trading_service.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
+import 'package:invest_agent/widgets/charts/overlay_ema.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
+import '../../model/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
 import '../../model/price_result.dart';
+import '../../model/sma_result.dart';
 import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
 import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_chart.dart';
-import 'overlay_moving_average.dart';
 import 'overlay_price_chart.dart';
+import 'overlay_sma.dart';
 import 'overlay_tooltip_marker.dart';
 
 class MultiChartView extends ConsumerStatefulWidget {
@@ -298,8 +301,13 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         switch (result?.config.type) {
           case IndicatorType.sma:
             final smaResult = result as SmaResult;
-            overlayCharts.add(OverlayMovingAverage(
+            overlayCharts.add(OverlaySimpleMovingAverage(
                 data: smaResult.getPoints(),
+                lineColor: AppTheme.rollingChartColor()));
+          case IndicatorType.ema:
+            final emaResult = result as EmaResult;
+            overlayCharts.add(OverlayExponentialMovingAverage(
+                data: emaResult.getPoints(),
                 lineColor: AppTheme.rollingChartColor()));
           case _:
             overlayCharts.add(EmptyOverlayChart());

@@ -14,6 +14,7 @@ import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
 import '../model/indicator_schema.dart' as schema;
 import '../model/price_result.dart' as model;
+import '../model/sma_result.dart';
 
 part 'trading_service.g.dart';
 

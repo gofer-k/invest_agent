@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/indicator_result.dart';
+import '../../model/sma_result.dart';
 
-class OverlayMovingAverage extends OverlayChart {
+class OverlaySimpleMovingAverage extends OverlayChart {
   final List<SimpleMovingAverage> data;
   final Color lineColor;
   final double strokeWidth;
 
-  OverlayMovingAverage({super.overlayType = OverlayType.movingAverage,
+  OverlaySimpleMovingAverage({super.overlayType = OverlayType.movingAverage,
     required this.data,
     this.lineColor = Colors.blueAccent,
     this.strokeWidth = 1.5});
