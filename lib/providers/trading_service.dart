@@ -9,6 +9,7 @@ import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
+import '../model/ema_result.dart';
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
@@ -217,6 +218,7 @@ class TradingService extends _$TradingService {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
     return switch (indicatorType) {
       schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
+      schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
       _ => null,
     };
   }
