@@ -4,82 +4,6 @@ import 'analysis_period.dart';
 import 'indicator_result.dart';
 import 'price_result.dart';
 
-// Build SMA chart:
-// Map<rollingWindow, List<SMA>>
-// class SimpleMovingAverage extends BaseIndicatorValue {
-//   final double? rollingStd;
-//   final double? rollingMean;
-//   final BellingerBands? bellingersBands;
-//   final int? rollingWindow;
-//
-//   SimpleMovingAverage({required super.dateTime, this.rollingWindow, this.rollingStd, this.rollingMean, this.bellingersBands});
-//
-//   static SimpleMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-//     final rollingMean = parseNum(jsonMap['rolling_mean']);
-//     final rollingStd = parseNum(jsonMap['rolling_std']);
-//     final rollingWindow = parseNum(jsonMap["window"]);
-//     if (rollingMean == null && rollingStd == null && rollingWindow == null) {
-//       return null;
-//     }
-//
-//     return SimpleMovingAverage(
-//       dateTime: dateTime,
-//       rollingWindow: rollingWindow?.toInt(),
-//       rollingMean: rollingMean,
-//       rollingStd: rollingStd,
-//       bellingersBands: BellingerBands.fromJson(dateTime, jsonMap));
-//   }
-//
-//   Map<String, dynamic> toJson() => {
-//     "rolling_mean": rollingMean,
-//     "rolling_std": rollingStd,
-//     "window": rollingWindow,
-//     ...?bellingersBands?.toJson(),
-//   };
-// }
-
-// Build Bellingers band charts:
-// BB upper band:  Map<rollingWindow, List<BellingerBand>>
-// BB lower band:  Map<rollingWindow, List<BellingerBand>>
-// BB middle band:  Map<rollingWindow, List<BellingerBand>>
-class BellingerBandEntry extends BaseIndicatorValue{
-  final double? stdValue;
-
-  BellingerBandEntry({required super.dateTime, this.stdValue});
-}
-
-typedef BellingerBand = List<BellingerBandEntry>;
-
-enum BollingerBandType {
-  lowerBB,
-  upperBB,
-  middleBB,
-}
-
-class BellingerBands extends BaseIndicatorValue{
-  final double? upperBB;
-  final double? lowerBB;
-  final double? widthBB;
-  final double? percentBB;
-  BellingerBands({required super.dateTime, this.upperBB, this.lowerBB, this.widthBB, this.percentBB});
-
-  static BellingerBands? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    return BellingerBands(
-      dateTime: dateTime,
-      lowerBB: parseNum(jsonMap['BB_lower']),
-      upperBB: parseNum(jsonMap['BB_upper']),
-      percentBB: parseNum(jsonMap['BB_percent']),
-      widthBB: parseNum(jsonMap['BB_width']));
-  }
-
-  Map<String, dynamic> toJson() => {
-    "BB_lower": lowerBB,
-    "BB_upper": upperBB,
-    "BB_percent": percentBB,
-    "BB_width": widthBB,
-  };
-}
-
 class GoldenCross extends BaseIndicatorValue{
   final int? cross;
 
@@ -131,26 +55,6 @@ class RSI extends BaseIndicatorValue {
     "RSI": rsi,
   };
 }
-
-// class ExponentialMovingAverage extends BaseIndicatorValue{
-//   final double? ema;
-//   final int? rollingWindow;
-//
-//   ExponentialMovingAverage({required super.dateTime, this.ema, this.rollingWindow});
-//   static ExponentialMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-//     final value = parseNum(jsonMap['value']);
-//     final rollingWindow = parseNum(jsonMap["window"]);
-//     if (value == null || rollingWindow == null) {
-//       return null;
-//     }
-//     return ExponentialMovingAverage(dateTime: dateTime, ema: value, rollingWindow: rollingWindow.toInt());
-//   }
-//
-//   Map<String, dynamic> toJson() => {
-//     "value": ema,
-//     "window": rollingWindow,
-//   };
-// }
 
 // Moving Average Convergence/Divergence indicator
 // enum MACDType {
@@ -220,8 +124,6 @@ class RSI extends BaseIndicatorValue {
 // }
 
 // class Indicators {
-//   // final Map<int, SimpleMovingAverage> sma;  // [rollingWindow -> value]
-//   // final Map<int, ExponentialMovingAverage> ema;  // [rollingWindow -> value]
 //   // final List<MACD> macd;
 //   final RSI rsi;
 //   final Map<String, dynamic> other; // For extendability
@@ -229,26 +131,6 @@ class RSI extends BaseIndicatorValue {
 //   Indicators(this.macd, this.sma, this.ema, this.rsi, {this.other = const {}});
 //
 //   // static Indicators? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-//     // final jsonSMa = (jsonMap["SMA"] ?? []) as List<dynamic>;
-//     // Map<int, SimpleMovingAverage> sma = <int, SimpleMovingAverage>{};
-//     // for (var element in jsonSMa) {
-//     //   final jsonValues = element as Map<String, dynamic>;
-//       // final smaIndicator = SimpleMovingAverage.fromJson(dateTime, jsonValues);
-//       // if (smaIndicator != null && smaIndicator.rollingWindow != null) {
-//       //   sma.putIfAbsent(smaIndicator.rollingWindow!, () => smaIndicator);
-//       // }
-//     // }
-//
-//     // final jsonEMa = (jsonMap["EMA"] ?? []) as List<dynamic>;
-//     // Map<int, ExponentialMovingAverage> ema = <int, ExponentialMovingAverage>{};
-//     // for (var element in jsonEMa) {
-//     //   final jsonValues = element as Map<String, dynamic>;
-//       // final emaIndicator = ExponentialMovingAverage.fromJson(dateTime, jsonValues);
-//       // if (emaIndicator != null && emaIndicator.rollingWindow != null) {
-//       //   ema.putIfAbsent(emaIndicator.rollingWindow!, () => emaIndicator);
-//       // }
-//     }
-//
 //     final jsonRSI = parseNum(jsonMap["RSI"]);
 //     final rsi = RSI(dateTime: dateTime, rsi: jsonRSI ?? 0.0);
 //
@@ -265,16 +147,14 @@ class RSI extends BaseIndicatorValue {
 //     }
 //
 //     // Capture other fields
-//     final knownFields = {"SMA", "EMA", "RSI", ...macdTypes};
+//     final knownFields = {"RSI", ...macdTypes};
 //     final other = Map<String, dynamic>.from(jsonMap)..removeWhere((key, value) => knownFields.contains(key));
 //
-//     return Indicators(macd, sma, ema, rsi, other: other);
+//     return Indicators(macd, rsi, other: other);
 //   }
 //
 //   Map<String, dynamic> toJson() {
 //     final map = <String, dynamic>{
-//       "SMA": sma.values.map((e) => e.toJson()).toList(),
-//       "EMA": ema.values.map((e) => e.toJson()).toList(),
 //       ...rsi.toJson(),
 //       ...other,
 //     };
@@ -383,70 +263,9 @@ class AnalysisRespond {
     );
   }
 
-  // double getMinVolume(DateTime? startDate, DateTime? endDate) {
-  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-  //   return priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
-  // }
-  // double getMaxVolume(DateTime? startDate, DateTime? endDate) {
-  //   final priceDataFiltered = (startDate != null && endDate != null) ? getPriceDataFiltered(0, startDate, endDate) : priceData;
-  //   return priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
-  // }
-
-  // Future<List<SimpleMovingAverage>> getFutureSMA(int rollingWindow) async {
-  //   return getSMA(rollingWindow);
-  // }
-  //
-  // List<SimpleMovingAverage> getSMA(int rollingWindow) {
-  //   final sma = <SimpleMovingAverage>[];
-  //   final subIndicators = indicators.sublist(rollingWindow);
-  //   for (var indicator in subIndicators) {
-  //     if (indicator.sma.containsKey(rollingWindow)) {
-  //       sma.add(indicator.sma[rollingWindow]!);
-  //     }
-  //   }
-  //   return sma;
-  // }
-  //
-  Future<BellingerBand> getFutureBollingerBand(BollingerBandType type, int rollingWindow) async {
-    return getBollingerBand(type, rollingWindow);
-  }
-
-  BellingerBand getBollingerBand(BollingerBandType type, int rollingWindow) {
-    final BellingerBand band = [];
-    // final subIndicators = indicators.sublist(rollingWindow);
-    // for (var indicator in subIndicators) {
-    //   if (indicator.sma.containsKey(rollingWindow)) {
-    //     // final sma = indicator.sma[rollingWindow]!;
-    //     // if (sma.bellingersBands != null) {
-    //     //   final value = switch(type) {
-    //     //     BollingerBandType.lowerBB => sma.bellingersBands!.lowerBB,
-    //     //     BollingerBandType.upperBB => sma.bellingersBands!.upperBB,
-    //     //     BollingerBandType.middleBB => sma.rollingMean,
-    //     //   };
-    //     //   band.add(BellingerBandEntry(dateTime: sma.dateTime, stdValue: value));
-    //     // }
-    //   }
-    // }
-    return band;
-  }
-
   Future<List<IndexPriceItem>> getRollingVolume(int rollingWindow) async {
     return priceData.sublist(rollingWindow);
   }
-
-  // List<IndexPriceItem> getPriceData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
-  //   return priceData.sublist(prefixWindow);
-  // }
-  // List<IndexPriceItem> getPriceDataFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
-  //   final priceDataFiltered =
-  //   priceData.where(
-  //           (element) => element.dateTime.isAfter(startDate)
-  //           && element.dateTime.isBefore(endDate)).toList();
-  //   return priceDataFiltered.sublist(prefixWindow);
-  // }
-  // List<DateTime> getDateTimeDomain(int prefixWindow) {
-  //   return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
-  // }
 
   // List<MACD> getMacd(MACDType type) {
   //   final macd = <MACD>[];

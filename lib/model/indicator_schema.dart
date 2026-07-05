@@ -5,7 +5,7 @@ import 'package:collection/collection.dart';
 
 enum IndicatorType {
   price("Price", "Price"),
-  bellingerBands("Bollinger Bands", "Bollinger Bands"),
+  bollingerBands("Bollinger Bands", "Bollinger Bands"),
   sma("Simple Moving Average", "SMA"),
   ema("Exponential Moving Average", "EMA"),
   macd("Moving Average Convergence/Divergence", "MACD"),

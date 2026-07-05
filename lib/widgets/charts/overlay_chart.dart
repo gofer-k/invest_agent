@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 enum OverlayType {
-  bellingerBands,
+  bollingerBands,
   macd,
   movingAverage,
   obv,

@@ -12,6 +12,7 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
+import '../../model/bollinger_bands_result.dart';
 import '../../model/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
@@ -22,6 +23,7 @@ import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
 import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
+import 'overlay_bollinger_band.dart';
 import 'overlay_chart.dart';
 import 'overlay_price_chart.dart';
 import 'overlay_sma.dart';
@@ -309,6 +311,14 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             overlayCharts.add(OverlayExponentialMovingAverage(
                 data: emaResult.getPoints(),
                 lineColor: AppTheme.rollingChartColor()));
+          case IndicatorType.bollingerBands:
+            final bbResult = result as BollingerBandsResult;
+            overlayCharts.add(OverlayBollingerBand(
+                data: bbResult.getPoints(),
+                lowerBandColor: AppTheme.rollingChartColor(),
+                upperBandColor: AppTheme.rollingChartColor(),
+                middleBandColor: AppTheme.rollingChartColor()));
+
           case _:
             overlayCharts.add(EmptyOverlayChart());
         }
@@ -325,30 +335,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   // OverlayChart _showOverlayChart(ChartConfig chart) {
     //TODO: Display overlay supplement chart
     // return switch (chartType) {
-  //     SupplementChart.bb =>
-  //       OverlayBellingerBand(
-  //           data: widget.results.getBollingerBand(BollingerBandType.lowerBB, 20),
-  //           lineColor: AppTheme.of(context).indicatorLowerBand ?? Colors.green),
-  //   // OverlayBellingerBand(band: widget.results.getBollingerBand(BollingerBandType.upperBB, 20),
-  //   //     lineColor: AppTheme.of(context).indicatorUpperBand ?? Colors.orangeAccent),
-  //   // OverlayBellingerBand(band: widget.results.getBollingerBand(BollingerBandType.middleBB, 20),
-  //   //     lineColor: AppTheme.of(context).indicatorMiddleBand ?? Colors.blueAccent),
-  //     SupplementChart.deathCross =>
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError(),
-  //     SupplementChart.goldenCross =>
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError(),
-  //     SupplementChart.ema =>
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError(),
-  //     SupplementChart.emaSignal =>
-  //       // TODO: Handle this case.
-  //       throw UnimplementedError(),
   //     SupplementChart.obv =>
   //       OverlayOBV(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
-  //     SupplementChart.sma =>
-  //       OverlayMovingAverage(data: widget.results.getSMA(20);
   // }
 
   double _getMaxValue(Indicator indicator, DateTime? startDate,
@@ -374,9 +362,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     final List<ChartConfig> updatedCharts = List.from(
         _currentChartConfig.charts);
 
-    // TODO:: c_currentChartConfig logic:
-    // 1. _currentChartConfig.charts[i].indicatorConfig.indicator.type == targetIndicator.type -> update the currentChart.indicator
-    // 2. _currentChartConfig.charts[i].indicatorConfig.indicator.type != targetIndicator.type -> add the currentChart.indicator
     if (newIndicator != null) {
       final existingIndex = updatedCharts.indexWhere(
               (c) => c.indicatorConfig.type == targetIndicator.type
@@ -388,18 +373,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       );
 
       if (existingIndex != -1) {
-        // 1. Update existing indicator of same type
         updatedCharts[existingIndex] = newConfig;
       } else {
-        // 2. Add as new indicator
         updatedCharts.add(newConfig);
       }
-      // updatedCharts.add(
-      //     ChartConfig(
-      //       indicatorConfig: targetIndicator,
-      //       chartStyle: targetStyle,
-      //       mainChart: targetIndicator.isMainChart(),
-      //     ));
     }
 
     final newChartConfig = _currentChartConfig.copyWith(

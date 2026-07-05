@@ -47,14 +47,6 @@ class EmaResult extends BaseIndicatorResult {
       parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
-    // final points = protoResult.points.map((p) {
-    //   return ExponentialMovingAverage(
-    //     dateTime: p.dateTime.toDateTime(),
-    //     ema: p.values['value'],
-    //     rollingWindow: (config.parameters['window'] as num?)?.toInt(),
-    //   );
-    // }).toList();
-
     final points = protoResult.points.map((p) {
       // Safe extraction of the rolling window, handling both scalar and list types
       final dynamic windowValue = p.values['window'] ?? config.parameters['window'];

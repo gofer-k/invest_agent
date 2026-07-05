@@ -31,4 +31,4 @@ dart pub global activate protoc_plugin
 - display configured a chart values (main, supplement charts or indicator or signals): max, min, level values on the side pane
 - custom style visualization, themes
 - improve performance of visualization
-- various signals 
+- various signals: Golden/Death cross, EMA signal

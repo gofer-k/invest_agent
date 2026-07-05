@@ -9,6 +9,7 @@ import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
+import '../model/bollinger_bands_result.dart';
 import '../model/ema_result.dart';
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
@@ -175,7 +176,7 @@ class TradingService extends _$TradingService {
   $pb.IndicatorType _toProtoIndicatorType(schema.IndicatorType type) {
     return switch (type) {
       schema.IndicatorType.price => $pb.IndicatorType.PRICE,
-      schema.IndicatorType.bellingerBands => $pb.IndicatorType.BOLLINGER_BANDS,
+      schema.IndicatorType.bollingerBands => $pb.IndicatorType.BOLLINGER_BANDS,
       schema.IndicatorType.sma => $pb.IndicatorType.SMA,
       schema.IndicatorType.ema => $pb.IndicatorType.EMA,
       schema.IndicatorType.macd => $pb.IndicatorType.MACD,
@@ -190,12 +191,6 @@ class TradingService extends _$TradingService {
   IndicatorResultMap _mapResponse($pb.TradingResponse response) {
     final IndicatorResultMap resultMap = {};
     response.results.forEach((key, list) {
-      // final type = schema.IndicatorType.values.firstWhereOrNull(
-      //   (e) => e.name.toUpperCase() == key.toUpperCase() || e.shortName.toUpperCase() == key.toUpperCase(),
-      // ) ?? schema.IndicatorType.undefined;
-      //
-      // if (type == schema.IndicatorType.undefined) return;
-
       final results = list.items
           .map((series) => _mapSeries(series))
           .whereType<BaseIndicatorResult>()
@@ -219,6 +214,8 @@ class TradingService extends _$TradingService {
     return switch (indicatorType) {
       schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
+      schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
+      // schema.IndicatorType.bellingerBands
       _ => null,
     };
   }
@@ -226,7 +223,7 @@ class TradingService extends _$TradingService {
   schema.IndicatorType _fromProtoIndicatorType($pb.IndicatorType type) {
     return switch (type) {
       $pb.IndicatorType.PRICE => schema.IndicatorType.price,
-      $pb.IndicatorType.BOLLINGER_BANDS => schema.IndicatorType.bellingerBands,
+      $pb.IndicatorType.BOLLINGER_BANDS => schema.IndicatorType.bollingerBands,
       $pb.IndicatorType.SMA => schema.IndicatorType.sma,
       $pb.IndicatorType.EMA => schema.IndicatorType.ema,
       $pb.IndicatorType.MACD => schema.IndicatorType.macd,
