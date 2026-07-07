@@ -8,32 +8,6 @@ import 'drawing_schema.dart';
 import 'indicator_result.dart';
 import 'indicator_schema.dart';
 
-//TODO: remove this
-// enum MainChartType {
-//   candlestickPrice("Candlestick",),
-//   linePrice("Line"),
-//   bars("Bars"),
-//   macd("MACD"),
-//   volume("Volume"),
-//   rsi("RSI");
-//
-//   const MainChartType(this.name);
-//   final String name;
-// }
-//
-// //TODO: remove this
-// enum SupplementChart {
-//   bb("BB - Bollinger Bands"),
-//   deathCross("DC - Death cross"),
-//   goldenCross("GC - Golden cross"),
-//   ema("EMA - exp. moving average"),
-//   emaSignal("EMA signal"),
-//   obv("OBV - on balance volume"),
-//   sma("MA - moving average");
-//   const SupplementChart(this.name);
-//   final String name;
-// }
-
 class ChartConfig extends Cache {
   final bool mainChart;
   final bool visible;

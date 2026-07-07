@@ -3,21 +3,6 @@ import 'multi_chart_schema.dart';
 class ChartsConfiguration {
   final List<MultiChartConfig> multiCharts;
 
-  // static const Map<MainChartType, List<SupplementChart>> _profileRules = {
-  //   MainChartType.candlestickPrice: [
-  //     SupplementChart.bb, SupplementChart.sma,
-  //     SupplementChart.deathCross,
-  //     SupplementChart.goldenCross,
-  //     SupplementChart.ema,
-  //     SupplementChart.emaSignal],
-  //   MainChartType.linePrice: [
-  //     SupplementChart.bb, SupplementChart.sma,
-  //     SupplementChart.deathCross,
-  //     SupplementChart.goldenCross,
-  //     SupplementChart.ema,
-  //     SupplementChart.emaSignal]
-  // };
-
   ChartsConfiguration({this.multiCharts = const []});
 
   static bool validate(MultiChartConfig chart) {
