@@ -191,7 +191,14 @@ class Indicator extends Cache {
   String toString() => name;
 
   String toDetailedString() {
-    return "$name ${parameters.values.toString()}";
+    var paramStr = '';
+    parameters.forEach((param, values) {
+      final vals = values as Map<String, dynamic>;
+      if (param != "chart") {
+        paramStr = "$paramStr $param: ${vals[IndicatorParam.value.name]}";
+      }
+    });
+    return "$name$paramStr";
   }
 
   // --- Static Helpers for JSON Config Schema ---
