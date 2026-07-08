@@ -235,6 +235,18 @@ class MultiChartConfig extends Cache {
         id: -1, title: '', periodType: PeriodType.year, charts: [],
         asset: AssetConfig.defaultAsset());
 
+  static MultiChartConfig priceMultiChart(
+    AssetConfig asset,
+    PeriodType periodType,
+    ChartStyle chartStyle) =>
+    MultiChartConfig(
+      id: -1, title: '',
+      periodType: periodType,
+      charts: [
+        ChartConfig(mainChart: true, chartStyle: chartStyle,
+          indicatorConfig: Indicator.priceIndicator())],
+      asset: asset);
+
   ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
 
   List<ChartConfig> get overlayCharts => charts.where((e) => !e.mainChart).toList();

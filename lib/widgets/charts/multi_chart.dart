@@ -107,7 +107,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         _selectedPeriod,
         _selectedChartStyle));
 
-    if (displayedCharts.isNotEmpty) {
+    if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
+      _changeMultiChartConfig(newPeriodType: _selectedPeriod, newStyle: _selectedChartStyle, newIndicator: _selectedIndicator);
+      // _currentChartConfig = MultiChartConfig.priceMultiChart(widget.assetConfig, _selectedPeriod, _selectedChartStyle);
+    }
+    else if (displayedCharts.isNotEmpty) {
       // Sync local config state with what's actually being displayed to maintain ID
       if (_currentChartConfig != displayedCharts.first) {
           _currentChartConfig = displayedCharts.first;
@@ -317,7 +321,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                 data: bbResult.getPoints(),
                 lowerBandColor: AppTheme.rollingChartColor(),
                 upperBandColor: AppTheme.rollingChartColor(),
-                middleBandColor: AppTheme.rollingChartColor()));
+                medianBandColor: AppTheme.rollingChartColor()));
 
           case _:
             overlayCharts.add(EmptyOverlayChart());
