@@ -9,7 +9,7 @@ import 'package:collection/collection.dart';
 enum BollingerBandParam {
   upperBB("BB_upper"),
   lowerBB("BB_lower"),
-  middleBB("BB_middle"),
+  medianBB("BB_median"),
   precentBB("BB_percent"),
   widthBB("BB_width"),
   window("window");
@@ -24,13 +24,13 @@ enum BollingerBandParam {
 class BollingerBands extends BaseIndicatorValue{
   final double? upperBB;
   final double? lowerBB;
-  final double? middleBB;
+  final double? medianBB;
   final double? widthBB;
   final double? percentBB;
   final int? rollingWindow;
 
   BollingerBands({
-    required super.dateTime, this.upperBB, this.lowerBB, this.middleBB,
+    required super.dateTime, this.upperBB, this.lowerBB, this.medianBB,
     this.widthBB, this.percentBB, this.rollingWindow});
 
   static BollingerBands? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
@@ -38,7 +38,7 @@ class BollingerBands extends BaseIndicatorValue{
         dateTime: dateTime,
         lowerBB: parseNum(jsonMap[BollingerBandParam.lowerBB.name]),
         upperBB: parseNum(jsonMap[BollingerBandParam.upperBB.name]),
-        middleBB: parseNum(jsonMap[BollingerBandParam.middleBB.name]),
+        medianBB: parseNum(jsonMap[BollingerBandParam.medianBB.name]),
         percentBB: parseNum(jsonMap[BollingerBandParam.precentBB.name]),
         widthBB: parseNum(jsonMap[BollingerBandParam.widthBB.name]),
         rollingWindow: parseNum(jsonMap[BollingerBandParam.window.name])?.toInt()
@@ -49,7 +49,7 @@ class BollingerBands extends BaseIndicatorValue{
     BollingerBandParam.window.name: rollingWindow,
     BollingerBandParam.lowerBB.name: lowerBB,
     BollingerBandParam.upperBB.name: upperBB,
-    BollingerBandParam.middleBB.name: middleBB,
+    BollingerBandParam.medianBB.name: medianBB,
     BollingerBandParam.precentBB.name: percentBB,
     BollingerBandParam.widthBB.name: widthBB,
   };
@@ -89,7 +89,7 @@ class BollingerBandsResult extends BaseIndicatorResult {
         dateTime: p.dateTime.toDateTime(),
         lowerBB: p.values[BollingerBandParam.lowerBB.name],
         upperBB: p.values[BollingerBandParam.upperBB.name],
-        middleBB: p.values[BollingerBandParam.middleBB.name],
+        medianBB: p.values[BollingerBandParam.medianBB.name],
         percentBB: p.values[BollingerBandParam.precentBB.name],
         widthBB: p.values[BollingerBandParam.widthBB.name],
         rollingWindow: window,
@@ -111,19 +111,19 @@ class BollingerBandsResult extends BaseIndicatorResult {
   @override
   double get maxValue => points.isEmpty
       ? 0
-      : points.map((p) => p.middleBB ?? -double.infinity).reduce(max);
+      : points.map((p) => p.medianBB ?? -double.infinity).reduce(max);
 
   @override
   double get minValue => points.isEmpty
       ? 0
-      : points.map((p) => p.middleBB ?? double.infinity).reduce(min);
+      : points.map((p) => p.medianBB ?? double.infinity).reduce(min);
 
   @override
   double getMax(DateTime? startDate, DateTime? endDate) {
     final filtered = _filterPoints(startDate, endDate);
     return filtered.isEmpty
         ? 0
-        : filtered.map((p) => p.middleBB ?? -double.infinity).reduce(max);
+        : filtered.map((p) => p.medianBB ?? -double.infinity).reduce(max);
   }
 
   @override
@@ -131,7 +131,7 @@ class BollingerBandsResult extends BaseIndicatorResult {
     final filtered = _filterPoints(startDate, endDate);
     return filtered.isEmpty
         ? 0
-        : filtered.map((p) => p.middleBB ?? double.infinity).reduce(min);
+        : filtered.map((p) => p.medianBB ?? double.infinity).reduce(min);
   }
 
   Iterable<BollingerBands> _filterPoints(DateTime? start, DateTime? end) {

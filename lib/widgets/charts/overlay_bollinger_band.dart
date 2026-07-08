@@ -8,14 +8,14 @@ class OverlayBollingerBand extends OverlayChart {
   final List<BollingerBands> data;
   final Color lowerBandColor;
   final Color upperBandColor;
-  final Color middleBandColor;
+  final Color medianBandColor;
   final double strokeWidth;
 
   OverlayBollingerBand({super.overlayType = OverlayType.bollingerBands,
     required this.data,
     required this.lowerBandColor,
     required this.upperBandColor,
-    required this.middleBandColor,
+    required this.medianBandColor,
     this.strokeWidth = 1.2});
 
   void _drawBand(Canvas canvas, Size size, List<BollingerBands> data, BollingerBandParam typeBand,  OverlayContext ctx) {
@@ -27,9 +27,9 @@ class OverlayBollingerBand extends OverlayChart {
         lineSelectedColor = upperBandColor;
         valueSelector = (b) => b.upperBB;
         break;
-      case BollingerBandParam.middleBB:
-        lineSelectedColor = middleBandColor;
-        valueSelector = (b) => b.middleBB;
+      case BollingerBandParam.medianBB:
+        lineSelectedColor = medianBandColor;
+        valueSelector = (b) => b.medianBB;
         break;
       case BollingerBandParam.lowerBB:
       default:
@@ -89,6 +89,6 @@ class OverlayBollingerBand extends OverlayChart {
 
     _drawBand(canvas, size, data, BollingerBandParam.lowerBB, ctx);
     _drawBand(canvas, size, data, BollingerBandParam.upperBB, ctx);
-    _drawBand(canvas, size, data, BollingerBandParam.middleBB, ctx);
+    _drawBand(canvas, size, data, BollingerBandParam.medianBB, ctx);
   }
 }

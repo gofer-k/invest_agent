@@ -11,6 +11,7 @@ import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
 import '../model/bollinger_bands_result.dart';
 import '../model/ema_result.dart';
+import '../model/macd_result.dart';
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
@@ -215,6 +216,7 @@ class TradingService extends _$TradingService {
       schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
+      schema.IndicatorType.macd => MacdResult.fromProto(series, indicatorType),
       // schema.IndicatorType.bellingerBands
       _ => null,
     };

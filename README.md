@@ -19,6 +19,20 @@ Install:
 sudo apt  install protobuf-compiler
 dart pub global activate protoc_plugin
 
+#Chart config schema:
+[!JSON schema:]
+```
+{
+    "window": {             <- map element key
+        "value": "9",       <- [number, color, string]  (TextField, Text, Color picker)
+        "edit": "1",        <- Editable or const (TextField, Text)
+        "type": "int",      <- ["int","double", "string", "color"],  #ARGB color format
+        "visible": "1"      <- Visible or not (Checkbox)
+    }, 
+    "smooth type": ["SMA","EMA"],   <- [Dropdown, Radio] 
+}   
+```
+
 #TODO:
 ### display multi overlay charts!!!!!
 
@@ -32,3 +46,6 @@ dart pub global activate protoc_plugin
 - custom style visualization, themes
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
+
+#BUGS:
+- Incorrect Bollinger bands' results or chart's drawing!!

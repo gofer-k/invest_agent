@@ -15,7 +15,6 @@ enum IndicatorType {
   kst("Know Sure Thing", "KST"),
   roc("Rate of Change", "ROC"),;
 
-  // Renamed 'name' to 'label' to avoid shadowing built-in Enum.name
   const IndicatorType(this.label, this.shortName);
   final String label;
   final String shortName;
@@ -24,15 +23,16 @@ enum IndicatorType {
   String toString() => shortName;
 }
 
+enum IndicatorParam { edit, visible, type, value }
+enum IndicatorParamType { int, double, string, color }
+
 class IndicatorSchema implements CacheSchema {
   const IndicatorSchema();
-
   static const String tableName = "indicators";
   static const String sequenceName = "indicators_id_seq";
 
   @override
   String get createKey => "CREATE SEQUENCE IF NOT EXISTS $sequenceName START 1;";
-
   @override
   String get create => '''
     CREATE TABLE IF NOT EXISTS $tableName (
@@ -115,10 +115,6 @@ class Indicator extends Cache {
     return "$name-$type-${jsonEncode(normalized)}".hashCode;
   }
 
-  /// Recursively normalizes maps and lists for stable hashing/stringifying.
-  /// 1. Sorts map keys.
-  /// 2. Collapses single-element lists (common gRPC/Protobuf Struct artifact).
-  /// 3. Converts all numbers to doubles to avoid int/double mismatch.
   static dynamic _normalize(dynamic value) {
     if (value is Map) {
       final sortedKeys = value.keys.map((e) => e.toString()).toList()..sort();
@@ -139,7 +135,7 @@ class Indicator extends Cache {
     if (item.length >= 4) {
       final jsonParameters = jsonDecode(item[3] as String);
       final typeString = item[2] as String;
-      
+
       // Resilience: check enum name (sma), label (Simple Moving Average), and shortName (SMA)
       final jsonType = IndicatorType.values.firstWhere(
         (e) => e.name == typeString || 
@@ -197,6 +193,82 @@ class Indicator extends Cache {
   String toDetailedString() {
     return "$name ${parameters.values.toString()}";
   }
+
+  // --- Static Helpers for JSON Config Schema ---
+
+  static bool isEditable(dynamic parameterValue) {
+    if (parameterValue is Map) {
+      return parameterValue[IndicatorParam.edit.name]?.toString() == "1";
+    }
+    return true;
+  }
+
+  static bool isVisible(dynamic parameterValue) {
+    if (parameterValue is Map) {
+      return parameterValue[IndicatorParam.visible.name]?.toString() == "1";
+    }
+    return true;
+  }
+
+  static bool hasVisibilityOption(dynamic parameterValue) {
+    if (parameterValue is Map) {
+      return parameterValue.containsKey(IndicatorParam.visible.name);
+    }
+    return false;
+  }
+
+  static IndicatorParamType? getParameterType(dynamic parameterValue) {
+    if (parameterValue is Map) {
+      final typeStr = parameterValue[IndicatorParam.type.name]?.toString();
+      return IndicatorParamType.values.firstWhereOrNull((e) => e.name == typeStr);
+    }
+    return null;
+  }
+
+  static dynamic getParameterValue(dynamic parameterValue) {
+    if (parameterValue is Map) {
+      return parameterValue[IndicatorParam.value.name];
+    }
+    if (parameterValue is List && parameterValue.isNotEmpty) {
+      return parameterValue.first;
+    }
+    return parameterValue;
+  }
+
+  static dynamic updateParameterValue(dynamic oldParameterValue, dynamic newValue) {
+    if (oldParameterValue is Map) {
+      final newMap = Map<String, dynamic>.from(oldParameterValue);
+      newMap[IndicatorParam.value.name] = newValue.toString();
+      return newMap;
+    }
+    if (oldParameterValue is List) {
+      final list = List<dynamic>.from(oldParameterValue);
+      final val = newValue.toString();
+      if (list.contains(val)) {
+        list.remove(val);
+        list.insert(0, val);
+      }
+      return list;
+    }
+    return newValue;
+  }
+
+  static dynamic updateParameterAttr(dynamic oldParameterValue, IndicatorParam attr, dynamic newValue) {
+    if (oldParameterValue is Map) {
+      final newMap = Map<String, dynamic>.from(oldParameterValue);
+      newMap[attr.name] = newValue.toString();
+      return newMap;
+    }
+    return oldParameterValue;
+  }
+
+  static dynamic getSelectedValue(Map<String, dynamic> parameters, String key) {
+    final param = parameters[key];
+    if (param == null) return null;
+    return getParameterValue(param);
+  }
+
+  // --- End Static Helpers ---
 
   static Indicator defaultIndicator() {
     return Indicator(

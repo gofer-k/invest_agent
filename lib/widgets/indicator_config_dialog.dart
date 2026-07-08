@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/widgets/utils/color_button.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 import '../model/indicator_schema.dart';
@@ -26,7 +26,6 @@ class IndicatorDialog extends ConsumerStatefulWidget {
 
 class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   late final TextEditingController controllerName;
-  // late final TextEditingController controllerType;
   late Map<String, dynamic> parameters = {};
   bool addingParameter = false;
   IndicatorType _selectedType = IndicatorType.undefined;
@@ -36,14 +35,12 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     super.initState();
     controllerName = TextEditingController(text: widget.indicator?.name ?? '');
     _selectedType = widget.indicator?.type ?? IndicatorType.undefined;
-    // Ensure parameters is a mutable copy
     parameters = Map<String, dynamic>.from(widget.indicator?.parameters ?? {});
   }
 
   @override
   void dispose() {
     controllerName.dispose();
-    // controllerType.dispose();
     super.dispose();
   }
 
@@ -51,20 +48,13 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text("Indicator ${widget.indicator?.name ?? 'New'}"),
-      content: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      content: SizedBox(
+        width: 320, // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
+        child: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownList<IndicatorType>(
-                textStyle: Theme.of(context).textTheme.labelLarge,
-                backgroundColor:  Colors.grey.shade600.withAlpha(128),
-                onSelected: (IndicatorType type) {
-                  setState(() => _selectedType = type);
-                },
-                choiceType: _selectedType,
-                choices: IndicatorType.values,
-              ),
-              const SizedBox(height: 8),
               _editIndicatorName(controllerName, "Input indicator name", "Indicator name"),
               const SizedBox(height: 16),
               Row(
@@ -72,7 +62,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 children: [
                   Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
                   Switch(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     value: parameters[Indicator.mainChart] ?? false,
                     onChanged: (bool value) => setState(() {
                       parameters[Indicator.mainChart] = value;
@@ -95,37 +85,29 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               const SizedBox(height: 8),
               for (var parameter in parameters.entries.where((e) => e.key != Indicator.mainChart))
                 Shrinkable(
-                  expanded: false,
+                  expanded: true,
                   title: parameter.key,
-                  actions: [
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-                      onPressed: () {
-                        setState(() => parameters.remove(parameter.key) );
-                      }
-                    ),
-                  ],
                   body: _buildIndicatorParameter(context, parameter),
                ),
             ],
           ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () {
-            final name = controllerName.text.trim();
-            if (name.isEmpty) return;
-            final newIndicator = Indicator(id: widget.indicator?.id ?? -1,
-              name: name,
-              // type: controllerType.text.trim()
-              type: _selectedType,
-              parameters: parameters
-            );
-            widget.onSave(newIndicator);
-            Navigator.of(context).pop();
-            },
-          child: const Text("Save"))
-        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+        ElevatedButton(onPressed: () {
+          final name = controllerName.text.trim();
+          if (name.isEmpty) return;
+          final newIndicator = Indicator(id: widget.indicator?.id ?? -1,
+            name: name,
+            type: _selectedType,
+            parameters: parameters
+          );
+          widget.onSave(newIndicator);
+          Navigator.of(context).pop();
+          },
+        child: const Text("Save"))
+      ],
     );
   }
 
@@ -140,40 +122,110 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   }
 
   Widget _buildIndicatorParameter(BuildContext context, MapEntry<String, dynamic> parameter) {
-    if (parameter.value is List) {
+    if (parameter.value is Map) {
+      return _editIndicatorParameter(context, parameter);
+    }
+    else if (parameter.value is List) {
       final list = parameter.value as List;
-
-      return Column(
-        children: List.generate(list.length, (index) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: TextFormField(
-              initialValue: list[index].toString(),
-              decoration: InputDecoration(
-                labelText: "${parameter.key} [${index + 1}]",
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: () => setState(() => list.removeAt(index)),
-                ),
-              ),
-              onChanged: (v) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child:
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+            DropdownList<String>(
+              onSelected: (item) {
                 setState(() {
-                  list[index] = num.tryParse(v) ?? v.trim();
+                  parameters[parameter.key] = Indicator.updateParameterValue(parameter.value, item);
                 });
               },
+              choiceType: list.first.toString(),
+              choices: list.map((e) => e.toString()).toList(),
+              backgroundColor: Colors.transparent,
             ),
-          );
-        }),
+          ]
+         ),
       );
     }
 
-    // Single value editor
-    return TextField(
-      controller: TextEditingController(text: parameter.value.toString()),
-      decoration: InputDecoration(labelText: "Value for ${parameter.key}"),
-      onChanged: (v) {
-        parameters[parameter.key] = num.tryParse(v) ?? v.trim();
-      },
+    return _editIndicatorParameter(context, parameter);
+  }
+
+  Widget _editIndicatorParameter(
+      BuildContext context,
+      MapEntry<String, dynamic> parameter) {
+
+    final value = parameter.value;
+    final bool isEditable = Indicator.isEditable(value);
+    final bool hasVisibility = Indicator.hasVisibilityOption(value);
+    final bool isVisible = Indicator.isVisible(value);
+    
+    IndicatorParamType? type = Indicator.getParameterType(value);
+    if (type == null && value is! String && value is! num) return const SizedBox.shrink();
+
+    TextInputType keyboardType = switch(type) {
+      IndicatorParamType.int => TextInputType.number,
+      IndicatorParamType.double => const TextInputType.numberWithOptions(decimal: true),
+      IndicatorParamType.string => TextInputType.text,
+      IndicatorParamType.color => TextInputType.text,
+      null => TextInputType.text,
+    };
+
+    final rawValue = Indicator.getParameterValue(value);
+    final displayValue = rawValue?.toString() ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (isEditable && type != IndicatorParamType.color)
+            Expanded(
+              child: TextFormField(
+                key: ValueKey("edit_${parameter.key}_${widget.indicator?.id}"),
+                initialValue: displayValue,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  labelText: "Value",
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: keyboardType,
+                onChanged: (v) {
+                  setState(() {
+                    parameters[parameter.key] = Indicator.updateParameterValue(value, v);
+                  });
+                },
+              ),
+            ),
+          if (type == IndicatorParamType.color)
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: ColorButton(
+                key: ValueKey("color_${parameter.key}"),
+                label: parameter.key,
+                hexValue: displayValue,
+                showLabel: false, // Avoid internal Row with Expanded inside ColorButton
+                onColorChanged: (String colorHex) {
+                  setState(() {
+                    parameters[parameter.key] = Indicator.updateParameterValue(value, colorHex);
+                  });
+                },
+              ),
+            ),
+          
+          if (hasVisibility)
+            Checkbox.adaptive(
+              value: isVisible,
+              onChanged: (val) {
+                if (val == null) return;
+                setState(() {
+                  parameters[parameter.key] = Indicator.updateParameterAttr(value, IndicatorParam.visible, val ? "1" : "0");
+                });
+              }
+            ),
+        ],
+      ),
     );
   }
 
@@ -188,7 +240,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
       onSubmitted: (v) {
         if (v.trim().isNotEmpty) {
           setState(() {
-            parameters[v.trim()] = [];
+            parameters[v.trim()] = {"value": "0", "edit": "1", "type": "int", "visible": "1"};
             addingParameter = false;
           });
         }
