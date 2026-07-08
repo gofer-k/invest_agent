@@ -307,8 +307,26 @@ class Indicator extends Cache {
         parameters: newParams);
   }
 
-  Color color() {
-    return parameters["color"] != null ? Color(parameters["color"]) : Colors.blueAccent;
+  Map<String, Color> colors() {
+    Map<String, Color> colors = {};
+    parameters.forEach((param, values) {
+      final paramsVals = values as Map<String, dynamic>;
+      //{             <- map element key
+      //         "value": "9",       <- [number, color, string]  (TextField, Text, Color picker)
+      //         "edit": "1",        <- Editable or const (TextField, Text)
+      //         "type": "int",      <- ["int","double", "string", "color"],  #ARGB color format
+      //         "visible": "1"      <- Visible or not (Checkbox)
+      //     },
+      paramsVals.forEach((k, v) {
+          if (k == IndicatorParam.type.name && v == IndicatorParamType.color.name) {
+            final String hexString = paramsVals[IndicatorParam.value.name].toString();
+            // Remove '#' and parse as a hex integer (radix 16)
+            colors[param] = Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+          }
+        }
+      );
+    });
+    return colors;
   }
 
   bool isDefault() {

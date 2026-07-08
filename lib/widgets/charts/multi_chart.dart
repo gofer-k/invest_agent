@@ -307,9 +307,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         switch (result?.config.type) {
           case IndicatorType.sma:
             final smaResult = result as SmaResult;
+            final smaColors = smaResult.config.colors();
             overlayCharts.add(OverlaySimpleMovingAverage(
                 data: smaResult.getPoints(),
-                lineColor: AppTheme.rollingChartColor()));
+                lineColor: smaColors.values.first));  // TODO: pass all available colors
           case IndicatorType.ema:
             final emaResult = result as EmaResult;
             overlayCharts.add(OverlayExponentialMovingAverage(
