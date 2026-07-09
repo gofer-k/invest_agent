@@ -108,8 +108,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         _selectedChartStyle));
 
     if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
-      _changeMultiChartConfig(newPeriodType: _selectedPeriod, newStyle: _selectedChartStyle, newIndicator: _selectedIndicator);
-      // _currentChartConfig = MultiChartConfig.priceMultiChart(widget.assetConfig, _selectedPeriod, _selectedChartStyle);
+      setState(() => _changeMultiChartConfig(
+        newPeriodType: _selectedPeriod,
+        newStyle: _selectedChartStyle,
+        newIndicator: _selectedIndicator)
+      );
     }
     else if (displayedCharts.isNotEmpty) {
       // Sync local config state with what's actually being displayed to maintain ID
@@ -310,7 +313,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             final smaColors = smaResult.config.colors();
             overlayCharts.add(OverlaySimpleMovingAverage(
                 data: smaResult.getPoints(),
-                lineColor: smaColors.values.first));  // TODO: pass all available colors
+                smaColors: smaColors));
           case IndicatorType.ema:
             final emaResult = result as EmaResult;
             overlayCharts.add(OverlayExponentialMovingAverage(

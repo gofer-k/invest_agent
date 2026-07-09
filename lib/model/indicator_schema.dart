@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
@@ -311,12 +313,6 @@ class Indicator extends Cache {
     Map<String, Color> colors = {};
     parameters.forEach((param, values) {
       final paramsVals = values as Map<String, dynamic>;
-      //{             <- map element key
-      //         "value": "9",       <- [number, color, string]  (TextField, Text, Color picker)
-      //         "edit": "1",        <- Editable or const (TextField, Text)
-      //         "type": "int",      <- ["int","double", "string", "color"],  #ARGB color format
-      //         "visible": "1"      <- Visible or not (Checkbox)
-      //     },
       paramsVals.forEach((k, v) {
           if (k == IndicatorParam.type.name && v == IndicatorParamType.color.name) {
             final String hexString = paramsVals[IndicatorParam.value.name].toString();

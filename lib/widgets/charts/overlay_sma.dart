@@ -5,20 +5,20 @@ import '../../model/sma_result.dart';
 
 class OverlaySimpleMovingAverage extends OverlayChart {
   final List<SimpleMovingAverage> data;
-  final Color lineColor;
+  final Map<String, Color> smaColors;
   final double strokeWidth;
 
   OverlaySimpleMovingAverage({super.overlayType = OverlayType.movingAverage,
     required this.data,
-    this.lineColor = Colors.blueAccent,
-    this.strokeWidth = 1.5});
+    this.strokeWidth = 1.5,
+    required this.smaColors});
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0 || data.isEmpty) return;
+    if (size.width <= 0 || data.isEmpty || smaColors.isEmpty) return;
 
     final paint = Paint()
-      ..color = lineColor
+      ..color = smaColors["chart"] ?? Colors.blue
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
