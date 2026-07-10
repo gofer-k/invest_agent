@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive.dart';
-import '../model/analysis_respond.dart';
+import '../model/results/analysis_respond.dart';
 import 'package:path/path.dart' as p;
 
 Future<Directory> getLocalDataDirectory() async {

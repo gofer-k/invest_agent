@@ -3,7 +3,7 @@ import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
 
 import 'asset_config.dart';
-import 'price_result.dart';
+import 'results/price_result.dart';
 import 'indicator_schema.dart';
 import 'multi_chart_schema.dart';
 

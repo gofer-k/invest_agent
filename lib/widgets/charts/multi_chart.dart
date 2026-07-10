@@ -12,13 +12,13 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
-import '../../model/bollinger_bands_result.dart';
-import '../../model/ema_result.dart';
+import '../../model/results/bollinger_bands_result.dart';
+import '../../model/results/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
-import '../../model/price_result.dart';
-import '../../model/sma_result.dart';
+import '../../model/results/price_result.dart';
+import '../../model/results/sma_result.dart';
 import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
 import '../indicator_config_dialog.dart';
@@ -354,6 +354,11 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             overlayCharts.add(OverlayBollingerBand(
                 data: bbResult.getPoints(),
                 bollingerBandColors: bbColors));
+          case IndicatorType.rsi:
+            final rsiResult = result as RsiResult;
+            final rsiColors = rsiResult.config.visibleIndicatorColors();
+            overlayCharts.add(OverlayRsi(
+                data: rsiResult.getPoints(), rsiColors: rsiColors));
 
           case _:
             overlayCharts.add(EmptyOverlayChart());

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/analysis_respond.dart';
+import 'package:invest_agent/model/results/analysis_respond.dart';
 
 import 'overlay_chart.dart';
 

@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/bollinger_bands_result.dart';
+import '../../model/results/bollinger_bands_result.dart';
 
 class OverlayBollingerBand extends OverlayChart {
   final List<BollingerBands> data;

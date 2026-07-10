@@ -2,13 +2,13 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart';
-import 'package:invest_agent/model/sma_result.dart';
+import 'package:invest_agent/model/results/sma_result.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:invest_agent/providers/trading_service.dart';
 import 'package:invest_agent/model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem;
 import 'package:invest_agent/model/proto/generated/invest_agent.pb.dart' as $pb;
-import 'package:invest_agent/model/price_result.dart';
+import 'package:invest_agent/model/results/price_result.dart';
 import 'package:invest_agent/model/indicator_schema.dart' as schema;
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $ts;
 

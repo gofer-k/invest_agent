@@ -9,15 +9,15 @@ import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
-import '../model/bollinger_bands_result.dart';
-import '../model/ema_result.dart';
-import '../model/macd_result.dart';
+import '../model/results/bollinger_bands_result.dart';
+import '../model/results/ema_result.dart';
+import '../model/results/macd_result.dart';
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
 import '../model/indicator_schema.dart' as schema;
-import '../model/price_result.dart' as model;
-import '../model/sma_result.dart';
+import '../model/results/price_result.dart' as model;
+import '../model/results/sma_result.dart';
 
 part 'trading_service.g.dart';
 

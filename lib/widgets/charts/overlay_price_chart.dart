@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/price_result.dart';
+import '../../model/results/price_result.dart';
 
 class OverlayPriceChart extends OverlayChart {
   final IndexPrice data;

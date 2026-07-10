@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/price_result.dart';
+import 'package:invest_agent/model/results/price_result.dart';
 import 'package:invest_agent/model/trading_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
