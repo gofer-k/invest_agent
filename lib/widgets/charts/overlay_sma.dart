@@ -30,7 +30,7 @@ class OverlaySimpleMovingAverage extends OverlayChart {
     final visibleData = data.skip(firstVisibleIndex).toList();
     if (visibleData.isEmpty) return;
 
-    final minValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) <= (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
+    final minValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) < (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
     final maxValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) > (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
 
     if (minValue == maxValue) return;

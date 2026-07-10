@@ -48,8 +48,9 @@ dart pub global activate protoc_plugin
 - various signals: Golden/Death cross, EMA signal
 
 #BUGS:
+- Overlay chart doesn't save to multi chart cache (db) instead of default parameters ones!!!
 . Filter indicator's values by npt vale type = color 
-- Test indicator config dialog!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!:
+- Test indicator config dialog: MACD, ROC, RSI, KST, Volume, etc.
 1. pass indicator config's charts colors to overlay chart
 - extract new Indicator parameters in the backend server (all indicators except SMA) 
 - Incorrect Bollinger bands' results or chart's drawing!!

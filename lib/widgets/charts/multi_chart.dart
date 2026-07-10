@@ -1,9 +1,9 @@
 import 'dart:developer';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
-import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/overlay_ema.dart';
@@ -120,6 +120,34 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           _currentChartConfig = displayedCharts.first;
       }
 
+      /*
+      if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
+      setState(() {
+        log("Empty Displayed chart: $displayedCharts");
+        return _changeMultiChartConfig(
+            newPeriodType: _selectedPeriod,
+            newStyle: _selectedChartStyle,
+            newIndicator: _selectedIndicator);
+        }
+      );
+    }
+    else if (displayedCharts.isNotEmpty) {
+      final assetMultiChart = displayedCharts.firstWhereOrNull(
+        (chart){
+          log("Cached chart asset:  [${chart.asset.id} ${chart.asset.symbol}] vs widget.assetConfig:  [${widget.assetConfig.id} ${widget.assetConfig.symbol}]");
+          return chart.asset.id == widget.assetConfig.id;
+        }
+      );
+      if (assetMultiChart != null) {
+        _currentChartConfig = assetMultiChart.copyWith(newAsset: widget.assetConfig);
+        log("Cached asset's chart: $_currentChartConfig");
+      }
+      // // Sync local config state with what's actually being displayed to maintain ID
+      // else if (_currentChartConfig != displayedCharts.first) {
+      //   log("First cached chart: ${displayedCharts.first}");
+      //     _currentChartConfig = displayedCharts.first;
+      // }
+       */
       return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
@@ -310,22 +338,22 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         switch (result?.config.type) {
           case IndicatorType.sma:
             final smaResult = result as SmaResult;
-            final smaColors = smaResult.config.colors();
+            final smaColors = smaResult.config.visibleIndicatorColors();
             overlayCharts.add(OverlaySimpleMovingAverage(
                 data: smaResult.getPoints(),
                 smaColors: smaColors));
           case IndicatorType.ema:
             final emaResult = result as EmaResult;
+            final emaColors = emaResult.config.visibleIndicatorColors();
             overlayCharts.add(OverlayExponentialMovingAverage(
                 data: emaResult.getPoints(),
-                lineColor: AppTheme.rollingChartColor()));
+                emaColors: emaColors));
           case IndicatorType.bollingerBands:
             final bbResult = result as BollingerBandsResult;
+            final bbColors = bbResult.config.visibleIndicatorColors();
             overlayCharts.add(OverlayBollingerBand(
                 data: bbResult.getPoints(),
-                lowerBandColor: AppTheme.rollingChartColor(),
-                upperBandColor: AppTheme.rollingChartColor(),
-                medianBandColor: AppTheme.rollingChartColor()));
+                bollingerBandColors: bbColors));
 
           case _:
             overlayCharts.add(EmptyOverlayChart());

@@ -1,21 +1,19 @@
+import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/bollinger_bands_result.dart';
 
 class OverlayBollingerBand extends OverlayChart {
   final List<BollingerBands> data;
-  final Color lowerBandColor;
-  final Color upperBandColor;
-  final Color medianBandColor;
+  final Map<String, Color> bollingerBandColors;
   final double strokeWidth;
 
   OverlayBollingerBand({super.overlayType = OverlayType.bollingerBands,
     required this.data,
-    required this.lowerBandColor,
-    required this.upperBandColor,
-    required this.medianBandColor,
+    required this.bollingerBandColors,
     this.strokeWidth = 1.2});
 
   void _drawBand(Canvas canvas, Size size, List<BollingerBands> data, BollingerBandParam typeBand,  OverlayContext ctx) {
@@ -24,16 +22,16 @@ class OverlayBollingerBand extends OverlayChart {
 
     switch (typeBand) {
       case BollingerBandParam.upperBB:
-        lineSelectedColor = upperBandColor;
+        lineSelectedColor = bollingerBandColors[BollingerBandParam.upperBB.name] ?? Colors.green;
         valueSelector = (b) => b.upperBB;
         break;
       case BollingerBandParam.medianBB:
-        lineSelectedColor = medianBandColor;
+        lineSelectedColor = bollingerBandColors[BollingerBandParam.medianBB.name] ?? Colors.blue;
         valueSelector = (b) => b.medianBB;
         break;
       case BollingerBandParam.lowerBB:
       default:
-        lineSelectedColor = lowerBandColor;
+        lineSelectedColor = bollingerBandColors[BollingerBandParam.lowerBB.name] ?? Colors.red;
         valueSelector = (b) => b.lowerBB;
         break;
     }
@@ -57,8 +55,8 @@ class OverlayBollingerBand extends OverlayChart {
 
     if (values.isEmpty) return;
 
-    final minBandValue = values.reduce((a, b) => a < b ? a : b);
-    final maxBandValue = values.reduce((a, b) => a > b ? a : b);
+    final minBandValue = values.reduce((a, b) => min(a, b));
+    final maxBandValue = values.reduce((a, b) => max(a, b));
     final path = Path();
 
     bool isFirstPoint = true;
@@ -87,8 +85,14 @@ class OverlayBollingerBand extends OverlayChart {
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (size.width <= 0) return;
 
-    _drawBand(canvas, size, data, BollingerBandParam.lowerBB, ctx);
-    _drawBand(canvas, size, data, BollingerBandParam.upperBB, ctx);
-    _drawBand(canvas, size, data, BollingerBandParam.medianBB, ctx);
+    if (bollingerBandColors.containsKey(BollingerBandParam.lowerBB.name)) {
+      _drawBand(canvas, size, data, BollingerBandParam.lowerBB, ctx);
+    }
+    if (bollingerBandColors.containsKey(BollingerBandParam.upperBB.name)) {
+      _drawBand(canvas, size, data, BollingerBandParam.upperBB, ctx);
+    }
+    if (bollingerBandColors.containsKey(BollingerBandParam.medianBB.name)) {
+      _drawBand(canvas, size, data, BollingerBandParam.medianBB, ctx);
+    }
   }
 }

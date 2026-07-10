@@ -5,12 +5,12 @@ import '../../model/ema_result.dart';
 
 class OverlayExponentialMovingAverage extends OverlayChart {
   final List<ExponentialMovingAverage> data;
-  final Color lineColor;
+  final Map<String, Color> emaColors;
   final double strokeWidth;
 
   OverlayExponentialMovingAverage({super.overlayType = OverlayType.movingAverage,
     required this.data,
-    this.lineColor = Colors.blueAccent,
+    required this.emaColors,
     this.strokeWidth = 1.5});
 
   @override
@@ -18,7 +18,7 @@ class OverlayExponentialMovingAverage extends OverlayChart {
     if (size.width <= 0 || data.isEmpty) return;
 
     final paint = Paint()
-      ..color = lineColor
+      ..color = emaColors["chart"] ?? Colors.blue
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
@@ -30,7 +30,7 @@ class OverlayExponentialMovingAverage extends OverlayChart {
     final visibleData = data.skip(firstVisibleIndex).toList();
     if (visibleData.isEmpty) return;
 
-    final minValue = visibleData.reduce((curr, next) => (curr.maValue ?? 0.0) <= (next.maValue ?? 0.0) ? curr : next).maValue ?? 0.0;
+    final minValue = visibleData.reduce((curr, next) => (curr.maValue ?? 0.0) < (next.maValue ?? 0.0) ? curr : next).maValue ?? 0.0;
     final maxValue = visibleData.reduce((curr, next) => (curr.maValue ?? 0.0) > (next.maValue ?? 0.0) ? curr : next).maValue ?? 0.0;
 
     if (minValue == maxValue) return;
