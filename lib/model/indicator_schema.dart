@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'dart:convert';
@@ -195,9 +193,14 @@ class Indicator extends Cache {
   String toDetailedString() {
     var paramStr = '';
     parameters.forEach((param, values) {
-      final vals = values as Map<String, dynamic>;
-      if (param != "chart") {
-        paramStr = "$paramStr $param: ${vals[IndicatorParam.value.name]}";
+      if (values is Map) {
+        final vals = values as Map<String, dynamic>;
+        if (param != "chart") {
+          paramStr = "$paramStr $param: ${vals[IndicatorParam.value.name]}";
+        }
+      }
+      else {
+        paramStr = " $param: ${values.toString()}";
       }
     });
     return "$name$paramStr";
@@ -320,6 +323,26 @@ class Indicator extends Cache {
             colors[param] = Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
           }
         }
+      );
+    });
+    return colors;
+  }
+
+  Map<String, Color> visibleIndicatorColors() {
+    Map<String, Color> colors = {};
+    parameters.forEach((param, values) {
+      final paramsVals = values as Map<String, dynamic>;
+      paramsVals.forEach((k, v) {
+        if (k == IndicatorParam.type.name && v == IndicatorParamType.color.name) {
+          if(isVisible(paramsVals)) {
+            final String hexString = paramsVals[IndicatorParam.value.name]
+                .toString();
+            // Remove '#' and parse as a hex integer (radix 16)
+            colors[param] =
+                Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+          }
+        }
+      }
       );
     });
     return colors;
