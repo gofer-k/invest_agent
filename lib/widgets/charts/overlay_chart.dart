@@ -8,6 +8,7 @@ enum OverlayType {
   pattern,
   priceCandles,
   priceLine,
+  roc,
   rsi,
   signal,
   tooltipMarker,

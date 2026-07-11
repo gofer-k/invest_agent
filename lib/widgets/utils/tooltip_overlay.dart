@@ -56,6 +56,7 @@ class TooltipOverlay extends StatelessWidget {
       OverlayType.pattern => null,
       OverlayType.priceCandles => "Price: ",
       OverlayType.priceLine => "Price: ",
+      OverlayType.roc => "ROC: ",
       OverlayType.rsi => "RSI: ",
       OverlayType.signal => null,
       OverlayType.volume => "Volume: ",

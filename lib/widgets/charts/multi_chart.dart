@@ -6,6 +6,7 @@ import 'package:invest_agent/providers/trading_service.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/overlay_ema.dart';
+import 'package:invest_agent/widgets/charts/painters/overlay_roc.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
@@ -19,6 +20,7 @@ import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
 import '../../model/results/macd_result.dart';
 import '../../model/results/price_result.dart';
+import '../../model/results/roc_result.dart';
 import '../../model/results/rsi_result.dart';
 import '../../model/results/sma_result.dart';
 import '../../providers/load_database_provider.dart';
@@ -336,6 +338,16 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
               lowerBound: lowBound,
               upperBound: upperBound,
               baseLevel: baseLevel);
+          case IndicatorType.roc:
+            final rocResult = result as RocResult;
+            final rocColors = rocResult.config.visibleIndicatorColors();
+            final lowBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.lowerLimit.name]));
+            final upperBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.upperLimit.name]));
+            return OverlayRoc(
+                data: rocResult.getPoints(),
+                rocColors: rocColors,
+                lowerBound: lowBound,
+                upperBound: upperBound);
           case IndicatorType.macd:
             final macdResult = result as MacdResult;
             final macdColors = macdResult.config.visibleIndicatorColors();

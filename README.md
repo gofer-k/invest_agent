@@ -49,7 +49,7 @@ dart pub global activate protoc_plugin
 
 #BUGS:
 - Overlay chart doesn't save to multi chart cache (db) instead of default parameters ones!!!
-- Test indicator config dialog: MACD, ROC, KST, Volume, etc.
+- Test indicator config dialog: KST, Volume, etc.
 1. pass indicator config's charts colors to overlay chart
 - extract new Indicator parameters in the backend server (all indicators except SMA) 
 - Incorrect Bollinger bands' results or chart's drawing!!
