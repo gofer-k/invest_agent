@@ -16,9 +16,9 @@ enum RsiParam {
   middleLimit("middle limit"),
   rsiChart("rsi chart"),
   smoothRsi("smooth rsi"),
-  upperChart("upper chart"),
-  middleChart("middle chart"),
-  lowerChart("lower chart");
+  upperLevel("upper level"),
+  middleLevel("middle level"),
+  lowerLevel("lower level");
 
   final String name;
   const RsiParam(this.name);

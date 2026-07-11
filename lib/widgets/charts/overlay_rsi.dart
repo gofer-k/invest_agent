@@ -89,14 +89,14 @@ class OverlayRsi extends OverlayChart {
     }
     canvas.drawPath(path, paint);
 
-    if (lowerBound != null && rsiColors.containsKey(RsiParam.lowerChart.name)) {
-      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.lowerChart.name]!, level: lowerBound!, maxBound: maxValue, minBound: minValue);
+    if (lowerBound != null && rsiColors.containsKey(RsiParam.lowerLevel.name)) {
+      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.lowerLevel.name]!, level: lowerBound!, maxBound: maxValue, minBound: minValue);
     }
-    if (upperBound != null && rsiColors.containsKey(RsiParam.upperChart.name)) {
-      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.upperChart.name]!, level: upperBound!, maxBound: maxValue, minBound: minValue);
+    if (upperBound != null && rsiColors.containsKey(RsiParam.upperLevel.name)) {
+      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.upperLevel.name]!, level: upperBound!, maxBound: maxValue, minBound: minValue);
     }
-    if (baseLevel != null && rsiColors.containsKey(RsiParam.middleChart.name)) {
-      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.middleChart.name]!, level: baseLevel!, maxBound: maxValue, minBound: minValue);
+    if (baseLevel != null && rsiColors.containsKey(RsiParam.middleLevel.name)) {
+      _drawLimitLine(canvas, size, ctx, lineColor: rsiColors[RsiParam.middleLevel.name]!, level: baseLevel!, maxBound: maxValue, minBound: minValue);
     }
   }
 }
