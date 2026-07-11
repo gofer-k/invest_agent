@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
@@ -12,12 +11,14 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
+import '../../model/results/analysis_respond.dart';
 import '../../model/results/bollinger_bands_result.dart';
 import '../../model/results/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
 import '../../model/results/price_result.dart';
+import '../../model/results/rsi_result.dart';
 import '../../model/results/sma_result.dart';
 import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
@@ -26,6 +27,7 @@ import 'controllers/crosshair_controller.dart';
 import 'overlay_bollinger_band.dart';
 import 'overlay_chart.dart';
 import 'overlay_price_chart.dart';
+import 'overlay_rsi.dart';
 import 'overlay_sma.dart';
 import 'overlay_tooltip_marker.dart';
 
@@ -287,98 +289,66 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   OverlayChart _showMainChart(ChartConfig chart) {
-    if (chart.indicatorConfig.type == IndicatorType.price) {
-      return OverlayPriceChart(data: widget.priceData);
-    }
-    // TODO: load main's chart an other indicator's data
-    // final assetIndicatorResultAsync = ref.watch(assetIndicatorProvider(widget.assetConfig.id, chart.indicatorConfig));
-    // return assetIndicatorResultAsync.when(
-    //   data: (resultData) {
-    //     return LayoutBuilder(builder: (context, constraints) {
-    //       final indicatorResult = BaseIndicatorResult(
-    //         priceData : resultData,
-    //         config: chart.indicatorConfig,
-    //         style: chart.chartStyle,
-    //       );
-    //     };
-    //     return OverlayPriceChart(data: resultData, lineColor: AppTheme.of(context).indicatorRate);
-    //   },
-    //   error: (error, stackTrace) {
-    //     return EmptyOverlayChart();
-    //   },
-    //   loading: () {
-    //     return EmptyOverlayChart();
-    //   }
-    // );
-    return EmptyOverlayChart();
+    if(!chart.mainChart) return EmptyOverlayChart();
 
-
-    // return switch(chart.indicatorConfig?.type) {
-  //     IndicatorType.candlestickPrice =>
-  //       OverlayCandlestick(data: widget.results.getPriceData(widget.prefixDomain, _chartController.visibleStart, _chartController.visibleEnd)),
-  //     MainChartType.linePrice =>
-  //       OverlayPriceChart(data: widget.results.getPriceData(widget.prefixDomain, _chartController.visibleStart, _chartController.visibleEnd)),
-  //     MainChartType.macd => OverlayMacd(data: widget.results.getMacd(MACDType.MACD_12_26)),
-  //     MainChartType.volume => OverlayVolume(data: widget.results.getPriceData(widget.prefixDomain,  _chartController.visibleStart, _chartController.visibleEnd)),
-  //     MainChartType.rsi => OverlayRsi(data: widget.results.getRsi()),
-  //     // TODO: Handle this case.
-  //     MainChartType.bars => throw UnimplementedError(),
-  //   };
+    if (chart.indicatorConfig.type == IndicatorType.price) return OverlayPriceChart(data: widget.priceData);
+    return _showOverlayIndicatorChart(chart);
   }
 
-  List<OverlayChart> _showOverlayIndicatorCharts(ChartConfig chart) {
+  OverlayChart _showOverlayIndicatorChart(ChartConfig chart) {
     final indicatorResultAsync = ref.watch(indicatorResultProvider(
       prices: widget.priceData.priceData,
       indicator: chart.indicatorConfig,
     ));
 
-    List<OverlayChart> overlayCharts = [];
     return indicatorResultAsync.when(
       data: (result) {
         switch (result?.config.type) {
           case IndicatorType.sma:
             final smaResult = result as SmaResult;
             final smaColors = smaResult.config.visibleIndicatorColors();
-            overlayCharts.add(OverlaySimpleMovingAverage(
+            return OverlaySimpleMovingAverage(
                 data: smaResult.getPoints(),
-                smaColors: smaColors));
+                smaColors: smaColors);
           case IndicatorType.ema:
             final emaResult = result as EmaResult;
             final emaColors = emaResult.config.visibleIndicatorColors();
-            overlayCharts.add(OverlayExponentialMovingAverage(
+            return OverlayExponentialMovingAverage(
                 data: emaResult.getPoints(),
-                emaColors: emaColors));
+                emaColors: emaColors);
           case IndicatorType.bollingerBands:
             final bbResult = result as BollingerBandsResult;
             final bbColors = bbResult.config.visibleIndicatorColors();
-            overlayCharts.add(OverlayBollingerBand(
+            return OverlayBollingerBand(
                 data: bbResult.getPoints(),
-                bollingerBandColors: bbColors));
+                bollingerBandColors: bbColors);
           case IndicatorType.rsi:
             final rsiResult = result as RsiResult;
             final rsiColors = rsiResult.config.visibleIndicatorColors();
-            overlayCharts.add(OverlayRsi(
-                data: rsiResult.getPoints(), rsiColors: rsiColors));
-
+            final lowBound = parseNum(rsiResult.config.parameters[RsiParam.lowerLimit.name]);
+            final upperBound = parseNum(rsiResult.config.parameters[RsiParam.upperLimit.name]);
+            final baseLevel = parseNum(rsiResult.config.parameters[RsiParam.middleLimit.name]);
+            return OverlayRsi(
+              data: rsiResult.getPoints(),
+              rsiColors: rsiColors,
+              lowerBound: lowBound,
+              upperBound: upperBound,
+              baseLevel: baseLevel);
           case _:
-            overlayCharts.add(EmptyOverlayChart());
+            return EmptyOverlayChart();
         }
-        return overlayCharts;
       },
       error: (error, stackTrace) {
         log("Error loading indicator: $error");
-        return [EmptyOverlayChart()];
+        return EmptyOverlayChart();
       },
-      loading: () => [EmptyOverlayChart()],
+      loading: () => EmptyOverlayChart(),
     );
   }
 
-  // OverlayChart _showOverlayChart(ChartConfig chart) {
-    //TODO: Display overlay supplement chart
-    // return switch (chartType) {
-  //     SupplementChart.obv =>
-  //       OverlayOBV(data: widget.results.getPriceData(20, _chartController.visibleStart, _chartController.visibleEnd)),
-  // }
+  List<OverlayChart> _showOverlayIndicatorCharts(ChartConfig chart) {
+    return [_showOverlayIndicatorChart(chart)];
+  }
 
   double _getMaxValue(Indicator indicator, DateTime? startDate,
       DateTime? endDate) {
