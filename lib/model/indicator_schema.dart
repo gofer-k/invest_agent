@@ -195,12 +195,13 @@ class Indicator extends Cache {
     parameters.forEach((param, values) {
       if (values is Map) {
         final vals = values as Map<String, dynamic>;
-        if (param != "chart") {
+        final parmaTYpe = vals[IndicatorParam.type.name];
+        if (parmaTYpe != IndicatorParamType.color.name) {
           paramStr = "$paramStr $param: ${vals[IndicatorParam.value.name]}";
         }
       }
       else {
-        paramStr = " $param: ${values.toString()}";
+        paramStr = "$paramStr $param: ${values.toString()}";
       }
     });
     return "$name$paramStr";
@@ -331,19 +332,21 @@ class Indicator extends Cache {
   Map<String, Color> visibleIndicatorColors() {
     Map<String, Color> colors = {};
     parameters.forEach((param, values) {
-      final paramsVals = values as Map<String, dynamic>;
-      paramsVals.forEach((k, v) {
-        if (k == IndicatorParam.type.name && v == IndicatorParamType.color.name) {
-          if(isVisible(paramsVals)) {
-            final String hexString = paramsVals[IndicatorParam.value.name]
-                .toString();
-            // Remove '#' and parse as a hex integer (radix 16)
-            colors[param] =
-                Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+      if (values is Map) {
+        final paramsVals = values as Map<String, dynamic>;
+        paramsVals.forEach((k, v) {
+          if (k == IndicatorParam.type.name &&
+              v == IndicatorParamType.color.name) {
+            if (isVisible(paramsVals)) {
+              final String hexString = paramsVals[IndicatorParam.value.name]
+                  .toString();
+              // Remove '#' and parse as a hex integer (radix 16)
+              colors[param] =
+                  Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+            }
           }
-        }
+        });
       }
-      );
     });
     return colors;
   }
