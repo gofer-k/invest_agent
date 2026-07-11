@@ -301,34 +301,6 @@ class AnalysisRespond {
   //   return max(maxMacd, maxSignal);
   // }
 
-  List<RSI> getRsi() {
-    final rsi = <RSI>[];
-    // for (var indicator in indicators) {
-    //   rsi.add(indicator.rsi);
-    // }
-    return rsi;
-  }
-
-  List<RSI> getRsiFiltered(int prefixWindow, DateTime startDate, DateTime endDate) {
-    final rsi = <RSI>[];
-    // for (var indicator in indicators) {
-    //   if (indicator.rsi.dateTime.isAfter(startDate) && indicator.rsi.dateTime.isBefore(endDate)) {
-    //     rsi.add(indicator.rsi);
-    //   }
-    // }
-    return rsi;
-  }
-
-  double getMinRsi(DateTime? startDate, DateTime? endDate) {
-    final data = (startDate != null && endDate != null) ? getRsiFiltered(0, startDate, endDate) : getRsi();
-    return data.reduce((value, element) => value.rsi <= element.rsi ? value : element).rsi;
-  }
-
-  double getMaxRsi(DateTime? startDate, DateTime? endDate) {
-    final data = (startDate != null && endDate != null) ? getRsiFiltered(0, startDate, endDate) : getRsi();
-    return data.reduce((value, element) => value.rsi > element.rsi ? value : element).rsi;
-  }
-
   static AnalysisRespond? fromJsonSync(Map<String, dynamic> jsonMap) {
     // final indicators = <Indicators>[];
     final candles = <CandleStickItem>[];
