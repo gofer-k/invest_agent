@@ -325,9 +325,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           case IndicatorType.rsi:
             final rsiResult = result as RsiResult;
             final rsiColors = rsiResult.config.visibleIndicatorColors();
-            final lowBound = parseNum(rsiResult.config.parameters[RsiParam.lowerLimit.name]);
-            final upperBound = parseNum(rsiResult.config.parameters[RsiParam.upperLimit.name]);
-            final baseLevel = parseNum(rsiResult.config.parameters[RsiParam.middleLimit.name]);
+            final lowBound = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.lowerLimit.name]));
+            final upperBound = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.upperLimit.name]));
+            final baseLevel = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.middleLimit.name]));
             return OverlayRsi(
               data: rsiResult.getPoints(),
               rsiColors: rsiColors,
