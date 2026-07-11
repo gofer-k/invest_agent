@@ -10,34 +10,40 @@ enum _OverlayType {
 }
 
 class OverlayMacd extends OverlayChart {
-  final MacdResult data;
-  // final List<MACD> data;
-  final Color signalColor;
-  final Color macdColor;
-  final Color upColor;
-  final Color downColor;
+  final List<MovingAverageConvergenceDivergence> data;
+  final Map<String, Color> macdColors;
+  // final Color signalColor;
+  // final Color macdColor;
+  // final Color upColor;
+  // final Color downColor;
   final double lineWidth;
   final double barWidth;
 
   OverlayMacd({super.overlayType = OverlayType.macd,
     required this.data,
-    this.signalColor = Colors.orangeAccent,
-    this.macdColor = Colors.blueAccent,
-    this.upColor = Colors.greenAccent,
-    this.downColor = Colors.redAccent,
+    required this.macdColors,
+    // this.signalColor = Colors.orangeAccent,
+    // this.macdColor = Colors.blueAccent,
+    // this.upColor = Colors.greenAccent,
+    // this.downColor = Colors.redAccent,
     this.lineWidth = 1.2,
     this.barWidth = 4.0});
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0 || data.data.isEmpty) return;
+    if (size.width <= 0 || data.isEmpty) return;
 
-    Size valuesSize = Size(size.width, size.height * 0.66);
-    _paintCurve(ctx, canvas, valuesSize, signalColor, _OverlayType.signal);
-    _paintCurve(ctx, canvas, size, macdColor, _OverlayType.indicatorValue);
-
-    Size histogramSize = Size(size.width, size.height * 0.33);
-    _paintHistogram(ctx, canvas, histogramSize);
+    Size valuesSize = Size(size.width, size.height * 0.75);
+    if (macdColors.containsKey(MacdParam.signal.name)) {
+      _paintCurve(ctx, canvas, valuesSize, macdColors[MacdParam.signal.name]!, _OverlayType.signal);
+    }
+    if (macdColors.containsKey(MacdParam.macd.name)) {
+      _paintCurve(ctx, canvas, size, macdColors[MacdParam.macd.name]!, _OverlayType.indicatorValue);
+    }
+    if(macdColors.containsKey(MacdParam.histUp.name) && macdColors.containsKey(MacdParam.histDown.name)) {
+      Size histogramSize = Size(size.width, size.height * 0.25);
+      _paintHistogram(ctx, canvas, histogramSize);
+    }
   }
 
   void _paintCurve(OverlayContext ctx, Canvas canvas, Size size, Color lineColor, _OverlayType type) {
@@ -46,25 +52,14 @@ class OverlayMacd extends OverlayChart {
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    /*
-     double minMacd = filtered.isEmpty
-        ? 0
-        : filtered.map((p) => p.macd ?? double.infinity).reduce(min);
-    double minSignal = filtered.isEmpty
-        ? 0
-        : filtered.map((p) => p.signal ?? double.infinity).reduce(min);
-    return min(minMacd, minSignal);
-     */
-    final visibleData = data.data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
     if (visibleData.isEmpty) return;
 
     final minValue = switch(type) {
-      // _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal! <= next.signal ? curr : next).signal,
       _OverlayType.signal => visibleData.map((p) => p.signal ?? double.infinity).reduce(min),
       _OverlayType.indicatorValue => visibleData.map((p) => p.macd ?? double.infinity).reduce(min),
     };
     final maxValue = switch(type) {
-      // _OverlayType.signal => visibleData.reduce((curr, next) => curr.signal! >= next.signal ? curr : next).signal,
       _OverlayType.signal => visibleData.map((p) => p.signal ?? -double.infinity).reduce(max),
       _OverlayType.indicatorValue => visibleData.map((p) => p.macd ?? -double.infinity).reduce(max),
     };
@@ -91,28 +86,31 @@ class OverlayMacd extends OverlayChart {
 
   void _paintHistogram(OverlayContext ctx, Canvas canvas, Size size) {
     final painHistUp = Paint()
-      ..color = upColor
+      ..color = macdColors[MacdParam.histUp.name] ?? Colors.greenAccent
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
     final painHistDown = Paint()
-      ..color = downColor
+      ..color = macdColors[MacdParam.histDown.name] ?? Colors.redAccent
       ..strokeWidth = barWidth
       ..strokeCap = StrokeCap.butt;
 
-    final visibleData = data.data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = data.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
     if (visibleData.isEmpty) return;
 
     double maxHistAbs = visibleData.map((e) => e.hist?.abs() ?? 0.0).reduce(max);
     if (maxHistAbs == 0) return;
 
-    final halfHeight = size.height * 0.5;
-    final zeroY = halfHeight;
+    final chartBottom = size.height * 0.75; // The absolute bottom of the canvas
+    final histAreaHeight = size.height;  // This is totalHeight * 0.25
+    final zeroY = chartBottom + (histAreaHeight / 2); // Center of the 25% area
+
     for (final macd in visibleData) {
       final x = ctx.dateToPos(macd.dateTime, size);
-      final inMasc = macd.macd ?? 0.0;
-      final hist = (inMasc / maxHistAbs) * halfHeight;
-      canvas.drawLine(Offset(x, zeroY), Offset(x, zeroY - hist), inMasc >= 0 ? painHistUp : painHistDown);
+      final val = macd.hist ?? 0.0;
+      final scaledHeight = (val / maxHistAbs) * (histAreaHeight / 2);
+      final yTarget = zeroY - scaledHeight;
+      canvas.drawLine(Offset(x, zeroY), Offset(x, yTarget), val >= 0 ? painHistUp : painHistDown);
     }
   }
 }

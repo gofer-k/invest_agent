@@ -17,6 +17,7 @@ import '../../model/results/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
+import '../../model/results/macd_result.dart';
 import '../../model/results/price_result.dart';
 import '../../model/results/rsi_result.dart';
 import '../../model/results/sma_result.dart';
@@ -26,6 +27,7 @@ import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_bollinger_band.dart';
 import 'overlay_chart.dart';
+import 'overlay_macd.dart';
 import 'overlay_price_chart.dart';
 import 'overlay_rsi.dart';
 import 'overlay_sma.dart';
@@ -334,6 +336,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
               lowerBound: lowBound,
               upperBound: upperBound,
               baseLevel: baseLevel);
+          case IndicatorType.macd:
+            final macdResult = result as MacdResult;
+            final macdColors = macdResult.config.visibleIndicatorColors();
+            return OverlayMacd(data: macdResult.getPoints(), macdColors: macdColors);
           case _:
             return EmptyOverlayChart();
         }

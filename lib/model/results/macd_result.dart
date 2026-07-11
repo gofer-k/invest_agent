@@ -6,50 +6,59 @@ import 'analysis_respond.dart';
 import '../indicator_result.dart';
 import 'package:collection/collection.dart';
 
+enum MacdParam {
+  // -- Input parameters
+  fast("fast"),
+  slow("slow"),
+  sigWindow("sig_window"),
+  histUp("hist up"),
+  histDown("hist down"),
+  //  -- Output parameters
+  macd("macd"),
+  signal("signal"),
+  hist("hist");
+  final String name;
+  const MacdParam(this.name);
+}
+
 class MovingAverageConvergenceDivergence extends BaseIndicatorValue {
   final double? macd;
   final double? signal;
   final double? hist;
-  final int? window;
-  // {"fast": [9], "slow": [26]
 
   MovingAverageConvergenceDivergence({
     required super.dateTime,
     required this.macd,
     required this.signal,
-    required this.hist,
-    required this.window,});
+    required this.hist});
 
   factory MovingAverageConvergenceDivergence.fromType(
       DateTime dateTime,
       {macd = double, signal = double, hist = double, window = int}) {
     return MovingAverageConvergenceDivergence(
-        dateTime: dateTime, macd: macd, signal: signal, hist: hist, window: window);
+        dateTime: dateTime, macd: macd, signal: signal, hist: hist);
   }
 
   static MovingAverageConvergenceDivergence? fromJson(
       DateTime dateTime, Map<String, dynamic> jsonMap, String jsonMacdType) {
-    final macd = parseNum(jsonMap['value']);
-    final signal = parseNum(jsonMap['signal']);
-    final hist = parseNum(jsonMap['hist']);
-    final window = jsonMap['window'] as int?;
-    if (macd != null && signal != null && hist != null && window != null) {
+    final macd = parseNum(jsonMap[MacdParam.macd.name]);
+    final signal = parseNum(jsonMap[MacdParam.signal.name]);
+    final hist = parseNum(jsonMap[MacdParam.hist.name]);
+    if (macd != null && signal != null && hist != null) {
       return MovingAverageConvergenceDivergence(
           dateTime: dateTime,
           macd: macd,
           signal: signal,
           hist: hist,
-          window: window,
       );
     }
     return null;
   }
 
   Map<String, dynamic> toJson() => {
-    "value": macd,
-    "signal": signal,
-    "hist": hist,
-    "window": window,
+    MacdParam.macd.name: macd,
+    MacdParam.signal.name: signal,
+    MacdParam.hist.name: hist,
   };
 }
 
@@ -61,6 +70,8 @@ class MacdResult extends BaseIndicatorResult {
     required super.config,
     required this.data,
   });
+
+  List<MovingAverageConvergenceDivergence> getPoints() => data;
 
   factory MacdResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
     final style = ChartStyle.values.firstWhereOrNull(
@@ -77,10 +88,9 @@ class MacdResult extends BaseIndicatorResult {
     final data = protoResult.points.map((p) {
       return MovingAverageConvergenceDivergence(
         dateTime: p.dateTime.toDateTime(),
-        macd: p.values['value'] ?? 0.0,
-        signal: p.values['signal'] ?? 0.0,
-        hist: p.values['hist'] ?? 0.0,
-        window: (config.parameters['window'] as num?)?.toInt(),
+        macd: p.values[MacdParam.macd.name] ?? 0.0,
+        signal: p.values[MacdParam.signal.name] ?? 0.0,
+        hist: p.values[MacdParam.hist.name] ?? 0.0,
       );
     }).toList();
 
