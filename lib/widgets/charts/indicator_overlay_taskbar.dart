@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../../model/indicator_schema.dart';
 
@@ -26,12 +28,21 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
 
     // Early return for the collapsed state
     if (!_showTaskBar) {
+      final fullIndicatorText = widget.indicator.toDetailedString();
       return TextButton(
         onPressed: () => setState(() => _showTaskBar = true),
-        child: Text(
-          widget.indicator.toDetailedString(),
-          style: textStyle,
-        ),
+        child: SizedBox(width: min(fullIndicatorText.length.toDouble(), 120.0),
+          child: Tooltip(
+            message: fullIndicatorText,
+            waitDuration: const Duration(milliseconds: 500),
+            child: Text(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              widget.indicator.toDetailedString(),
+              style: textStyle,
+            ),
+          ),
+        )
       );
     }
 
@@ -46,8 +57,12 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Text(widget.indicator.toDetailedString(),
+            Flexible(child: Text(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              widget.indicator.toDetailedString(),
               style: TextStyle(color: Colors.white.withAlpha(128))),
+            ),
             IconButton(
               onPressed: () {
                 widget.onChange();
