@@ -17,6 +17,7 @@ import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/indicator_result.dart';
 import '../model/indicator_schema.dart' as schema;
 import '../model/results/price_result.dart' as model;
+import '../model/results/rsi_result.dart';
 import '../model/results/sma_result.dart';
 
 part 'trading_service.g.dart';
@@ -217,6 +218,7 @@ class TradingService extends _$TradingService {
       schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
       schema.IndicatorType.macd => MacdResult.fromProto(series, indicatorType),
+      schema.IndicatorType.rsi => RsiResult.fromProto(series, indicatorType),
       // schema.IndicatorType.bellingerBands
       _ => null,
     };
