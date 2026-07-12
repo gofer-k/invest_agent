@@ -11,6 +11,7 @@ class ExponentialMovingAverage extends BaseIndicatorValue {
   final int? rollingWindow;
 
   ExponentialMovingAverage({required super.dateTime, this.maValue, this.rollingWindow});
+
   static ExponentialMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
     final value = parseNum(jsonMap['value']);
     final rollingWindow = parseNum(jsonMap["window"]);

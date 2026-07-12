@@ -40,7 +40,7 @@ class MovingAverageConvergenceDivergence extends BaseIndicatorValue {
   }
 
   static MovingAverageConvergenceDivergence? fromJson(
-      DateTime dateTime, Map<String, dynamic> jsonMap, String jsonMacdType) {
+      DateTime dateTime, Map<String, dynamic> jsonMap) {
     final macd = parseNum(jsonMap[MacdParam.macd.name]);
     final signal = parseNum(jsonMap[MacdParam.signal.name]);
     final hist = parseNum(jsonMap[MacdParam.hist.name]);
