@@ -50,6 +50,7 @@ class TooltipOverlay extends StatelessWidget {
   String formatValue(TooltipItem item) {
     final String? text = switch (item.overlayType) {
       OverlayType.bollingerBands => "BB price:",
+      OverlayType.kst => "KST: ",
       OverlayType.macd => "MACD:",
       OverlayType.movingAverage => "SMA:",
       OverlayType.obv => null,

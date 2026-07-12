@@ -6,7 +6,7 @@ import 'package:invest_agent/providers/trading_service.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/overlay_ema.dart';
-import 'package:invest_agent/widgets/charts/painters/overlay_roc.dart';
+import 'package:invest_agent/widgets/charts/overlay_roc.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
@@ -18,6 +18,7 @@ import '../../model/results/ema_result.dart';
 import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
+import '../../model/results/kst_result.dart';
 import '../../model/results/macd_result.dart';
 import '../../model/results/price_result.dart';
 import '../../model/results/roc_result.dart';
@@ -29,6 +30,7 @@ import '../indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_bollinger_band.dart';
 import 'overlay_chart.dart';
+import 'overlay_kst.dart';
 import 'overlay_macd.dart';
 import 'overlay_price_chart.dart';
 import 'overlay_rsi.dart';
@@ -308,24 +310,44 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     return indicatorResultAsync.when(
       data: (result) {
         switch (result?.config.type) {
-          case IndicatorType.sma:
-            final smaResult = result as SmaResult;
-            final smaColors = smaResult.config.visibleIndicatorColors();
-            return OverlaySimpleMovingAverage(
-                data: smaResult.getPoints(),
-                smaColors: smaColors);
-          case IndicatorType.ema:
-            final emaResult = result as EmaResult;
-            final emaColors = emaResult.config.visibleIndicatorColors();
-            return OverlayExponentialMovingAverage(
-                data: emaResult.getPoints(),
-                emaColors: emaColors);
           case IndicatorType.bollingerBands:
             final bbResult = result as BollingerBandsResult;
             final bbColors = bbResult.config.visibleIndicatorColors();
             return OverlayBollingerBand(
                 data: bbResult.getPoints(),
                 bollingerBandColors: bbColors);
+          case IndicatorType.ema:
+            final emaResult = result as EmaResult;
+            final emaColors = emaResult.config.visibleIndicatorColors();
+            return OverlayExponentialMovingAverage(
+                data: emaResult.getPoints(),
+                emaColors: emaColors);
+          case IndicatorType.kst:
+            final kstResult = result as KstResult;
+            final kstColors = kstResult.config.visibleIndicatorColors();
+            return OverlayKnowSureThing(
+                points: kstResult.getPoints(),
+                kstColors: kstColors);
+          case IndicatorType.macd:
+            final macdResult = result as MacdResult;
+            final macdColors = macdResult.config.visibleIndicatorColors();
+            return OverlayMacd(data: macdResult.getPoints(), macdColors: macdColors);
+          case IndicatorType.sma:
+            final smaResult = result as SmaResult;
+            final smaColors = smaResult.config.visibleIndicatorColors();
+            return OverlaySimpleMovingAverage(
+                data: smaResult.getPoints(),
+                smaColors: smaColors);
+          case IndicatorType.roc:
+            final rocResult = result as RocResult;
+            final rocColors = rocResult.config.visibleIndicatorColors();
+            final lowBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.lowerLimit.name]));
+            final upperBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.upperLimit.name]));
+            return OverlayRoc(
+                data: rocResult.getPoints(),
+                rocColors: rocColors,
+                lowerBound: lowBound,
+                upperBound: upperBound);
           case IndicatorType.rsi:
             final rsiResult = result as RsiResult;
             final rsiColors = rsiResult.config.visibleIndicatorColors();
@@ -338,20 +360,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
               lowerBound: lowBound,
               upperBound: upperBound,
               baseLevel: baseLevel);
-          case IndicatorType.roc:
-            final rocResult = result as RocResult;
-            final rocColors = rocResult.config.visibleIndicatorColors();
-            final lowBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.lowerLimit.name]));
-            final upperBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.upperLimit.name]));
-            return OverlayRoc(
-                data: rocResult.getPoints(),
-                rocColors: rocColors,
-                lowerBound: lowBound,
-                upperBound: upperBound);
-          case IndicatorType.macd:
-            final macdResult = result as MacdResult;
-            final macdColors = macdResult.config.visibleIndicatorColors();
-            return OverlayMacd(data: macdResult.getPoints(), macdColors: macdColors);
           case _:
             return EmptyOverlayChart();
         }
