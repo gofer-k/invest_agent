@@ -37,8 +37,7 @@ class Rsi extends BaseIndicatorValue {
     return Rsi(dateTime: dateTime, rsi: rsi, window: window);
   }
 
-  static Rsi? fromJson(
-      DateTime dateTime, Map<String, dynamic> jsonMap, String jsonMacdType) {
+  static Rsi? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
     final rsi = parseNum(jsonMap[RsiParam.rsi.name]);
     final window = jsonMap[RsiParam.window.name] as int?;
     if (rsi != null && window != null) {

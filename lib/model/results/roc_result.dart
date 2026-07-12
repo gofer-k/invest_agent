@@ -35,7 +35,7 @@ class Roc extends BaseIndicatorValue {
   }
 
   static Roc? fromJson(
-      DateTime dateTime, Map<String, dynamic> jsonMap, String jsonMacdType) {
+      DateTime dateTime, Map<String, dynamic> jsonMap) {
     final roc = parseNum(jsonMap[RocParam.roc.name]);
     final window = jsonMap[RocParam.window.name] as int?;
     if (roc != null && window != null) {

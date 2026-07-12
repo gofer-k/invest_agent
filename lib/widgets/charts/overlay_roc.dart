@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../model/results/roc_result.dart';
-import '../../../utils/chart_utils.dart';
-import '../overlay_chart.dart';
+import '../../model/results/roc_result.dart';
+import '../../utils/chart_utils.dart';
+import 'overlay_chart.dart';
 
 class OverlayRoc extends OverlayChart {
   final List<Roc> data;
