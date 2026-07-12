@@ -10,6 +10,7 @@ enum KstParam {
   // -- input parameters
   roc("roc"),
   sma("sma"),
+  signalPeriod("signal period"),
   upperLimit("upper limit"),
   lowerLimit("lower limit"),
   kstChart("chart"),

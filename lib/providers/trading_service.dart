@@ -11,6 +11,7 @@ import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
 import '../model/results/bollinger_bands_result.dart';
 import '../model/results/ema_result.dart';
+import '../model/results/kst_result.dart';
 import '../model/results/macd_result.dart';
 import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
@@ -215,14 +216,14 @@ class TradingService extends _$TradingService {
   BaseIndicatorResult? _mapSeries($pb.IndicatorSeries series) {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
     return switch (indicatorType) {
-      schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
-      schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
+      schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
+      schema.IndicatorType.kst => KstResult.fromProto(series, indicatorType),
       schema.IndicatorType.macd => MacdResult.fromProto(series, indicatorType),
-      schema.IndicatorType.rsi => RsiResult.fromProto(series, indicatorType),
       schema.IndicatorType.roc => RocResult.fromProto(series, indicatorType),
+      schema.IndicatorType.rsi => RsiResult.fromProto(series, indicatorType),
+      schema.IndicatorType.sma => SmaResult.fromProto(series, indicatorType),
       // schema.IndicatorType.volume => VolumeResult.fromProto(series, indicatorType),
-      // schema.IndicatorType.kst => KstResult.fromProto(series, indicatorType),
       _ => null,
     };
   }
