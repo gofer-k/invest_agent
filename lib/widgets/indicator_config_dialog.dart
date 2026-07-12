@@ -127,34 +127,63 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     }
     else if (parameter.value is List) {
       final list = parameter.value as List;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child:
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-            DropdownList<String>(
-              onSelected: (item) {
-                setState(() {
-                  parameters[parameter.key] = Indicator.updateParameterValue(parameter.value, item);
-                });
-              },
-              choiceType: list.first.toString(),
-              choices: list.map((e) => e.toString()).toList(),
-              backgroundColor: Colors.transparent,
-            ),
-          ]
-         ),
-      );
-    }
-
+      // List structured parameter
+      if (list.every((e) => e is Map)) {
+        return Column(
+          children: list.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map itemMap = entry.value as Map;
+            String innerKey = itemMap.keys.first;
+            dynamic innerValue = itemMap.values.first;
+            return _editIndicatorParameter(
+                context,
+                MapEntry(innerKey, innerValue),
+                onChanged: (newValue) {
+                  setState(() {
+                    final newList = List.from(list);
+                    // Update the specific inner map value
+                    newList[index] = {
+                      innerKey: Indicator.updateParameterValue(innerValue, newValue)
+                    };
+                    parameters[parameter.key] = newList;
+                  });
+                }
+            );
+          }).toList(),
+        );
+      }
+      else {
+        // List trivial parameter, e.g. list of string
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+              DropdownList<String>(
+                onSelected: (item) {
+                  setState(() {
+                    parameters[parameter.key] = Indicator.updateParameterValue(parameter.value, item);
+                  });
+                },
+                choiceType: list.first.toString(),
+                choices: list.map((e) => e.toString()).toList(),
+                backgroundColor: Colors.transparent,
+              ),
+            ]
+           ),
+        );
+      }
+      }
+    // Simple parameter
     return _editIndicatorParameter(context, parameter);
   }
 
   Widget _editIndicatorParameter(
-      BuildContext context,
-      MapEntry<String, dynamic> parameter) {
+    BuildContext context,
+    MapEntry<String, dynamic> parameter,
+    { void Function(dynamic)? onChanged} ) {
 
     final value = parameter.value;
     final bool isEditable = Indicator.isEditable(value);
@@ -192,9 +221,14 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 ),
                 keyboardType: keyboardType,
                 onChanged: (v) {
-                  setState(() {
-                    parameters[parameter.key] = Indicator.updateParameterValue(value, v);
-                  });
+                  if (onChanged != null) {
+                    onChanged(v); // Use the custom callback for nested items
+                  } else {
+                    setState(() {
+                      parameters[parameter.key] =
+                          Indicator.updateParameterValue(value, v);
+                    });
+                  }
                 },
               ),
             ),
