@@ -191,20 +191,36 @@ class Indicator extends Cache {
   String toString() => name;
 
   String toDetailedString() {
-    var paramStr = '';
-    parameters.forEach((param, values) {
-      if (values is Map) {
-        final vals = values as Map<String, dynamic>;
-        final parmaTYpe = vals[IndicatorParam.type.name];
-        if (parmaTYpe != IndicatorParamType.color.name) {
-          paramStr = "$paramStr $param: ${vals[IndicatorParam.value.name]}";
+    String result = name;
+
+    String formatMap(String key, Map<String, dynamic> map) {
+      final type = map[IndicatorParam.type.name];
+      if (type == IndicatorParamType.color.name) return "";
+
+      final value = map[IndicatorParam.value.name];
+      if (value == null) return "";
+
+      return " $key $value";
+    }
+
+    parameters.forEach((key, value) {
+      if (value is Map<String, dynamic>) {
+        result += formatMap(key, value);
+      } else if (value is List) {
+        for (final item in value) {
+          if (item is Map<String, dynamic>) {
+            item.forEach((subKey, subValue) {
+              if (subValue is Map<String, dynamic>) {
+                result += formatMap(subKey, subValue);
+              }
+            });
+          } else if (item != null) {
+            result += " $key: $item";
+          }
         }
       }
-      else {
-        paramStr = "$paramStr $param: ${values.toString()}";
-      }
     });
-    return "$name$paramStr";
+    return result;
   }
 
   // --- Static Helpers for JSON Config Schema ---
@@ -314,41 +330,41 @@ class Indicator extends Cache {
   }
 
   Map<String, Color> colors() {
-    Map<String, Color> colors = {};
-    parameters.forEach((param, values) {
-      final paramsVals = values as Map<String, dynamic>;
-      paramsVals.forEach((k, v) {
-          if (k == IndicatorParam.type.name && v == IndicatorParamType.color.name) {
-            final String hexString = paramsVals[IndicatorParam.value.name].toString();
-            // Remove '#' and parse as a hex integer (radix 16)
-            colors[param] = Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+    final Map<String, Color> result = {};
+    parameters.forEach((param, value) {
+      if (value is Map<String, dynamic>) {
+        if (value[IndicatorParam.type.name] == IndicatorParamType.color.name) {
+          final colorValue = value[IndicatorParam.value.name];
+          if (colorValue != null) {
+            final hexString = colorValue.toString().replaceFirst('#', '');
+            try {
+              result[param] = Color(int.parse(hexString, radix: 16));
+            } catch (_) {}
           }
         }
-      );
+      }
     });
-    return colors;
+    return result;
   }
 
   Map<String, Color> visibleIndicatorColors() {
-    Map<String, Color> colors = {};
-    parameters.forEach((param, values) {
-      if (values is Map) {
-        final paramsVals = values as Map<String, dynamic>;
-        paramsVals.forEach((k, v) {
-          if (k == IndicatorParam.type.name &&
-              v == IndicatorParamType.color.name) {
-            if (isVisible(paramsVals)) {
-              final String hexString = paramsVals[IndicatorParam.value.name]
-                  .toString();
-              // Remove '#' and parse as a hex integer (radix 16)
-              colors[param] =
-                  Color(int.parse(hexString.replaceFirst('#', ''), radix: 16));
+    final Map<String, Color> result = {};
+    parameters.forEach((param, value) {
+      if (value is Map<String, dynamic>) {
+        if (value[IndicatorParam.type.name] == IndicatorParamType.color.name) {
+          if (isVisible(value)) {
+            final colorValue = value[IndicatorParam.value.name];
+            if (colorValue != null) {
+              final hexString = colorValue.toString().replaceFirst('#', '');
+              try {
+                result[param] = Color(int.parse(hexString, radix: 16));
+              } catch (_) {}
             }
           }
-        });
+        }
       }
     });
-    return colors;
+    return result;
   }
 
   bool isDefault() {

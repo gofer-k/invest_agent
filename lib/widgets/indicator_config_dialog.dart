@@ -141,7 +141,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 onChanged: (newValue) {
                   setState(() {
                     final newList = List.from(list);
-                    // Update the specific inner map value
+                      // Update the specific inner map value
                     newList[index] = {
                       innerKey: Indicator.updateParameterValue(innerValue, newValue)
                     };
