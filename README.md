@@ -48,7 +48,7 @@ dart pub global activate protoc_plugin
 - various signals: Golden/Death cross, EMA signal
 
 #BUGS:
-- fix compute and/or display KST curves (signal and kst)
+- display detailed indicator structured parameters
 - Overlay chart doesn't save to multi chart cache (db) instead of default parameters ones!!!
 - Test indicator config dialog: KST, Volume, etc.
 1. pass indicator config's charts colors to overlay chart
