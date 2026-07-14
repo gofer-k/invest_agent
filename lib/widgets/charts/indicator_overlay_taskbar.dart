@@ -29,9 +29,10 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
     // Early return for the collapsed state
     if (!_showTaskBar) {
       final fullIndicatorText = widget.indicator.toDetailedString();
+      final textSize =  _calculateTextSize(fullIndicatorText, textStyle);
       return TextButton(
         onPressed: () => setState(() => _showTaskBar = true),
-        child: SizedBox(width: min(fullIndicatorText.length.toDouble(), 120.0),
+        child: SizedBox(width: min(textSize.width.toDouble(), 120.0),
           child: Tooltip(
             message: fullIndicatorText,
             waitDuration: const Duration(milliseconds: 500),
@@ -47,7 +48,7 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
         color: Theme.of(context).focusColor,
         borderRadius: BorderRadius.circular(4),
@@ -86,5 +87,14 @@ class _IndicatorOverlayTaskbarState extends State<IndicatorOverlayTaskbar> {
           ]
         )
     );
+  }
+
+  Size _calculateTextSize(String text, TextStyle style) {
+    final TextPainter textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(minWidth: 0, maxWidth: double.infinity); // Perform layout calculation
+    return textPainter.size;
   }
 }
