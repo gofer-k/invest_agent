@@ -231,8 +231,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
     showIndicator(context, currentConfig.charts[index].indicatorConfig, (Indicator? updateIndicator) {
       if (updateIndicator != null) {
-        // Logic to update the specific chart in the list
-        final updatedConfig = currentConfig.copyWith();
+        final updateChart = currentConfig.charts[index].copyWith(newIndicatorConfig: updateIndicator);
+        final List<ChartConfig> updatedCharts = List.from(currentConfig.charts);
+        updatedCharts[index] = updateChart;
+        final updatedConfig = currentConfig.copyWith(newCharts: updatedCharts);
         ref.read(multiChartProvider(
           CacheKeyType.analysisCache,
           _selectedPeriod,
