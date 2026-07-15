@@ -81,8 +81,9 @@ TradingServiceClient tradingClient(Ref ref) {
 
 @immutable
 class TradingServiceState {
+  final String? error;
   final IndicatorResultMap cache;
-  const TradingServiceState({this.cache = const {}});
+  const TradingServiceState({this.cache = const {}, this.error});
 }
 
 @riverpod
@@ -101,6 +102,28 @@ class TradingService extends _$TradingService {
     return const TradingServiceState(cache: {});
   }
 
+  String _connectionMessage(GrpcError grpcError) {
+    return switch (grpcError.code) {
+      StatusCode.unavailable => "Server is down or unreachable.",
+      StatusCode.deadlineExceeded => "Request timed out.",
+      StatusCode.aborted => "Request aborted.",
+      StatusCode.cancelled => "Request cancelled.",
+      StatusCode.invalidArgument => "Invalid request parameters.",
+      StatusCode.unknown => "Unknown error.",
+      StatusCode.internal => "Internal server error.",
+      StatusCode.permissionDenied => "Permission denied.",
+      StatusCode.resourceExhausted => "Resource limit exceeded.",
+      StatusCode.unauthenticated => "Authentication failed.",
+      StatusCode.notFound => "Requested resource not found.",
+      StatusCode.alreadyExists => "Requested resource already exists.",
+      StatusCode.failedPrecondition => "Precondition failed.",
+      StatusCode.outOfRange => "Request out of range.",
+      StatusCode.unimplemented => "Method not implemented.",
+      StatusCode.dataLoss => "Data loss.",
+      _ => "Unknown connection error: ${grpcError.code}"
+    };
+  }
+
   Future<void> _initStream() async {
     if (_incomingSubscription != null) return;
     log("Initializing gRPC bidirectional stream...");
@@ -116,9 +139,14 @@ class TradingService extends _$TradingService {
           ...newResults,
         });
       }, onError: (error) {
-        log("gRPC Stream Error: $error");
         _incomingSubscription?.cancel();
         _incomingSubscription = null;
+
+        if (error is GrpcError) {
+          final errorMsg = _connectionMessage(error);
+          log(errorMsg);
+          state = TradingServiceState(error: errorMsg);
+        }
       }, onDone: () {
         log("gRPC Stream closed by server");
         _incomingSubscription = null;
