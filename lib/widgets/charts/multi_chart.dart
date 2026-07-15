@@ -63,9 +63,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   Indicator _selectedIndicator = Indicator.priceIndicator();
   PeriodType _selectedPeriod = PeriodType.year;
   ChartStyle _selectedChartStyle = ChartStyle.line;
-
-  late MultiChartConfig _currentChartConfig = MultiChartConfig
-      .defaultMultiChart();
+  //
+  // late MultiChartConfig _currentChartConfig = MultiChartConfig
+  //     .defaultMultiChart();
 
   void _initializeControllers() {
     _chartController = TimeController(
@@ -116,150 +116,130 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         _selectedChartStyle));
 
     if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
-      setState(() => _changeMultiChartConfig(
-        newPeriodType: _selectedPeriod,
-        newStyle: _selectedChartStyle,
-        newIndicator: _selectedIndicator)
-      );
+      print("Empty Displayed chart: $displayedCharts");
+      return const Center(child: Text("No chart configs available"));
+      // setState(() => _changeMultiChartConfig(
+      //   newPeriodType: _selectedPeriod,
+      //   newStyle: _selectedChartStyle,
+      //   newIndicator: _selectedIndicator)
+      // );
     }
-    else if (displayedCharts.isNotEmpty) {
-      // Sync local config state with what's actually being displayed to maintain ID
-      if (_currentChartConfig != displayedCharts.first) {
-          _currentChartConfig = displayedCharts.first;
-      }
 
-      /*
-      if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
-      setState(() {
-        log("Empty Displayed chart: $displayedCharts");
-        return _changeMultiChartConfig(
-            newPeriodType: _selectedPeriod,
-            newStyle: _selectedChartStyle,
-            newIndicator: _selectedIndicator);
-        }
-      );
-    }
-    else if (displayedCharts.isNotEmpty) {
-      final assetMultiChart = displayedCharts.firstWhereOrNull(
-        (chart){
-          log("Cached chart asset:  [${chart.asset.id} ${chart.asset.symbol}] vs widget.assetConfig:  [${widget.assetConfig.id} ${widget.assetConfig.symbol}]");
-          return chart.asset.id == widget.assetConfig.id;
-        }
-      );
-      if (assetMultiChart != null) {
-        _currentChartConfig = assetMultiChart.copyWith(newAsset: widget.assetConfig);
-        log("Cached asset's chart: $_currentChartConfig");
-      }
-      // // Sync local config state with what's actually being displayed to maintain ID
-      // else if (_currentChartConfig != displayedCharts.first) {
-      //   log("First cached chart: ${displayedCharts.first}");
-      //     _currentChartConfig = displayedCharts.first;
-      // }
-       */
-      return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            for (var chart in displayedCharts)
-              Expanded(
-                flex: 5,
-                child: Stack(
-                  children: [
-                    _buildChart(chart),
-                    if (displayedCharts.first == chart)
-                      Positioned(
-                        top: 5,
-                        left: 5,
-                        child: Container(
-                          padding: const EdgeInsets.all(5),
-                          color: Colors.transparent,
-                          child:
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                MainOverlayTaskbar(
-                                  asset: widget.assetConfig,
-                                  priceData: widget.priceData,
-                                  selectedIndicator: _selectedIndicator,
-                                  selectedPeriod: _selectedPeriod,
-                                  selectedChartStyle: _selectedChartStyle,
-                                  onPeriodChange: (PeriodType newPeriod) {
-                                    if (newPeriod != _selectedPeriod) {
-                                      setState(() =>
-                                      _selectedPeriod = newPeriod);
-                                      _chartController.dispose();
-                                      _initializeControllers();
+    // Sync local config state with what's actually being displayed to maintain ID
+    print("Displayed charts: $displayedCharts ");
+    final currentChartConfig = displayedCharts.first;
+    print("_currentChartConfig: $currentChartConfig} ${currentChartConfig == displayedCharts.first} displayedCharts: $displayedCharts");
+
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          for (var chart in displayedCharts)
+            Expanded(
+              flex: 5,
+              child: Stack(
+                children: [
+                  _buildChart(chart),
+                  if (displayedCharts.first == chart)
+                    Positioned(
+                      top: 5,
+                      left: 5,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        color: Colors.transparent,
+                        child:
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              MainOverlayTaskbar(
+                                asset: widget.assetConfig,
+                                priceData: widget.priceData,
+                                selectedIndicator: _selectedIndicator,
+                                selectedPeriod: _selectedPeriod,
+                                selectedChartStyle: _selectedChartStyle,
+                                onPeriodChange: (PeriodType newPeriod) {
+                                  if (newPeriod != _selectedPeriod) {
+                                    setState(() =>
+                                    _selectedPeriod = newPeriod);
+                                    _chartController.dispose();
+                                    _initializeControllers();
+                                    _changeMultiChartConfig(
+                                        activeConfig: currentChartConfig,
+                                        newPeriodType: _selectedPeriod);
+                                  }
+                                },
+                                onIndicatorChange: (Indicator newIndicator) {
+                                  if (newIndicator != _selectedIndicator) {
+                                    showIndicator(context, newIndicator,
+                                            (Indicator? indicator) {
+                                          if (indicator != null) {
+                                            setState(() =>
+                                            _selectedIndicator = indicator);
+                                            _changeMultiChartConfig(
+                                                activeConfig: currentChartConfig,
+                                                newIndicator: indicator);
+                                          }
+                                        });
+                                  }
+                                },
+                                onChartStyleChange: (
+                                    ChartStyle newChartStyle) {
+                                  if (newChartStyle != _selectedChartStyle) {
+                                    setState(() {
+                                      _selectedChartStyle = newChartStyle;
                                       _changeMultiChartConfig(
-                                          newPeriodType: _selectedPeriod);
-                                    }
-                                  },
-                                  onIndicatorChange: (Indicator newIndicator) {
-                                    if (newIndicator != _selectedIndicator) {
-                                      showIndicator(context, newIndicator,
-                                              (Indicator? indicator) {
-                                            if (indicator != null) {
-                                              setState(() =>
-                                              _selectedIndicator = indicator);
-                                              _changeMultiChartConfig(
-                                                  newIndicator: indicator);
-                                            }
-                                          });
-                                    }
-                                  },
-                                  onChartStyleChange: (
-                                      ChartStyle newChartStyle) {
-                                    if (newChartStyle != _selectedChartStyle) {
-                                      setState(() {
-                                        _selectedChartStyle = newChartStyle;
-                                        _changeMultiChartConfig(
-                                            newStyle: _selectedChartStyle);
-                                      });
-                                    }
-                                  },
-                                ),
-                                for (int i = 0; i <
-                                    _currentChartConfig.charts.length; i++)
-                                   if (_currentChartConfig.charts[i]
-                                      .indicatorConfig.type !=
-                                      IndicatorType.price)
-                                    IndicatorOverlayTaskbar(
-                                        indicator: _currentChartConfig.charts[i]
-                                            .indicatorConfig,
-                                        onChange: () {
-                                          showIndicator(
-                                              context,
-                                              _currentChartConfig.charts[i]
-                                                  .indicatorConfig,
-                                                  (Indicator? updateIndicator) {
-                                                if (updateIndicator != null) {
-                                                  setState(() {
-                                                    _selectedIndicator =
-                                                        updateIndicator;
-                                                    _changeMultiChartConfig(
-                                                        newIndicator: updateIndicator);
-                                                  });
-                                                }
-                                              });
-                                        },
-                                        onDelete: () {
-                                          setState(() {
-                                            _currentChartConfig.charts.remove(
-                                                _currentChartConfig.charts[i]);
-                                          });
-                                        }
-                                    )
-                              ]
-                          ),
+                                          activeConfig: currentChartConfig,
+                                          newStyle: _selectedChartStyle);
+                                    });
+                                  }
+                                },
+                              ),
+                              for (int i = 0; i <
+                                  currentChartConfig.charts.length; i++)
+                                 if (currentChartConfig.charts[i]
+                                    .indicatorConfig.type !=
+                                    IndicatorType.price)
+                                  IndicatorOverlayTaskbar(
+                                      indicator: currentChartConfig.charts[i]
+                                          .indicatorConfig,
+                                      onChange: () => _handleIndicatorChange(i, currentChartConfig),
+                                      onDelete: () => _handleDeleteIndicator(i, currentChartConfig),
+                                  )
+                            ]
                         ),
-                      )
-                  ],
-                ),
+                      ),
+                    )
+                ],
               ),
-          ],
-        ),
-      );
-    }
-    return const Center(child: Text("No chart configs available"));
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _handleDeleteIndicator(int index, MultiChartConfig currentConfig) {
+    final updatedConfig = currentConfig.copyWith();
+    updatedConfig.charts.removeAt(index);
+
+    ref.read(multiChartProvider(
+      CacheKeyType.analysisCache,
+      _selectedPeriod,
+      _selectedChartStyle,
+    ).notifier).updateMultiChart(updatedConfig);
+  }
+
+  void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
+    showIndicator(context, currentConfig.charts[index].indicatorConfig, (Indicator? updateIndicator) {
+      if (updateIndicator != null) {
+        // Logic to update the specific chart in the list
+        final updatedConfig = currentConfig.copyWith();
+        ref.read(multiChartProvider(
+          CacheKeyType.analysisCache,
+          _selectedPeriod,
+          _selectedChartStyle,
+        ).notifier).updateMultiChart(updatedConfig);
+      }
+    });
   }
 
   Widget _buildChart(MultiChartConfig chart) {
@@ -390,14 +370,23 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         0.0;
   }
 
-  void _changeMultiChartConfig(
-      {PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator}) {
+  void _changeMultiChartConfig({
+    required MultiChartConfig activeConfig,
+    PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator}) {
     final targetPeriod = newPeriodType ?? _selectedPeriod;
     final targetIndicator = newIndicator ?? _selectedIndicator;
     final targetStyle = newStyle ?? _selectedChartStyle;
 
     final List<ChartConfig> updatedCharts = List.from(
-        _currentChartConfig.charts);
+        activeConfig.charts);
+
+    if (updatedCharts.isEmpty) {
+      updatedCharts.add(ChartConfig(
+        indicatorConfig: Indicator.priceIndicator(),
+        chartStyle: targetStyle,
+        mainChart: true,
+      ));
+    }
 
     if (newIndicator != null) {
       final existingIndex = updatedCharts.indexWhere(
@@ -410,13 +399,15 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       );
 
       if (existingIndex != -1) {
+        print("Try update exists chart ${updatedCharts[existingIndex]} to $newConfig");
         updatedCharts[existingIndex] = newConfig;
       } else {
+        print("Add new chart: $newConfig");
         updatedCharts.add(newConfig);
       }
     }
 
-    final newChartConfig = _currentChartConfig.copyWith(
+    final newChartConfig = activeConfig.copyWith(
       newAsset: widget.assetConfig,
       newPeriodType: targetPeriod,
       newCharts: updatedCharts,
@@ -424,17 +415,16 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           .name} - ${targetStyle.name}",
     );
 
-    if (newChartConfig == _currentChartConfig && newChartConfig.id != -1) {
-      return;
-    }
     final notifier = ref.read(multiChartProvider(
         CacheKeyType.analysisCache,
         targetPeriod,
         targetStyle).notifier);
 
     if (newChartConfig.id == -1) {
+      print("Add chart: $newChartConfig, id: ${newChartConfig.id}");
       notifier.addEntry(newChartConfig);
     } else {
+      print("Updating chart: $newChartConfig, id: ${newChartConfig.id}");
       notifier.updateMultiChart(newChartConfig);
     }
   }
