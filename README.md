@@ -46,6 +46,5 @@ dart pub global activate protoc_plugin
 - various signals: Golden/Death cross, EMA signal
 
 #BUGS:
-- Overlay chart doesn't save to multi chart cache (db) instead of default parameters ones!!!
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume
