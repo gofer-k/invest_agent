@@ -211,4 +211,7 @@ class AssetConfig extends Cache{
   @override
   int get hashCode => id.hashCode ^ symbol.hashCode;
 
+  @override
+  List<Object?> get props => [id, symbol];
+
 }

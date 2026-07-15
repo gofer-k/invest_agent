@@ -108,10 +108,11 @@ class LineFeature extends DrawingFeature {
   @override
   int get hashCode => runtimeType.hashCode ^ super.hashCode ^ color.hashCode ^ width.hashCode ^ style.hashCode ^ begin.hashCode ^ end.hashCode;
 
-  // TODO: builder api for LineFeature
-
   bool isHorizontal() => begin.y == end.y;
   bool isVertical() => begin.x == end.x;
+
+  @override
+  List<Object?> get props => [type, color, width, style, begin, end];
 }
 
 class RectangleFeature extends DrawingFeature {
@@ -184,6 +185,10 @@ class RectangleFeature extends DrawingFeature {
 
   @override
   int get hashCode => runtimeType.hashCode ^ super.hashCode ^ strokeColor.hashCode ^ fillColor.hashCode ^ width.hashCode;
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [type, strokeColor, fillColor, width, style, leftTop, rightBottom];
 }
 
 class LabelFeature extends DrawingFeature {
@@ -235,6 +240,10 @@ class LabelFeature extends DrawingFeature {
 
   @override
   int get hashCode => runtimeType.hashCode ^ super.hashCode ^ text.hashCode ^ color.hashCode ^ position.hashCode;
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [type, text, color, position];
 }
 
 extension on Point<num> {

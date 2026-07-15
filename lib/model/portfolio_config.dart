@@ -179,4 +179,10 @@ class PortfolioConfig implements Cache{
 
   @override
   String toString() => portfolioName;
+
+  @override
+  List<Object?> get props => [id, portfolioName, targetWeight, rebalanceThreshold, metaIds];
+
+  @override
+  bool? get stringify => true;
 }

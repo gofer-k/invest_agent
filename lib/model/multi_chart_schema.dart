@@ -99,6 +99,9 @@ class ChartConfig extends Cache {
       chartStyle.hashCode ^
       indicatorConfig.hashCode;
 
+  @override
+  List<Object?> get props => [mainChart, visible, chartStyle, indicatorConfig];
+
 }
 
 // -- Multi chart schema --
@@ -248,7 +251,6 @@ class MultiChartConfig extends Cache {
       asset: asset);
 
   ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
-
   List<ChartConfig> get overlayCharts => charts.where((e) => !e.mainChart).toList();
   
   @override
@@ -269,4 +271,7 @@ class MultiChartConfig extends Cache {
       title.hashCode ^
       periodType.hashCode ^
       const ListEquality().hash(charts);
+
+  @override
+  List<Object?> get props => [id, asset, title, periodType, charts];
 }

@@ -39,17 +39,13 @@ dart pub global activate protoc_plugin
 - save/lodd/update persist app's cache source 
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
-- load, save, remove, update MarketPlace api account (api key, secret key) ?
 - display candles signals
 - filter out the respond data by specific intervals??
-- display configured a chart values (main, supplement charts or indicator or signals): max, min, level values on the side pane
 - custom style visualization, themes
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
 
 #BUGS:
 - Overlay chart doesn't save to multi chart cache (db) instead of default parameters ones!!!
-- Test indicator config dialog: KST, Volume, etc.
-1. pass indicator config's charts colors to overlay chart
-- extract new Indicator parameters in the backend server (all indicators except SMA) 
-- Incorrect Bollinger bands' results or chart's drawing!!
+- Incorrect Bollinger bands' results or chart's drawing ?!
+- Test indicator config dialog: Volume

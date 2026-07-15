@@ -40,6 +40,10 @@ class UserAccount extends Cache {
 
   @override
   String toString() => 'UserAccount(id: $id, name: $name, provider: $providerData)';
+
+  @override
+  // TODO: implement props
+  List<Object?> get props => [id, name, providerData];
 }
 
 class UserAccountSchema extends CacheSchema {

@@ -256,6 +256,12 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
       highPrice.hashCode ^
       lowPrice.hashCode ^
       volume.hashCode;
+
+  @override
+  List<Object?> get props => [id, assetId, dateTime, openPrice, closePrice, highPrice, lowPrice, volume];
+
+  @override
+  bool? get stringify => true;
 }
 
 class IndexPrice extends BaseIndicatorResult {

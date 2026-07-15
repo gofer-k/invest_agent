@@ -391,4 +391,7 @@ class Indicator extends Cache {
       name.hashCode ^
       type.hashCode ^
       const MapEquality().hash(parameters);
+
+  @override
+  List<Object?> get props => [id, name, type, parameters];
 }

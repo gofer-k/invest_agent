@@ -44,6 +44,12 @@ class AnalysisEntry implements Cache {
     'request_json': request != null ? jsonEncode(request?.toJson()) : null,
     'created_at': createdAt.toIso8601String(),
   };
+
+  @override
+  List<Object?> get props => [id, userId, request, createdAt];
+
+  @override
+  bool? get stringify => true;
 }
 
 class AnalysisSchema extends CacheSchema {

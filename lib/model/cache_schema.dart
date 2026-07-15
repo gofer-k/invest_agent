@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 abstract class CacheSchema {
   String get createKey;
   String get create;
@@ -10,8 +12,8 @@ abstract class CacheSchema {
   String updateOne(Cache cache);
 }
 
-abstract class Cache {
-  Cache.from(List<Object?> item);
+abstract class Cache extends Equatable {
+  const Cache.from(List<Object?> item);
   Map<String, dynamic> toMap();
   @override
   String toString();
