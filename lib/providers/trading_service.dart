@@ -126,15 +126,14 @@ class TradingService extends _$TradingService {
 
   Future<void> _initStream() async {
     if (_incomingSubscription != null) return;
-    log("Initializing gRPC bidirectional stream...");
     _outgoingController = StreamController<$pb.TradingRequest>();
 
     try {
       final responseStream = _client.calculateIndicators(_outgoingController!.stream);
       _incomingSubscription = responseStream.listen((response) {
-        log("gRPC Response received with ${response.results.length} results");
         final newResults = _mapResponse(response);
-        state = TradingServiceState(cache: {
+        state = TradingServiceState(
+            cache: {
           ...state.cache,
           ...newResults,
         });
@@ -296,16 +295,16 @@ AsyncValue<IndicatorResult?> indicatorResult(Ref ref,
   if (indicator.type == schema.IndicatorType.undefined) {
     return const AsyncValue.data(null);
   }
-  log("IndicatorResult: Requesting indicator result for ${indicator.uniqueKey} value ${indicator.toDetailedString()}");
-  final cache = ref.watch(tradingServiceProvider.select((s) => s.cache[indicator.uniqueKey]));
+  final (errorResult, result) = ref.watch(tradingServiceProvider.select((s) => (s.error, s.cache[indicator.uniqueKey]) ));
 
-  if (cache == null) {
-    log("IndicatorResult: No cache for ${indicator.uniqueKey}. Requesting calculation...");
+  if (errorResult != null) {
+    return AsyncValue.error(errorResult.toString(), StackTrace.current);
+  }
+  if (result == null) {
     Future.microtask(() {
       ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [indicator]);
     });
     return const AsyncValue.loading();
   }
-  log("IndicatorResult: Response found in cache for ${cache.config.uniqueKey}");
-  return AsyncValue.data(cache);
+  return AsyncValue.data(result);
 }

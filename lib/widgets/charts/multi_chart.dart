@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
@@ -116,19 +114,12 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         _selectedChartStyle));
 
     if (displayedCharts.isEmpty && widget.priceData.priceData.isNotEmpty) {
-      print("Empty Displayed chart: $displayedCharts");
       return const Center(child: Text("No chart configs available"));
-      // setState(() => _changeMultiChartConfig(
-      //   newPeriodType: _selectedPeriod,
-      //   newStyle: _selectedChartStyle,
-      //   newIndicator: _selectedIndicator)
-      // );
     }
 
     // Sync local config state with what's actually being displayed to maintain ID
-    print("Displayed charts: $displayedCharts ");
     final currentChartConfig = displayedCharts.first;
-    print("_currentChartConfig: $currentChartConfig} ${currentChartConfig == displayedCharts.first} displayedCharts: $displayedCharts");
+    _showResultErrorMessage(currentChartConfig);
 
     return Padding(
       padding: const EdgeInsets.all(10),
@@ -217,6 +208,29 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     );
   }
 
+  void _showResultErrorMessage(MultiChartConfig currentChartConfig) {
+    for (var chart in currentChartConfig.charts) {
+      ref.listen(indicatorResultProvider(
+        prices: widget.priceData.priceData,
+        indicator: chart.indicatorConfig,
+      ), (previous, next) {
+        next.whenOrNull(
+          error: (error, stack) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Failed to load ${chart.indicatorConfig.name}: $error',
+                  style: Theme.of(context).textTheme.labelMedium),
+                backgroundColor: Colors.orange.shade800,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
+        );
+      });
+    }
+  }
+
   void _handleDeleteIndicator(int index, MultiChartConfig currentConfig) {
     final updatedConfig = currentConfig.copyWith();
     updatedConfig.charts.removeAt(index);
@@ -231,7 +245,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
     showIndicator(context, currentConfig.charts[index].indicatorConfig, (Indicator? updateIndicator) {
       if (updateIndicator != null) {
-        final updateChart = currentConfig.charts[index].copyWith(newIndicatorConfig: updateIndicator);
+        final updateChart = currentConfig.charts[index].copyWith(
+            newIndicatorConfig: updateIndicator,
+            mainChart: updateIndicator.isMainChart()
+        );
         final List<ChartConfig> updatedCharts = List.from(currentConfig.charts);
         updatedCharts[index] = updateChart;
         final updatedConfig = currentConfig.copyWith(newCharts: updatedCharts);
@@ -346,10 +363,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             return EmptyOverlayChart();
         }
       },
-      error: (error, stackTrace) {
-        log("Error loading indicator: $error");
-        return EmptyOverlayChart();
-      },
+      error: (error, stackTrace) => EmptyOverlayChart(),
       loading: () => EmptyOverlayChart(),
     );
   }
@@ -401,10 +415,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       );
 
       if (existingIndex != -1) {
-        print("Try update exists chart ${updatedCharts[existingIndex]} to $newConfig");
         updatedCharts[existingIndex] = newConfig;
       } else {
-        print("Add new chart: $newConfig");
         updatedCharts.add(newConfig);
       }
     }
@@ -423,10 +435,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         targetStyle).notifier);
 
     if (newChartConfig.id == -1) {
-      print("Add chart: $newChartConfig, id: ${newChartConfig.id}");
       notifier.addEntry(newChartConfig);
     } else {
-      print("Updating chart: $newChartConfig, id: ${newChartConfig.id}");
       notifier.updateMultiChart(newChartConfig);
     }
   }
