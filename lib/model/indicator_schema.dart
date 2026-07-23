@@ -101,7 +101,9 @@ class Indicator extends Cache {
   final Map<String, dynamic> parameters;
 
   static const String mainChart = "main_chart";
-  
+  static int defaultId = -1;
+  static int priceId = -2;
+
   Indicator({
     required this.id,
     required this.name,
@@ -172,7 +174,7 @@ class Indicator extends Cache {
     }
 
     return Indicator(
-      id: item['id'] as int? ?? -1,
+      id: item['id'] as int? ?? defaultId,
       type: type,
       name: item['name'] as String? ?? '',
       parameters: item['parameters'] as Map<String, dynamic>? ?? {},
@@ -301,7 +303,7 @@ class Indicator extends Cache {
 
   static Indicator defaultIndicator() {
     return Indicator(
-      id: -1,
+      id: defaultId,
       name: '-',
       type: IndicatorType.undefined,
       parameters: {mainChart: false},
@@ -310,7 +312,7 @@ class Indicator extends Cache {
 
   static Indicator priceIndicator() {
     return Indicator(
-      id: -2,
+      id: priceId,
       name: 'Asset price',
       type: IndicatorType.price,
       parameters: {
