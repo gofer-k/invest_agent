@@ -175,7 +175,10 @@ class MultiChartConfigSchema extends CacheSchema {
 }
 
 class MultiChartConfig extends Cache {
+  static int defaultId = -1;
+
   final int id;
+  final bool activeChart;
   final String title; // Asset's name
   final List<ChartConfig> charts;
   final PeriodType periodType;
@@ -186,17 +189,18 @@ class MultiChartConfig extends Cache {
     required this.title,
     required this.asset,
     this.charts = const[],
+    this.activeChart = false,
     this.periodType = PeriodType.year,
   }) : super.from([]);
 
   MultiChartConfig copyWith({
-    int? newId, String? newTitle, AssetConfig? newAsset,
-    PeriodType? newPeriodType,
-    List<ChartConfig>? newCharts}) {
+    int? newId, bool? newActiveChart, String? newTitle,
+    AssetConfig? newAsset,PeriodType? newPeriodType, List<ChartConfig>? newCharts}) {
     return MultiChartConfig(
       id: newId ?? id,
       title: newTitle ?? title,
       asset: newAsset ?? asset,
+      activeChart: newActiveChart ?? activeChart,
       periodType: newPeriodType ?? periodType,
       charts: newCharts ?? charts,
     );
@@ -204,12 +208,14 @@ class MultiChartConfig extends Cache {
 
   @override
   factory MultiChartConfig.from(List<Object?> item) {
-    if (item.length >= 5) {
+    if (item.length <= 6) {
       final List<dynamic> jsonCharts = jsonDecode(item[4] as String);
       final jsonAssetId = item[1] as int;
+      final activeChart = item.length > 5 ? item[5] as bool : false;
       return MultiChartConfig(
         id: item[0] as int,
         asset: AssetConfig.of(id: jsonAssetId),
+        activeChart: activeChart,
         title: item[2] as String,
         periodType: PeriodType.values.firstWhere((e) => e.name == item[3] as String),
         charts: jsonCharts.map((e) {
@@ -226,6 +232,7 @@ class MultiChartConfig extends Cache {
     'id': id,
     'asset_id': asset.id,
     'title': title,
+    "active_chart": activeChart,
     'period_type': periodType.name,
     'charts': charts.map((e) => e.toMap()).toList(),
   };
@@ -235,7 +242,7 @@ class MultiChartConfig extends Cache {
 
   static MultiChartConfig defaultMultiChart() =>
       MultiChartConfig(
-        id: -1, title: '', periodType: PeriodType.year, charts: [],
+        id: defaultId, title: '', periodType: PeriodType.year, charts: [],
         asset: AssetConfig.defaultAsset());
 
   static MultiChartConfig priceMultiChart(
@@ -243,8 +250,9 @@ class MultiChartConfig extends Cache {
     PeriodType periodType,
     ChartStyle chartStyle) =>
     MultiChartConfig(
-      id: -1, title: '',
+      id: defaultId, title: '',
       periodType: periodType,
+      activeChart: true,
       charts: [
         ChartConfig(mainChart: true, chartStyle: chartStyle,
           indicatorConfig: Indicator.priceIndicator())],
@@ -259,6 +267,7 @@ class MultiChartConfig extends Cache {
       other is MultiChartConfig &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          activeChart == other.activeChart &&
           asset == other.asset &&
           title == other.title &&
           periodType == other.periodType &&
@@ -267,11 +276,12 @@ class MultiChartConfig extends Cache {
   @override
   int get hashCode =>
       id.hashCode ^
+      activeChart.hashCode ^
       asset.hashCode ^
       title.hashCode ^
       periodType.hashCode ^
       const ListEquality().hash(charts);
 
   @override
-  List<Object?> get props => [id, asset, title, periodType, charts];
+  List<Object?> get props => [id, asset, title, periodType, activeChart, charts];
 }
