@@ -116,6 +116,7 @@ class MultiChartConfigSchema extends CacheSchema {
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       asset_id INTEGER,
       title TEXT NOT NULL UNIQUE,
+      active_chart BOOLEAN DEFAULT FALSE,
       period_type TEXT,
       charts TEXT, -- JSON string
     );
@@ -145,6 +146,7 @@ class MultiChartConfigSchema extends CacheSchema {
       nextval('$sequenceName'),
       ${multiChart.asset.id},
       '${multiChart.title}',
+      ${multiChart.activeChart},
       '${multiChart.periodType.name}',
       '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       ) ON CONFLICT(title) DO UPDATE SET
@@ -160,6 +162,7 @@ class MultiChartConfigSchema extends CacheSchema {
       SET title = '${multiChart.title}',
           asset_id = ${multiChart.asset.id},
           period_type = '${multiChart.periodType.name}',
+          active_chart = ${multiChart.activeChart},
           charts = '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
       WHERE id = ${multiChart.id};
     ''';
@@ -208,16 +211,16 @@ class MultiChartConfig extends Cache {
 
   @override
   factory MultiChartConfig.from(List<Object?> item) {
-    if (item.length <= 6) {
-      final List<dynamic> jsonCharts = jsonDecode(item[4] as String);
+    if (item.length > 5) {
+      final List<dynamic> jsonCharts = jsonDecode(item[5] as String);
       final jsonAssetId = item[1] as int;
-      final activeChart = item.length > 5 ? item[5] as bool : false;
+      final activeChart = item.length > 5 ? item[3] as bool : false;
       return MultiChartConfig(
         id: item[0] as int,
         asset: AssetConfig.of(id: jsonAssetId),
         activeChart: activeChart,
         title: item[2] as String,
-        periodType: PeriodType.values.firstWhere((e) => e.name == item[3] as String),
+        periodType: PeriodType.values.firstWhere((e) => e.name == item[4] as String),
         charts: jsonCharts.map((e) {
           final map = e as Map<String, dynamic>;
           return ChartConfig.from(map);
@@ -260,7 +263,8 @@ class MultiChartConfig extends Cache {
 
   ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
   List<ChartConfig> get overlayCharts => charts.where((e) => !e.mainChart).toList();
-  
+  bool get hasPriceChart => charts.firstWhere((e) => e.mainChart).indicatorConfig.type == IndicatorType.price;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
