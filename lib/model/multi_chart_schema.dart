@@ -243,10 +243,10 @@ class MultiChartConfig extends Cache {
   @override
   String toString() => "$title, ${asset.toString()}, $periodType, [$charts]";
 
-  static MultiChartConfig defaultMultiChart() =>
+  static MultiChartConfig defaultMultiChart({AssetConfig? asset}) =>
       MultiChartConfig(
         id: defaultId, title: '', periodType: PeriodType.year, charts: [],
-        asset: AssetConfig.defaultAsset());
+        asset: asset ?? AssetConfig.defaultAsset());
 
   static MultiChartConfig priceMultiChart(
     AssetConfig asset,

@@ -192,7 +192,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                           _selectedIndicator = indicator);
                                           if (indicator.isMainChart()) {
                                             _changeMultiChartConfig(
-                                              activeConfig: MultiChartConfig.defaultMultiChart(),
+                                              activeConfig: MultiChartConfig.defaultMultiChart(asset: widget.assetConfig),
                                               newIndicator: indicator,
                                               newActiveChart: true,
                                               newStyle: _selectedChartStyle,
