@@ -79,7 +79,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final availableCharts = await ref.read(multiChartProvider(
           CacheKeyType.analysisCache, _selectedPeriod, _selectedChartStyle)
-          .notifier).fetchAll();
+          .notifier).fetchAll().then((value) => value.where((c) => c.asset.id == widget.assetConfig.id).toList());
 
       if (availableCharts.isEmpty) {
         final priceChart = MultiChartConfig.priceMultiChart(widget.assetConfig,

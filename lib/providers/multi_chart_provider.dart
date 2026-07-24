@@ -188,7 +188,6 @@ List<MultiChartConfig> multiChartsBy(Ref ref,
   return charts.where((chart) => chart.asset.id == asset.id).toList();
 }
 
-
 @riverpod
 Future<void> removeMultiChartBy(Ref ref, CacheKeyType? type, AssetConfig asset) async {
   for (final chart in ref.read(multiChartProvider(type).select((s) => s.cachedCharts))) {
