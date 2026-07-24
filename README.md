@@ -35,8 +35,10 @@ dart pub global activate protoc_plugin
 
 #TODO:
 ### display multi overlay charts!!!!!
-- display separate main charts with related overlay charts 
-- save/lodd/update persist app's cache source 
+- sync all of the multi charts (config) with the new period
+- sync all of the multi charts (config) with the new active chart
+- support customized indicator's chart style
+- support different price chart type: line, candle sticks, etc. 
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
 - display candles signals
@@ -46,5 +48,6 @@ dart pub global activate protoc_plugin
 - various signals: Golden/Death cross, EMA signal
 
 #BUGS:
+- change active multi chart (checkbox not working)
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume

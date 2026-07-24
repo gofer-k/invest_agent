@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
@@ -158,7 +156,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                     })
                   ),
                   _buildChart(chart, currentChart: chart.activeChart),
-                  if (chart.hasPriceChart)
+                  // if (chart.hasPriceChart)
+                  if (chart.mainChart.mainChart)
                     Positioned(
                       top: 5,
                       left: 5,
@@ -169,7 +168,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                         Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              MainOverlayTaskbar(
+                              if (chart.hasPriceChart)
+                                MainOverlayTaskbar(
                                 asset: widget.assetConfig,
                                 priceData: widget.priceData,
                                 selectedIndicator: _selectedIndicator,
@@ -202,8 +202,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                               newStyle: _selectedChartStyle,
                                               newPeriodType: _selectedPeriod
                                             );
-                                          }
-                                          else {
+                                          } else {
                                             _changeMultiChartConfig(
                                                 activeConfig: chart,
                                                 newIndicator: indicator);
@@ -501,13 +500,14 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       }
     }
 
+    final activeChartTitle = (newActiveChart != null && newIndicator != null)
+        ? newIndicator.name : null;
     final newChartConfig = activeConfig.copyWith(
       newAsset: widget.assetConfig,
       newPeriodType: targetPeriod,
       newActiveChart: newActiveChart,
       newCharts: updatedCharts,
-      newTitle: "${widget.assetConfig.symbol} - ${targetPeriod
-          .name} - ${targetStyle.name}",
+      newTitle: activeChartTitle,
     );
 
     final notifier = ref.read(multiChartProvider(
