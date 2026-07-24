@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
@@ -76,10 +78,16 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     super.initState();
     _initializeControllers();
     _selectedChartStyle = widget.priceData.style;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(multiChartProvider(
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final availableCharts = await ref.read(multiChartProvider(
           CacheKeyType.analysisCache, _selectedPeriod, _selectedChartStyle)
           .notifier).fetchAll();
+
+      if (availableCharts.isEmpty) {
+        final priceChart = MultiChartConfig.priceMultiChart(widget.assetConfig,
+            _selectedPeriod, _selectedChartStyle);
+        _changeMultiChartConfig(activeConfig: priceChart, newActiveChart: true);
+      }
     });
   }
 
@@ -112,10 +120,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     if (widget.priceData.priceData.isEmpty) {
       return Center(child: Text("No ${widget.assetConfig.symbol} available price data"));
-    }
-    else if (displayedCharts.isEmpty) {
-      displayedCharts.add(MultiChartConfig.priceMultiChart(widget.assetConfig,
-          _selectedPeriod,  _selectedChartStyle));
     }
 
     for (var multiChart in displayedCharts) {
