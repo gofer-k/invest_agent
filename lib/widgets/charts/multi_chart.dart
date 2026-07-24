@@ -186,15 +186,26 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                 onIndicatorChange: (Indicator newIndicator) {
                                   if (newIndicator != _selectedIndicator) {
                                     showIndicator(context, newIndicator,
-                                            (Indicator? indicator) {
-                                          if (indicator != null) {
-                                            setState(() =>
-                                            _selectedIndicator = indicator);
+                                      (Indicator? indicator) {
+                                        if (indicator != null) {
+                                          setState(() =>
+                                          _selectedIndicator = indicator);
+                                          if (indicator.isMainChart()) {
+                                            _changeMultiChartConfig(
+                                              activeConfig: MultiChartConfig.defaultMultiChart(),
+                                              newIndicator: indicator,
+                                              newActiveChart: true,
+                                              newStyle: _selectedChartStyle,
+                                              newPeriodType: _selectedPeriod
+                                            );
+                                          }
+                                          else {
                                             _changeMultiChartConfig(
                                                 activeConfig: chart,
                                                 newIndicator: indicator);
                                           }
-                                        });
+                                        }
+                                      });
                                   }
                                 },
                                 onChartStyleChange: (
@@ -469,14 +480,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     final List<ChartConfig> updatedCharts = List.from(
         activeConfig.charts);
 
-    if (updatedCharts.isEmpty) {
-      updatedCharts.add(ChartConfig(
-        indicatorConfig: Indicator.priceIndicator(),
-        chartStyle: targetStyle,
-        mainChart: true,
-      ));
-    }
-
     if (newIndicator != null) {
       final existingIndex = updatedCharts.indexWhere(
               (c) => c.indicatorConfig.type == targetIndicator.type
@@ -487,7 +490,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         mainChart: targetIndicator.isMainChart(),
       );
 
-      if (existingIndex != -1) {
+      if (existingIndex != -1 ) {
         updatedCharts[existingIndex] = newConfig;
       } else {
         updatedCharts.add(newConfig);
@@ -508,7 +511,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
         targetPeriod,
         targetStyle).notifier);
 
-    if (newChartConfig.id == -1) {
+    if (newChartConfig.id == MultiChartConfig.defaultId) {
       notifier.addEntry(newChartConfig);
     } else {
       notifier.updateMultiChart(newChartConfig);
