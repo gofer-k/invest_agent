@@ -133,30 +133,29 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
               flex: 5,
               child: Stack(
                 children: [
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Checkbox.adaptive(value: chart.activeChart,
-                    onChanged: (selectedChart) {
-                      if (selectedChart == null) return;
-                      // modify the active chart but the only one chart is displayed
-                      if (displayedCharts.length > 1 && selectedChart != chart.activeChart) {
-                        setState(() {
-                          //TODO: sync all of the multi charts (config) with the new active chart
-                          _changeMultiChartConfig(activeConfig: chart, newActiveChart: selectedChart);
-                          final newActiveChart = displayedCharts.firstWhere((elem) {
-                            if (chart != elem && !elem.activeChart) {
-                              return true;
-                            }
-                            return false;
-                          });
-                          _changeMultiChartConfig(activeConfig: newActiveChart, newActiveChart: true);
-                        });
-                      }
-                    })
-                  ),
-                  _buildChart(chart, currentChart: chart.activeChart),
-                  // if (chart.hasPriceChart)
+                  // Positioned(
+                  //   top: 2,
+                  //   right: 2,
+                  //   child: Checkbox.adaptive(value: chart.activeChart,
+                  //   onChanged: (selectedChart) {
+                  //     if (selectedChart == null) return;
+                  //     // modify the active chart but the only one chart is displayed
+                  //     if (displayedCharts.length > 1 && selectedChart != chart.activeChart) {
+                  //       setState(() {
+                  //         _changeMultiChartConfig(activeConfig: chart, newActiveChart: selectedChart);
+                  //         final newActiveChart = displayedCharts.firstWhere((elem) {
+                  //           if (chart != elem && !elem.activeChart) {
+                  //             return true;
+                  //           }
+                  //           return false;
+                  //         });
+                  //         _changeMultiChartConfig(activeConfig: newActiveChart, newActiveChart: true);
+                  //       });
+                  //     }
+                  //   })
+                  // ),
+                  // _buildChart(chart, currentChart: chart.activeChart),
+                  _buildChart(chart, currentChart: false),
                   if (chart.mainChart.mainChart)
                     Positioned(
                       top: 5,
