@@ -87,6 +87,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             _selectedPeriod, _selectedChartStyle);
         _changeMultiChartConfig(activeConfig: priceChart, newActiveChart: true);
       }
+      else {
+        _selectedPeriod = availableCharts.first.periodType;
+      }
     });
   }
 
