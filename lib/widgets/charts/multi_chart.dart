@@ -59,7 +59,9 @@ class MultiChartView extends ConsumerStatefulWidget {
 class _MultiChartViewState extends ConsumerState<MultiChartView> {
   late TimeController _chartController;
   CrosshairController? _crosshairController;
-  Indicator _selectedIndicator = Indicator.priceIndicator();
+  static final Indicator __defaultIndicator = Indicator.priceIndicator();
+
+  Indicator _selectedIndicator = __defaultIndicator;
   PeriodType _selectedPeriod = PeriodType.year;
   ChartStyle _selectedChartStyle = ChartStyle.line;
 
@@ -251,14 +253,25 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   }
 
   void _handleDeleteIndicator(int index, MultiChartConfig currentConfig) {
-    final updatedConfig = currentConfig.copyWith();
-    updatedConfig.charts.removeAt(index);
+    final chartToRemove = currentConfig.charts.elementAtOrNull(index);
+    if (chartToRemove?.indicatorConfig.type == IndicatorType.price) return;
 
-    ref.read(multiChartProvider(
+    final notifier = ref.read(multiChartProvider(
       CacheKeyType.analysisCache,
       _selectedPeriod,
       _selectedChartStyle,
-    ).notifier).updateMultiChart(updatedConfig);
+    ).notifier);
+
+    if (currentConfig.charts.length <= 1) {
+      notifier.deleteEntry(currentConfig);
+    } else {
+      // Use the cascade operator (..) to create and modify the list in one expression
+      final updatedCharts = List<ChartConfig>.from(currentConfig.charts)..removeAt(index);
+      notifier.updateMultiChart(
+        currentConfig.copyWith(newCharts: updatedCharts),
+      );
+    }
+    _selectedIndicator = __defaultIndicator;
   }
 
   void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
@@ -318,8 +331,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             ).notifier).deleteEntry(currentConfig);
           }
         }
-
-
       }
     });
   }
