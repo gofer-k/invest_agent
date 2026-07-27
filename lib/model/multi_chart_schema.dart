@@ -253,7 +253,7 @@ class MultiChartConfig extends Cache {
     PeriodType periodType,
     ChartStyle chartStyle) =>
     MultiChartConfig(
-      id: defaultId, title: '',
+      id: defaultId, title: '${asset.symbol} - ${periodType.name} - $chartStyle',
       periodType: periodType,
       activeChart: true,
       charts: [
