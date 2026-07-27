@@ -33,11 +33,7 @@ dart pub global activate protoc_plugin
 }   
 ```
 
-#TODO:
-## TEST main chart modifies:
-- sync all the multi charts (config) with the new active chart
-
-### Futher features:
+### TODO:
 - support customized price chart style
 - support different price chart type: line, candle sticks, etc. 
 - load portfolio assets frm db cache
@@ -48,6 +44,6 @@ dart pub global activate protoc_plugin
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
 
-#BUGS:
+### BUGS:
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume

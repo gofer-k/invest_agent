@@ -151,14 +151,13 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                         Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (chart.hasPriceChart)
-                                MainOverlayTaskbar(
-                                asset: widget.assetConfig,
-                                priceData: widget.priceData,
+                              MainOverlayTaskbar(
+                                asset: chart.hasPriceChart ? widget.assetConfig : null,
+                                priceData: chart.hasPriceChart ? widget.priceData : null,
                                 selectedIndicator: _selectedIndicator,
                                 selectedPeriod: _selectedPeriod,
                                 selectedChartStyle: _selectedChartStyle,
-                                onPeriodChange: (PeriodType newPeriod) {
+                                onPeriodChange: chart.hasPriceChart ? (PeriodType newPeriod) {
                                   if (newPeriod != _selectedPeriod) {
                                     setState(() =>
                                     _selectedPeriod = newPeriod);
@@ -166,7 +165,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                     _initializeControllers();
                                     _handlePeriodChange(newPeriod, displayedCharts);
                                   }
-                                },
+                                } : null,
                                 onIndicatorChange: (Indicator newIndicator) {
                                   if (newIndicator != _selectedIndicator) {
                                     showIndicator(context, newIndicator,
@@ -191,7 +190,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                       });
                                   }
                                 },
-                                onChartStyleChange: (
+                                onChartStyleChange: chart.hasPriceChart ? (
                                     ChartStyle newChartStyle) {
                                   if (newChartStyle != _selectedChartStyle) {
                                     setState(() {
@@ -204,7 +203,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                       }
                                     });
                                   }
-                                },
+                                } : null,
                               ),
                               for (int i = 0; i <
                                   chart.charts.length; i++)
