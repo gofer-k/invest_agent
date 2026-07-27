@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/trading_service.dart';
@@ -158,9 +159,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                     _selectedPeriod = newPeriod);
                                     _chartController.dispose();
                                     _initializeControllers();
-                                    _changeMultiChartConfig(
-                                        activeConfig: chart,
-                                        newPeriodType: _selectedPeriod);
+                                    _handlePeriodChange(newPeriod, displayedCharts);
                                   }
                                 },
                                 onIndicatorChange: (Indicator newIndicator) {
@@ -192,9 +191,12 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                   if (newChartStyle != _selectedChartStyle) {
                                     setState(() {
                                       _selectedChartStyle = newChartStyle;
-                                      _changeMultiChartConfig(
-                                          activeConfig: chart,
-                                          newStyle: _selectedChartStyle);
+                                      final priceChart = displayedCharts.firstWhereOrNull((ch) => ch.hasPriceChart);
+                                      if (priceChart != null) {
+                                        _changeMultiChartConfig(
+                                            activeConfig: priceChart,
+                                            newStyle: _selectedChartStyle);
+                                      }
                                     });
                                   }
                                 },
@@ -317,6 +319,14 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
       }
     });
+  }
+
+  void _handlePeriodChange(PeriodType newPeriod,
+     List<MultiChartConfig> availableCharts) {
+
+    for (final chart in availableCharts) {
+      _changeMultiChartConfig(activeConfig: chart, newPeriodType: _selectedPeriod);
+    }
   }
 
   Widget _buildChart(MultiChartConfig chart, {required bool currentChart}) {
@@ -451,7 +461,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   void _changeMultiChartConfig({
     required MultiChartConfig activeConfig,
-    PeriodType? newPeriodType, ChartStyle? newStyle, Indicator? newIndicator, bool? newActiveChart}) {
+    PeriodType? newPeriodType, ChartStyle? newStyle,
+    Indicator? newIndicator, bool? newActiveChart}) {
+
     final targetPeriod = newPeriodType ?? _selectedPeriod;
     final targetIndicator = newIndicator ?? _selectedIndicator;
     final targetStyle = newStyle ?? _selectedChartStyle;

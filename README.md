@@ -34,10 +34,11 @@ dart pub global activate protoc_plugin
 ```
 
 #TODO:
-### display multi overlay charts!!!!!
-- sync all the multi charts (config) with the new period
+## TEST main chart modifies:
 - sync all the multi charts (config) with the new active chart
-- support customized indicator's chart style
+
+### Futher features:
+- support customized price chart style
 - support different price chart type: line, candle sticks, etc. 
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
