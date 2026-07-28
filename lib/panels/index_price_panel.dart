@@ -60,13 +60,14 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Failed to update ${assetsToRefresh.length} assets: $e')),
                         );
-                        dev.log("Failed to update ${assetsToRefresh.length} assets: $e'");
                       }
                     } finally {
                       ref.read(refreshAllDetailsProvider.future);
                       if (mounted) {
                         setState(() => _refreshingIds.clear());
-                        dev.log("Refreshed ${assetsToRefresh.length} assets");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Refreshed ${assetsToRefresh.length} assets")),
+                        );
                       }
                     }
                   },
@@ -93,13 +94,14 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
               final isRefreshing = _refreshingIds.contains(asset.id);
               final detailText = details[asset.id] ?? 'No data available';
 
-              return Card(
-                child: ListTile(
-                  dense: true,
-                  title: Text(asset.symbol),
-                  subtitle: Text(detailText, style: const TextStyle(fontSize: 11)),
-                  trailing: _buildTrailingActions(context, asset, isRefreshing),
-                ),
+              return Shrinkable(title: asset.symbol,
+                body: Card(
+                  child: ListTile(
+                    dense: true,
+                    title: Text(asset.symbol),
+                    subtitle: Text(detailText, style: const TextStyle(fontSize: 11)),
+                    trailing: _buildTrailingActions(context, asset, isRefreshing),
+                  )),
               );
             },
           ),

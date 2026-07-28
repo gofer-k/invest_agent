@@ -34,8 +34,7 @@ dart pub global activate protoc_plugin
 ```
 
 ### TODO:
-- support customized price chart style
-- support different price chart type: line, candle sticks, etc. 
+- support different price chart type: candle sticks, etc. 
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
 - display candles signals
