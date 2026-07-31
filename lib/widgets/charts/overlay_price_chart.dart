@@ -68,26 +68,19 @@ void _drawPriceLine(Canvas canvas, Size size, OverlayContext ctx) {
   }
 }
 
-  // TODO: support customizable intervals and test this method
   void _drawCandleSticks(Canvas canvas, Size size, OverlayContext ctx) {
     if (data.priceData.isEmpty) return;
 
     final visibleData = data.priceData.where((p) => !p.dateTime.isBefore(ctx.startDate) && !p.dateTime.isAfter(ctx.endDate)).toList();
     if (visibleData.isEmpty) return;
 
-    // final double minPrice = data.getMin(ctx.startDate, ctx.endDate);
-    // final double maxPrice = data.getMax(ctx.startDate, ctx.endDate);
-
     double minPrice = visibleData.reduce((current, next) => current.lowPrice < next.lowPrice ? current : next).lowPrice;
     double maxPrice = visibleData.reduce((current, next) => current.highPrice > next.highPrice ? current : next).highPrice;
 
     // Calculate width of one candle based on total visible space and data points
-    final double candleWidth = (size.width / (data.priceData.length)) * 0.8;
+    final double candleWidth = (size.width / (visibleData.length)) * 0.8;
 
     for (final price in visibleData) {
-      // Skip if out of bounds
-      // if (price.dateTime.isBefore(ctx.startDate)) continue;
-      // if (price.dateTime.isAfter(ctx.endDate)) break;
 
       final double x = ctx.dateToPos(price.dateTime, size);
 
@@ -116,7 +109,7 @@ void _drawPriceLine(Canvas canvas, Size size, OverlayContext ctx) {
       final rectHeight = (bottom - top).abs().clamp(1.0, double.infinity);
 
       canvas.drawRect(
-        Rect.fromLTWH(x - candleWidth / 2, top, x + candleWidth / 2, rectHeight),
+        Rect.fromLTWH(x - candleWidth / 2, top, candleWidth, rectHeight),
         paint,
       );
     }
