@@ -253,13 +253,22 @@ class MultiChartConfig extends Cache {
     PeriodType periodType,
     ChartStyle chartStyle) =>
     MultiChartConfig(
-      id: defaultId, title: '${asset.symbol} - ${periodType.name} - $chartStyle',
+      id: defaultId, title: generateTitleBy(asset, null, periodType, chartStyle),
       periodType: periodType,
       activeChart: true,
       charts: [
         ChartConfig(mainChart: true, chartStyle: chartStyle,
           indicatorConfig: Indicator.priceIndicator())],
       asset: asset);
+
+  static generateTitleBy(AssetConfig? newAsset, Indicator? newIndicator,
+      PeriodType? newPeriodType, ChartStyle? newChartStyle) {
+    final assetName = newAsset != null ? "${newAsset.symbol} - " : '';
+    final periodType = newPeriodType != null ? "${newPeriodType.name} - " : '';
+    final chartStyle = newChartStyle != null ? newChartStyle.name : '';
+    final indicatorName = newIndicator != null && newIndicator.type != IndicatorType.price ? newIndicator.name : '';
+    return '$assetName $periodType $chartStyle $indicatorName';
+  }
 
   ChartConfig get mainChart => charts.firstWhere((e) => e.mainChart);
   List<ChartConfig> get overlayCharts => charts.where((e) => !e.mainChart).toList();

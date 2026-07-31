@@ -185,7 +185,11 @@ List<MultiChartConfig> multiChartsBy(Ref ref,
     PeriodType periodType,
     ChartStyle style) {
   final charts = ref.watch(multiChartProvider(type, periodType, style).select((s) => s.cachedCharts));
-  return charts.where((chart) => chart.asset.id == asset.id).toList();
+  final filteredCharts = charts
+      .where((chart) => chart.asset.id == asset.id)
+      .map((chart) => chart.copyWith(newAsset: asset))
+      .toList();
+  return filteredCharts;
 }
 
 @riverpod

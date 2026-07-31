@@ -87,10 +87,12 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       if (availableCharts.isEmpty) {
         final priceChart = MultiChartConfig.priceMultiChart(widget.assetConfig,
             _selectedPeriod, _selectedChartStyle);
-        _changeMultiChartConfig(activeConfig: priceChart, newActiveChart: true);
+        _changeMultiChartConfig(activeConfig: priceChart,
+          newPeriodType: _selectedPeriod, newStyle: _selectedChartStyle);
       }
       else {
         _selectedPeriod = availableCharts.first.periodType;
+        _selectedChartStyle = availableCharts.first.mainChart.chartStyle;
       }
     });
   }
@@ -198,6 +200,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                       _changeMultiChartConfig(
                                         activeConfig: chart,
                                         newIndicator: chart.charts.firstWhere((ch) => ch.indicatorConfig.type == IndicatorType.price).indicatorConfig,
+                                        newPeriodType: _selectedPeriod,
                                         newStyle: _selectedChartStyle);
                                     });
                                   }
@@ -311,11 +314,14 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
               _selectedPeriod, _selectedChartStyle).notifier).addEntry(
                 currentConfig.copyWith(
                   newId: MultiChartConfig.defaultId,
-                  newTitle: "${currentConfig.toString()} - ${updatedIndicator.name}",
+                  newTitle: MultiChartConfig.generateTitleBy(currentConfig.asset,
+                      updateIndicator, currentConfig.periodType,
+                      currentConfig.mainChart.chartStyle),
+                    // "${currentConfig.toString()} - ${updatedIndicator.name}",
                   newCharts: [
                     ChartConfig(
                       mainChart: updatedIndicatorMainChart,
-                      chartStyle: ChartStyle.line,  // TODO: support customized indicator's chart style
+                      chartStyle: currentConfig.mainChart.chartStyle,
                       indicatorConfig: updatedIndicator)]
                 ));
           }
@@ -336,7 +342,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
      List<MultiChartConfig> availableCharts) {
 
     for (final chart in availableCharts) {
-      _changeMultiChartConfig(activeConfig: chart, newPeriodType: _selectedPeriod);
+      _changeMultiChartConfig(activeConfig: chart,
+          newPeriodType: _selectedPeriod,
+          newStyle: chart.mainChart.chartStyle);
     }
   }
 
@@ -501,8 +509,12 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
       }
     }
 
-    final activeChartTitle = (newActiveChart != null && newIndicator != null)
-        ? newIndicator.name : null;
+    final activeChartTitle = MultiChartConfig.generateTitleBy(
+        activeConfig.asset,
+        newIndicator,
+        newPeriodType,
+        newStyle);
+
     final newChartConfig = activeConfig.copyWith(
       newAsset: widget.assetConfig,
       newPeriodType: targetPeriod,
