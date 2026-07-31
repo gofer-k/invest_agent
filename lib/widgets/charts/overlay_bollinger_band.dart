@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/bollinger_bands_result.dart';
 
 class OverlayBollingerBand extends OverlayChart {
@@ -10,7 +11,9 @@ class OverlayBollingerBand extends OverlayChart {
   final Map<String, Color> bollingerBandColors;
   final double strokeWidth;
 
-  OverlayBollingerBand({super.overlayType = OverlayType.bollingerBands,
+  OverlayBollingerBand({
+    super.overlayType = OverlayType.bollingerBands,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     required this.bollingerBandColors,
     this.strokeWidth = 1.2});

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/kst_result.dart';
 
 class OverlayKnowSureThing extends OverlayChart {
@@ -10,7 +11,9 @@ class OverlayKnowSureThing extends OverlayChart {
   final Map<String, Color> kstColors;
   final double lineWidth;
 
-  OverlayKnowSureThing({super.overlayType = OverlayType.kst,
+  OverlayKnowSureThing({
+    super.overlayType = OverlayType.kst,
+    super.chartStyle = ChartStyle.line,
     required this.points,
     required this.kstColors,
     this.lineWidth = 1.5});

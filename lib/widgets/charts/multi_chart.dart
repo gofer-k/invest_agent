@@ -11,10 +11,10 @@ import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
 import '../../model/analysis_period.dart';
 import '../../model/asset_config.dart';
+import '../../model/chart_style.dart';
 import '../../model/results/analysis_respond.dart';
 import '../../model/results/bollinger_bands_result.dart';
 import '../../model/results/ema_result.dart';
-import '../../model/indicator_result.dart';
 import '../../model/indicator_schema.dart';
 import '../../model/multi_chart_schema.dart';
 import '../../model/results/kst_result.dart';
@@ -195,12 +195,10 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                   if (newChartStyle != _selectedChartStyle) {
                                     setState(() {
                                       _selectedChartStyle = newChartStyle;
-                                      final priceChart = displayedCharts.firstWhereOrNull((ch) => ch.hasPriceChart);
-                                      if (priceChart != null) {
-                                        _changeMultiChartConfig(
-                                            activeConfig: priceChart,
-                                            newStyle: _selectedChartStyle);
-                                      }
+                                      _changeMultiChartConfig(
+                                        activeConfig: chart,
+                                        newIndicator: chart.charts.firstWhere((ch) => ch.indicatorConfig.type == IndicatorType.price).indicatorConfig,
+                                        newStyle: _selectedChartStyle);
                                     });
                                   }
                                 } : null,
@@ -382,7 +380,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   OverlayChart _showMainChart(ChartConfig chart) {
     if(!chart.mainChart) return EmptyOverlayChart();
 
-    if (chart.indicatorConfig.type == IndicatorType.price) return OverlayPriceChart(data: widget.priceData);
+    if (chart.indicatorConfig.type == IndicatorType.price) {
+      return OverlayPriceChart(data: widget.priceData, chartStyle: chart.chartStyle);
+    }
     return _showOverlayIndicatorChart(chart);
   }
 

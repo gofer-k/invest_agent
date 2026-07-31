@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
+
 class OverlayPattern extends OverlayChart {
   final DateTime startDate;
   final DateTime endDate;
@@ -11,6 +13,7 @@ class OverlayPattern extends OverlayChart {
 
   OverlayPattern({
     super.overlayType = OverlayType.pattern,
+    super.chartStyle = ChartStyle.line,
     required this.startDate,
     required this.endDate,
     required this.topValue,

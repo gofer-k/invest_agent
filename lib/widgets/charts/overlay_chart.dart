@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import '../../model/chart_style.dart';
 import '../../utils/chart_utils.dart';
 
 enum OverlayType {
@@ -8,8 +9,7 @@ enum OverlayType {
   movingAverage,
   obv,
   pattern,
-  priceCandles,
-  priceLine,
+  price,
   roc,
   rsi,
   signal,
@@ -20,7 +20,8 @@ enum OverlayType {
 
 abstract class OverlayChart {
   final OverlayType overlayType;
-  OverlayChart({required this.overlayType});
+  final ChartStyle chartStyle;
+  OverlayChart({required this.overlayType, required this.chartStyle});
   void draw(Canvas canvas, Size size, OverlayContext ctx);
 
   static void drawDashedLine(
@@ -64,6 +65,10 @@ class EmptyOverlayChart implements OverlayChart {
 
   @override
   OverlayType get overlayType => OverlayType.empty;
+
+  @override
+  // TODO: implement chartStyle
+  ChartStyle get chartStyle => ChartStyle.undefined;
 }
 
 class OverlayContext {

@@ -4,8 +4,8 @@ import 'package:invest_agent/model/asset_config.dart';
 
 import 'analysis_period.dart';
 import 'cache_schema.dart';
+import 'chart_style.dart';
 import 'drawing_schema.dart';
-import 'indicator_result.dart';
 import 'indicator_schema.dart';
 
 class ChartConfig extends Cache {

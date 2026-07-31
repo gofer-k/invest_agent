@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/ema_result.dart';
 
 class OverlayExponentialMovingAverage extends OverlayChart {
@@ -8,7 +9,9 @@ class OverlayExponentialMovingAverage extends OverlayChart {
   final Map<String, Color> emaColors;
   final double strokeWidth;
 
-  OverlayExponentialMovingAverage({super.overlayType = OverlayType.movingAverage,
+  OverlayExponentialMovingAverage({
+    super.overlayType = OverlayType.movingAverage,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     required this.emaColors,
     this.strokeWidth = 1.5});

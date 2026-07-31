@@ -34,7 +34,7 @@ dart pub global activate protoc_plugin
 ```
 
 ### TODO:
-- support different price chart type: candle sticks, etc. 
+- support customizable interval for chart ?
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
 - display candles signals
@@ -44,5 +44,6 @@ dart pub global activate protoc_plugin
 - various signals: Golden/Death cross, EMA signal
 
 ### BUGS:
+- correctly draw price candle sticks result 
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume

@@ -1,6 +1,7 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
+import '../chart_style.dart';
 import '../indicator_result.dart';
 import '../indicator_schema.dart';
 
@@ -276,8 +277,8 @@ class IndexPrice extends BaseIndicatorResult {
   double get minValue => _minValue;
 
   IndexPrice({
-    super.style = ChartStyle.line,
     required this.priceData,
+    required super.style,
     required super.config});
 
   void resetMinMax() {

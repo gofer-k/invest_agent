@@ -6,7 +6,7 @@ import 'package:invest_agent/model/results/price_result.dart';
 import 'package:invest_agent/utils/choice_chart_parameter.dart';
 import 'package:invest_agent/widgets/utils/math_icons.dart';
 
-import '../../model/indicator_result.dart';
+import '../../model/chart_style.dart';
 import '../../model/indicator_schema.dart';
 import '../../providers/indicator_provider.dart';
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/sma_result.dart';
 
 class OverlaySimpleMovingAverage extends OverlayChart {
@@ -8,7 +9,9 @@ class OverlaySimpleMovingAverage extends OverlayChart {
   final Map<String, Color> smaColors;
   final double strokeWidth;
 
-  OverlaySimpleMovingAverage({super.overlayType = OverlayType.movingAverage,
+  OverlaySimpleMovingAverage({
+    super.overlayType = OverlayType.movingAverage,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     this.strokeWidth = 1.5,
     required this.smaColors});

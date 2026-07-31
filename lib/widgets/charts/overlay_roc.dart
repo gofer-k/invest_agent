@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/roc_result.dart';
 import '../../utils/chart_utils.dart';
 import 'overlay_chart.dart';
@@ -14,6 +15,7 @@ class OverlayRoc extends OverlayChart {
 
   OverlayRoc({
     super.overlayType = OverlayType.roc,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     required this.rocColors,
     this.lineWidth = 1.0, this.upperBound, this.lowerBound, this.baseLevel,

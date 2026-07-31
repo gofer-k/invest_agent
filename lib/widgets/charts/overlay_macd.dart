@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/macd_result.dart';
 
 enum _OverlayType {
@@ -12,20 +13,14 @@ enum _OverlayType {
 class OverlayMacd extends OverlayChart {
   final List<MovingAverageConvergenceDivergence> data;
   final Map<String, Color> macdColors;
-  // final Color signalColor;
-  // final Color macdColor;
-  // final Color upColor;
-  // final Color downColor;
   final double lineWidth;
   final double barWidth;
 
-  OverlayMacd({super.overlayType = OverlayType.macd,
+  OverlayMacd({
+    super.overlayType = OverlayType.macd,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     required this.macdColors,
-    // this.signalColor = Colors.orangeAccent,
-    // this.macdColor = Colors.blueAccent,
-    // this.upColor = Colors.greenAccent,
-    // this.downColor = Colors.redAccent,
     this.lineWidth = 1.2,
     this.barWidth = 4.0});
 

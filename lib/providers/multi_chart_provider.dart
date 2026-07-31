@@ -5,7 +5,7 @@ import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../model/asset_config.dart';
-import '../model/indicator_result.dart';
+import '../model/chart_style.dart';
 import 'cache_notifier.dart';
 import 'load_database_provider.dart';
 

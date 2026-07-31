@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/price_result.dart';
 
 class OverlayOBV extends OverlayChart {
@@ -10,6 +11,7 @@ class OverlayOBV extends OverlayChart {
 
   OverlayOBV({
     super.overlayType = OverlayType.obv,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     this.lineColor = Colors.purple,
     this.lineWidth = 1.2,

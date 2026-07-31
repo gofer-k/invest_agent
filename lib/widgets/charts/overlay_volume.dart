@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
 import '../../model/results/price_result.dart';
 
 class OverlayVolume extends OverlayChart {
@@ -11,10 +12,11 @@ class OverlayVolume extends OverlayChart {
 
   OverlayVolume({
     super.overlayType = OverlayType.volume,
+    super.chartStyle = ChartStyle.bars,
     required this.data,
     this.upVolumeColor = Colors.green,
     this.downVolumeColor = Colors.redAccent,
-    this.barWidth = 3.0,
+    this.barWidth = 3.0
   });
 
   @override

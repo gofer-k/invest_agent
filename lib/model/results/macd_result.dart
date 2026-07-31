@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:invest_agent/model/proto/generated/invest_agent.pb.dart' hide IndicatorType, Indicator;
 import 'package:invest_agent/model/indicator_schema.dart';
+import '../chart_style.dart';
 import 'analysis_respond.dart';
 import '../indicator_result.dart';
 import 'package:collection/collection.dart';

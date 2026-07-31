@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../model/chart_style.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_chart.dart';
 
 class OverlayTooltipMarker extends OverlayChart {
   final CrosshairController controller;
 
-  OverlayTooltipMarker({required super.overlayType, required this.controller});
+  OverlayTooltipMarker({
+    required super.overlayType,
+    required this.controller,
+    super.chartStyle = ChartStyle.undefined});
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {

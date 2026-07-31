@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
+import '../../model/chart_style.dart';
 import '../../model/results/price_result.dart';
 
 class OverlayCandlestick extends OverlayChart {
@@ -9,7 +10,9 @@ class OverlayCandlestick extends OverlayChart {
   final double bodyWidth;
   final double lineWidth;
 
-  OverlayCandlestick({super.overlayType = OverlayType.priceCandles,
+  OverlayCandlestick({
+    super.overlayType = OverlayType.price,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     this.upColor = const Color(0xFF4CAF50),
     this.downColor = const Color(0xFFF44336),

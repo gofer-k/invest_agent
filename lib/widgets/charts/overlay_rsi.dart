@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/results/rsi_result.dart';
 
+import '../../model/chart_style.dart';
 import 'overlay_chart.dart';
 
 class OverlayRsi extends OverlayChart {
@@ -13,6 +14,7 @@ class OverlayRsi extends OverlayChart {
 
   OverlayRsi({
     super.overlayType = OverlayType.rsi,
+    super.chartStyle = ChartStyle.line,
     required this.data,
     required this.rsiColors,
     this.lineWidth = 1.0, this.upperBound, this.lowerBound, this.baseLevel,

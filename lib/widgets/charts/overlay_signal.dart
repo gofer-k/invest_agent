@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
+import '../../model/chart_style.dart';
+
 class OverlaySignal extends OverlayChart {
   final DateTime date;
   final double value;
@@ -9,6 +11,7 @@ class OverlaySignal extends OverlayChart {
 
   OverlaySignal({
     super.overlayType = OverlayType.signal,
+    super.chartStyle = ChartStyle.line,
     required this.date,
     required this.value,
     this.signalColor = Colors.green,

@@ -64,10 +64,12 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                     } finally {
                       ref.read(refreshAllDetailsProvider.future);
                       if (mounted) {
-                        setState(() => _refreshingIds.clear());
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Refreshed ${assetsToRefresh.length} assets")),
-                        );
+                        setState(() {
+                          _refreshingIds.clear();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Refreshed ${assetsToRefresh.length} assets")),
+                          );
+                        });
                       }
                     }
                   },
