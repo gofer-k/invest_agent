@@ -1,4 +1,8 @@
+import 'package:invest_agent/model/analysis_period.dart';
 import 'package:invest_agent/model/cache_schema.dart';
+
+import 'asset_config.dart';
+import 'indicator_schema.dart';
 
 class PortfolioConfigSchema implements CacheSchema {
   static const String cacheName = "portfolio";
@@ -131,29 +135,34 @@ class PortfolioConfig implements Cache{
   final int? id;
   final String portfolioName;
   final List<int> metaIds;
+  final PeriodType periodType;
+  final Map<AssetConfig, List<Indicator>> assetIndicators;
   final double targetWeight;
   final double rebalanceThreshold;
 
   PortfolioConfig({
-  this.id,
-  this.portfolioName = "",
-  required this.metaIds,
-  this.targetWeight = 0.25,
-  this.rebalanceThreshold = 0.05,
+    this.id,
+    this.portfolioName = "",
+    required this.metaIds,
+    this.targetWeight = 0.25,
+    this.rebalanceThreshold = 0.05,
+    this.assetIndicators = const {},
+    required this.periodType,
   });
 
   PortfolioConfig copyWith({
-    int? id,
-    String? portfolioName,
-    List<int>? metaIds,
-    double? targetWeight,
-    double? rebalanceThreshold}) {
+    int? newId,
+    String? newName,
+    PeriodType? newPeriodType,
+    Map<AssetConfig, List<Indicator>>? newAssetIndicators}) {
     return PortfolioConfig(
-      id: id ?? this.id,
-      portfolioName: portfolioName ?? this.portfolioName,
-      metaIds: metaIds ?? this.metaIds,
-      targetWeight: targetWeight ?? this.targetWeight,
-      rebalanceThreshold: rebalanceThreshold ?? this.rebalanceThreshold);
+      id: newId ?? id,
+      portfolioName: newName ?? portfolioName,
+      assetIndicators: newAssetIndicators ?? assetIndicators,
+      periodType: newPeriodType ?? periodType,
+      metaIds: metaIds,
+      targetWeight: targetWeight,
+      rebalanceThreshold: rebalanceThreshold);
   }
 
   @override
@@ -167,6 +176,7 @@ class PortfolioConfig implements Cache{
       targetWeight: (row[2] as num).toDouble(),
       rebalanceThreshold: (row[3] as num).toDouble(),
       metaIds: (row[4] as List).cast<int>(),
+      periodType: PeriodType.fiveYears,
     );
   }
 

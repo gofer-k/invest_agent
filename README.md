@@ -39,7 +39,10 @@ dart pub global activate protoc_plugin
   - shrinkable strategy config
   - add/edit/remove strategy
 - - asset's indicators (multi chart configs)
-- 
+
+- display vertical multi chart's bar
+- display tooltips on the chart's board
+
 ### - convert time controller to provider
 - support customizable interval for chart ?
 - load portfolio assets frm db cache

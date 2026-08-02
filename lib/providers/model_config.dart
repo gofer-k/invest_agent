@@ -145,19 +145,7 @@ class ModelConfig extends _$ModelConfig {
   Future<bool> removeAsset(AssetConfig asset) async {
     try {
       await _getDb();
-
-      final allPortfolios = state.getItems<PortfolioConfig>();
-      final portfoliosWithAsset = allPortfolios.where(
-              (p) => p.metaIds.contains(asset.id)
-      );
-
-      for (final portfolio in portfoliosWithAsset) {
-        final updatedIds = portfolio.metaIds.where((id) => id != asset.id).toList();
-        await update(PortfolioConfigSchema(), portfolio.copyWith(metaIds: updatedIds));
-      }
-
       await delete(AssetConfigSchema(), asset);
-
       return true;
     } catch (e) {
       debugPrint('Error removing asset: $e');

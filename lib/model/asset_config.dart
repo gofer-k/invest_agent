@@ -165,6 +165,8 @@ class AssetConfig extends Cache{
   @override
   String toString() => symbol;
 
+  String toDetailString() => "$symbol ($currency, $stockExchange)";
+
   @override
   factory AssetConfig.from(List<Object?> item) {
     if (item.length < 6) {

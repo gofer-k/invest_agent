@@ -1,3 +1,4 @@
+import 'package:invest_agent/model/analysis_period.dart';
 import 'package:test/test.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
@@ -36,7 +37,8 @@ void main() {
         portfolioName: "New portfolio",
         metaIds: [1],
         targetWeight: 0.1,
-        rebalanceThreshold: 0.05);
+        rebalanceThreshold: 0.05,
+        periodType: PeriodType.fiveYears,);
       await dbHelper.saveOne<PortfolioConfig>(schema, config);
       final fetchingResult = await dbHelper.fetchOne<PortfolioConfig>(schema, config);
       expect(fetchingResult, isNotNull);
@@ -54,12 +56,16 @@ void main() {
             portfolioName: "Portfolio 1",
             metaIds: [1],
             targetWeight: 0.1,
-            rebalanceThreshold: 0.05),
+            rebalanceThreshold: 0.05,
+            periodType: PeriodType.fiveYears
+        ),
         PortfolioConfig(id: 2,
             portfolioName: "Portfolio 2",
             metaIds: [2],
             targetWeight: 0.2,
-            rebalanceThreshold: 0.1)
+            rebalanceThreshold: 0.1,
+            periodType: PeriodType.fiveYears
+        )
       ];
       await dbHelper.saveAll(schema, portfolios);
       final result = await dbHelper.fetchAll<PortfolioConfig>(schema);
@@ -82,7 +88,9 @@ void main() {
         portfolioName: "Portfolio 1",
         metaIds: [1],
         targetWeight: 0.1,
-        rebalanceThreshold: 0.05);
+        rebalanceThreshold: 0.05,
+        periodType: PeriodType.fiveYears
+      );
       await dbHelper.saveOne(schema, portfolio);
       await dbHelper.deleteOne(schema, portfolio);
       final result = await dbHelper.fetchOne(schema, portfolio);
@@ -94,12 +102,16 @@ void main() {
           portfolioName: "Portfolio 1",
           metaIds: [1],
           targetWeight: 0.1,
-          rebalanceThreshold: 0.05);
+          rebalanceThreshold: 0.05,
+          periodType: PeriodType.fiveYears
+      );
       final updated = PortfolioConfig(id: 1,
           portfolioName: "Portfolio 1",
           metaIds: [2],
           targetWeight: 0.2,
-          rebalanceThreshold: 0.1);
+          rebalanceThreshold: 0.1,
+          periodType: PeriodType.fiveYears
+      );
       await dbHelper.saveOne(schema, origin);
       await dbHelper.updateOne(schema, updated);
       final result = await dbHelper.fetchOne(schema, origin);

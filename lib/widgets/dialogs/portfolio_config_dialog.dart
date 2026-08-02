@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
-import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
-import 'package:invest_agent/widgets/utils/factor_slider.dart';
 
+import '../../model/analysis_period.dart';
+import '../../model/indicator_schema.dart';
+import '../../providers/indicator_provider.dart';
+import '../../providers/load_database_provider.dart';
 import '../../providers/model_config.dart';
+import '../../utils/choice_chart_parameter.dart';
+import '../utils/shrinkable.dart';
 
 void showPortfolio(
   BuildContext context, PortfolioConfig? portfolio,
@@ -35,44 +39,27 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   late final TextEditingController controller;
 
   // State variables
-  late double targetWeight = widget.portfolioConfig?.targetWeight ?? 0.25;
-  late double rebalanceThreshold = widget.portfolioConfig?.rebalanceThreshold ?? 0.05;
-  List<AssetConfig> availableAssets = [];
-  Set<AssetConfig> portfolioAssets = {};
-  AssetConfig? selectedAsset;
-  bool isLoading = true;
+  Map<AssetConfig, List<Indicator>> _config = {};
+  AssetConfig? _selectedAsset;
+  PeriodType  _selectedPeriod = PeriodType.fiveYears;
+  Indicator _selectedIndicator = Indicator.defaultIndicator();
+  List<Indicator> _indicators = [];
 
   @override
   void initState() {
     super.initState();
     controller = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
-    _loadState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _loadState();
+    });
   }
 
   Future<void> _loadState() async {
-    try {
-      final assets = await ref.read(assetsLoaderProvider.future);
-      if (!mounted) return;
-
-      setState(() {
-        availableAssets = assets;
-        availableAssets.sort((left, right) => left.symbol.compareTo(right.symbol));
-        availableAssets.add(AssetConfig.defaultAsset());
-        if (assets.isNotEmpty) {
-          selectedAsset = assets.first;
-        }
-
-        if (widget.portfolioConfig != null) {
-          final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
-          portfolioAssets = assets.where((asset) => metaIdsSet.contains(asset.id)).toSet();
-
-        }
-        isLoading = false;
-      });
-    } catch (e) {
-      // Handle error (e.g., show error message)
-      if (mounted) setState(() => isLoading = false);
+    if (widget.portfolioConfig != null) {
+      // final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
     }
+
+    _indicators = await ref.read(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
   }
 
   @override
@@ -83,14 +70,34 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const AlertDialog(
-        content: SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
-      );
-    }
+    final assetsAsync = ref.watch(assetsLoaderProvider);
 
+    return assetsAsync.when(
+      data: (assets) {
+        assets.sort((left, right) => left.symbol.compareTo(right.symbol));
+        assets.add(AssetConfig.defaultAsset());
+        if (assets.isNotEmpty) {
+          _selectedAsset = assets.first;
+        }
+        return _buildMainContents(assets);
+      },
+      error: (error, stackTrace) {
+        return Center(
+          child: Text(
+            'Failed to load assets data: $error',
+            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
+      loading: () =>
+         const AlertDialog(
+           content: SizedBox(height: 100,
+             child: Center(child: CircularProgressIndicator()))),
+    );
+  }
+
+  Widget _buildMainContents(List<AssetConfig> assets) {
     final titleStr = widget.portfolioConfig == null ? "Add Portfolio" : "Update Portfolio";
-
     return AlertDialog(
       title: Text(titleStr),
       content: SingleChildScrollView( // Added to prevent overflow on small screens
@@ -107,57 +114,65 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
               ),
             ),
             const SizedBox(height: 16),
+            // Center(child:
+            _buildPeriodSelector(),
+            // ),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<AssetConfig>(
-                    initialValue: selectedAsset,
+                    initialValue: _selectedAsset,
                     hint: const Text("Select asset"),
-                    items: availableAssets.map((asset) => DropdownMenuItem(
+                    items: assets.map((asset) => DropdownMenuItem(
                       value: asset,
                       child: Text(asset.symbol),
                     )).toList(),
                     onChanged: (AssetConfig? newValue) {
                       if (newValue != null) {
-                        setState(() {
-                          selectedAsset = newValue;
-                          portfolioAssets.add(newValue);
-                        });
+                        _selectedAsset = newValue;
                       }
                     },
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_box_outlined),
-                  onPressed: () => _handleAddNewAsset(context),
+                  onPressed: () {
+                   setState(() => _handleAddNewAsset(_selectedAsset) );
+                  }
                 ),
               ],
             ),
-            if (portfolioAssets.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: portfolioAssets.map((asset) => Chip(
-                  label: Text(asset.symbol),
-                  onDeleted: () => setState(() => portfolioAssets.remove(asset)),
-                )).toList(),
-              ),
-            ],
-            const SizedBox(height: 20),
-            FactorSlider(
-              label: 'Target weight (%)',
-              initialValue: targetWeight,
-              minValue: 0.0,
-              maxValue: 1.0,
-              onChanged: (val) => setState(() => targetWeight = val),
-            ),
-            FactorSlider(
-              label: 'Rebalance threshold (%)',
-              initialValue: rebalanceThreshold,
-              minValue: 0.0,
-              maxValue: 1.0,
-              onChanged: (val) => setState(() => rebalanceThreshold = val),
-            ),
+            ..._config.entries.map((entry) {
+                return Shrinkable(title: entry.key.toDetailString(),
+                  body: Column(
+                    children: [
+                      Center(child: Row(
+                        children: [
+                          _buildIndicatorSelector(),
+                          IconButton(
+                            icon: const Icon(Icons.add_box_outlined),
+                            onPressed: () {
+                              // setState(() => _handleAddNewAsset(_selectedAsset) );
+                            }
+                          ),
+                        ])
+                      ),
+                    ]
+                  )
+                );
+              }
+            ).toList(),
+            // if (config.isNotEmpty) ...[
+              // const SizedBox(height: 8),
+              // Wrap(
+              //   spacing: 8,
+              //   children: config.map((asset) => Chip(
+              //     label: Text(asset.symbol),
+              //     onDeleted: () => setState(() => config.remove(asset)),
+              //   )).toList(),
+              // ),
+            // ],
           ],
         ),
       ),
@@ -174,20 +189,28 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     );
   }
 
-  void _handleAddNewAsset(BuildContext context) {
-    showAsset(context, selectedAsset, (newAsset) async {
-      if (newAsset != null) {
-        // Corrected Schema
-        await ref.read(modelConfigProvider.notifier).save<AssetConfig>(
-            AssetConfigSchema(), newAsset);
+  Widget _buildPeriodSelector() {
+    return choiceChartParameter<PeriodType>(
+        Theme.of(context).textTheme.labelMedium,
+        Colors.transparent,
+        _selectedPeriod,
+        PeriodType.values,
+        (PeriodType period) {
+          setState(() => _selectedPeriod = period );
+        }
+    );
+  }
 
-        setState(() {
-          availableAssets.add(newAsset);
-          portfolioAssets.add(newAsset);
-          selectedAsset = newAsset;
-        });
+  Widget _buildIndicatorSelector() {
+    return choiceChartParameter<Indicator>(
+      Theme.of(context).textTheme.labelMedium,
+      Colors.transparent,
+      _selectedIndicator,
+      _indicators,
+      (Indicator indicator) {
+        setState(() => _selectedIndicator = indicator );
       }
-    });
+    );
   }
 
   void _savePortfolio() {
@@ -197,12 +220,18 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     final newPortfolio = PortfolioConfig(
       id: widget.portfolioConfig?.id,
       portfolioName: name,
-      targetWeight: targetWeight,
-      rebalanceThreshold: rebalanceThreshold,
-      metaIds: portfolioAssets.map((a) => a.id).toList(),
+      assetIndicators: _config,
+      periodType: PeriodType.fiveYears,
+      targetWeight: 0.0,
+      rebalanceThreshold: 0.0,
+      metaIds: [],
     );
 
     widget.onSave(newPortfolio);
     Navigator.of(context).pop();
+  }
+
+  void _handleAddNewAsset(AssetConfig? selectedAsset) {
+        _config.putIfAbsent(selectedAsset!, () => []);
   }
 }

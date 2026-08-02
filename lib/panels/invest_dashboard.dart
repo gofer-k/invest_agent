@@ -262,8 +262,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     switch (activeLeftPaneIndex) {
       case LeftPaneIndex.mainSettings:
         return const MainSettingsPanel();
-      // case PanelIndex.analysisSettings:
-      //   return const AnalysisSettingsPanel();
       default:
         return const SizedBox.shrink();
     }
