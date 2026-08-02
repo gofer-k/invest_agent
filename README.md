@@ -34,6 +34,13 @@ dart pub global activate protoc_plugin
 ```
 
 ### TODO:
+## - support user strategies
+- display portfolio strategies:
+  - shrinkable strategy config
+  - add/edit/remove strategy
+- - asset's indicators (multi chart configs)
+- 
+### - convert time controller to provider
 - support customizable interval for chart ?
 - load portfolio assets frm db cache
 - add new portfolio isset: a) manual, b) from MarketPlace api ?
@@ -43,7 +50,6 @@ dart pub global activate protoc_plugin
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
 
-### BUGS:
-- correctly draw price candle sticks result 
+### BUGS: 
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume
