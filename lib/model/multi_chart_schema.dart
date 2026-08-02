@@ -261,7 +261,7 @@ class MultiChartConfig extends Cache {
           indicatorConfig: Indicator.priceIndicator())],
       asset: asset);
 
-  static generateTitleBy(AssetConfig? newAsset, Indicator? newIndicator,
+  static String generateTitleBy(AssetConfig? newAsset, Indicator? newIndicator,
       PeriodType? newPeriodType, ChartStyle? newChartStyle) {
     final assetName = newAsset != null ? "${newAsset.symbol} - " : '';
     final periodType = newPeriodType != null ? "${newPeriodType.name} - " : '';

@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
-import 'package:invest_agent/widgets/asset_dialog.dart';
+import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
 import 'package:invest_agent/widgets/utils/factor_slider.dart';
 
-import '../providers/model_config.dart';
+import '../../providers/model_config.dart';
 
 void showPortfolio(
   BuildContext context, PortfolioConfig? portfolio,

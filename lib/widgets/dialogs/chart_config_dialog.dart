@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/multi_chart_schema.dart';
+import '../../model/multi_chart_schema.dart';
 
 void showConfigurationChart(
     BuildContext context, MultiChartConfig? chart,

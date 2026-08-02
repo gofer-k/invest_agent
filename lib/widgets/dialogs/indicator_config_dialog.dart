@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/widgets/utils/color_button.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
-import '../model/indicator_schema.dart';
+import '../../model/indicator_schema.dart';
 
 void showIndicator(BuildContext context,
     Indicator? indicator,

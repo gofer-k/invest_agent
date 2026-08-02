@@ -25,7 +25,7 @@ import '../../model/results/rsi_result.dart';
 import '../../model/results/sma_result.dart';
 import '../../providers/load_database_provider.dart';
 import '../../providers/multi_chart_provider.dart';
-import '../indicator_config_dialog.dart';
+import '../dialogs/indicator_config_dialog.dart';
 import 'controllers/crosshair_controller.dart';
 import 'overlay_bollinger_band.dart';
 import 'overlay_chart.dart';

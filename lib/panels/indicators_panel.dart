@@ -5,7 +5,7 @@ import 'package:invest_agent/widgets/utils/shrinkable.dart';
 
 import '../providers/indicator_provider.dart';
 import '../providers/load_database_provider.dart';
-import '../widgets/indicator_config_dialog.dart';
+import '../widgets/dialogs/indicator_config_dialog.dart';
 
 class IndicatorsPanel extends ConsumerStatefulWidget {
   const IndicatorsPanel({super.key});

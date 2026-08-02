@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/model_config.dart';
 import '../model/portfolio_config.dart';
 import '../providers/load_database_provider.dart';
-import '../widgets/portfolio_config_dialog.dart';
+import '../widgets/dialogs/portfolio_config_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class PortfolioPanel extends ConsumerStatefulWidget {

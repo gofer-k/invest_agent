@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
-import '../model/asset_config.dart';
+import '../../model/asset_config.dart';
 
 void showAsset(
     BuildContext context, AssetConfig? assetConfig,

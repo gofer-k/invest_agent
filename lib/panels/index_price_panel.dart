@@ -12,7 +12,7 @@ import '../providers/model_config.dart';
 import '../providers/price_controller.dart';
 import '../providers/assets_utilities.dart';
 import '../providers/price_importer_csv.dart';
-import '../widgets/asset_dialog.dart';
+import '../widgets/dialogs/asset_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
 class IndexPricePanel extends ConsumerStatefulWidget {
