@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
-import 'package:invest_agent/model/indicator_result.dart';
+import 'package:invest_agent/model/results/indicator/indicator_result.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'cache_notifier.dart';

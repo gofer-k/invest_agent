@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
-import '../../model/results/kst_result.dart';
+import '../../model/results/indicator/kst_result.dart';
 
 class OverlayKnowSureThing extends OverlayChart {
   final List<Kst> points;

@@ -94,7 +94,7 @@ List<Indicator> sortedIndicators(Ref ref) {
   final cachedIndicators = ref.watch(indicatorProvider().select(
           (s) => s.getItems()));
 
-  final indicators = <Indicator>[Indicator.defaultIndicator()];
+  final indicators = <Indicator>[Indicator.emptyIndicator()];
   indicators.addAll(cachedIndicators);
   return indicators.toList()..sort((a, b) => a.name.compareTo(b.name));
 }

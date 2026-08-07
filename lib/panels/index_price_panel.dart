@@ -6,7 +6,7 @@ import 'package:invest_agent/providers/multi_chart_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../model/asset_config.dart';
-import '../model/results/price_result.dart';
+import '../model/results/indicator/price_result.dart';
 import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
 import '../providers/price_controller.dart';

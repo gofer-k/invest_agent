@@ -154,7 +154,7 @@ class Indicator extends Cache {
         parameters: jsonParameters,
       );
     }
-    return defaultIndicator();
+    return emptyIndicator();
   }
 
   factory Indicator.fromMap(Map<String, dynamic> item) {
@@ -301,7 +301,7 @@ class Indicator extends Cache {
 
   // --- End Static Helpers ---
 
-  static Indicator defaultIndicator() {
+  static Indicator emptyIndicator() {
     return Indicator(
       id: defaultId,
       name: '-',

@@ -1,8 +1,8 @@
 import 'dart:developer';
 
 import '../analysis_period.dart';
-import '../indicator_result.dart';
-import 'price_result.dart';
+import 'indicator/indicator_result.dart';
+import 'indicator/price_result.dart';
 
 class GoldenCross extends BaseIndicatorValue{
   final int? cross;

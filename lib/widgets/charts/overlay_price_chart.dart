@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/model/chart_style.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
-import '../../model/results/price_result.dart';
+import '../../model/results/indicator/price_result.dart';
 
 class OverlayPriceChart extends OverlayChart {
   final IndexPrice data;

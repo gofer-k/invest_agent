@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
-import '../../model/results/macd_result.dart';
+import '../../model/results/indicator/macd_result.dart';
 
 enum _OverlayType {
   signal,

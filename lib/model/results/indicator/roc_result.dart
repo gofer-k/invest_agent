@@ -2,69 +2,65 @@ import 'dart:math';
 
 import 'package:invest_agent/model/proto/generated/invest_agent.pb.dart' hide IndicatorType, Indicator;
 import 'package:invest_agent/model/indicator_schema.dart';
-import '../chart_style.dart';
-import 'analysis_respond.dart';
-import '../indicator_result.dart';
+import '../../chart_style.dart';
+import '../analysis_respond.dart';
+import 'indicator_result.dart';
 import 'package:collection/collection.dart';
 
-enum KstParam {
+enum RocParam {
   // -- input parameters
   roc("roc"),
-  sma("sma"),
-  signalPeriod("signal period"),
+  window("window"),
   upperLimit("upper limit"),
   lowerLimit("lower limit"),
-  kstChart("kst chart"),
-  signalChart("signal chart"),
+  rocChart("chart"),
   upperLevel("upper level"),
   zeroLevel("zero level"),
-  lowerLevel("lower level"),
-  // -- output parameters
-  kst("kst"),
-  signal("signal");
+  lowerLevel("lower level");
 
   final String name;
-  const KstParam(this.name);
+  const RocParam(this.name);
 }
 
-class Kst extends BaseIndicatorValue {
-  final double? kst;
-  final double? signal;
+class Roc extends BaseIndicatorValue {
+  final double? roc;
+  final int? window;
 
-  Kst({
+  Roc({
     required super.dateTime,
-    required this.kst,
-    required this.signal,});
+    required this.roc,
+    required this.window,});
 
-  factory Kst.fromType(DateTime dateTime, {kst = double, signal = double}) {
-    return Kst(dateTime: dateTime, kst: kst, signal: signal);
+  factory Roc.fromType(DateTime dateTime, {roc = double, window = int}) {
+    return Roc(dateTime: dateTime, roc: roc, window: window);
   }
 
-  static Kst? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
-    final kst = parseNum(jsonMap[KstParam.kst.name]);
-    final signal = parseNum(jsonMap[KstParam.signal.name]);
-    if (kst != null && signal != null) {
-      return Kst(dateTime: dateTime, kst: kst,  signal: signal);
+  static Roc? fromJson(
+      DateTime dateTime, Map<String, dynamic> jsonMap) {
+    final roc = parseNum(jsonMap[RocParam.roc.name]);
+    final window = jsonMap[RocParam.window.name] as int?;
+    if (roc != null && window != null) {
+      return Roc(dateTime: dateTime, roc: roc,  window: window,);
     }
     return null;
   }
 
   Map<String, dynamic> toJson() => {
-    KstParam.kst.name: kst,
-    KstParam.signal.name: signal,
+    RocParam.roc.name: roc,
+    RocParam.window.name: window,
   };
 }
 
-class KstResult extends BaseIndicatorResult {
-  final List<Kst> points;
+class RocResult extends BaseIndicatorResult {
+  final List<Roc> points;
 
-  KstResult({
+  RocResult({
     required super.style,
     required super.config,
     required this.points,
   });
 
-  factory KstResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
+  factory RocResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
     final style = ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
     ) ?? ChartStyle.line;
@@ -77,38 +73,41 @@ class KstResult extends BaseIndicatorResult {
     );
 
     final data = protoResult.points.map((p) {
-      return Kst(
+      return Roc(
         dateTime: p.dateTime.toDateTime(),
-        kst: p.values[KstParam.kst.name] ?? 0.0,
-        signal: p.values[KstParam.signal.name] ?? 0.0,
+        roc: p.values[RocParam.roc.name] ?? 0.0,
+        window: p.values[RocParam.window.name]?.toInt(),
       );
     }).toList();
 
-    return KstResult(
+    return RocResult(
       style: style,
       config: config,
       points: data,
     );
   }
 
-  List<Kst> getPoints() => points;
+  List<Roc> getPoints({int rollingWindow = 20}) {
+    // return points.where((p) => p.rollingWindow == rollingWindow).toList();
+    return points;
+  }
 
   @override
   double get maxValue => points.isEmpty
       ? 0
-      : points.map((p) => p.kst ?? -double.infinity).reduce(max);
+      : points.map((p) => p.roc ?? -double.infinity).reduce(max);
 
   @override
   double get minValue => points.isEmpty
       ? 0
-      : points.map((p) => p.kst ?? double.infinity).reduce(min);
+      : points.map((p) => p.roc ?? double.infinity).reduce(min);
 
   @override
   double getMax(DateTime? startDate, DateTime? endDate) {
     final filtered = _filterPoints(startDate, endDate);
     return filtered.isEmpty
         ? 0
-        : filtered.map((p) => p.kst ?? -double.infinity).reduce(max);
+        : filtered.map((p) => p.roc ?? -double.infinity).reduce(max);
   }
 
   @override
@@ -116,10 +115,10 @@ class KstResult extends BaseIndicatorResult {
     final filtered = _filterPoints(startDate, endDate);
     return filtered.isEmpty
         ? 0
-        : filtered.map((p) => p.kst ?? double.infinity).reduce(min);
+        : filtered.map((p) => p.roc ?? double.infinity).reduce(min);
   }
 
-  Iterable<Kst> _filterPoints(DateTime? start, DateTime? end) {
+  Iterable<Roc> _filterPoints(DateTime? start, DateTime? end) {
     if (start == null && end == null) return points;
     return points.where((p) {
       if (start != null && p.dateTime.isBefore(start)) return false;
@@ -131,7 +130,7 @@ class KstResult extends BaseIndicatorResult {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! KstResult) return false;
+    if (other is! RocResult) return false;
     return super == other && points == other.points;
   }
 

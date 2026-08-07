@@ -1,5 +1,5 @@
 import '../model/analysis_period.dart';
-import '../model/indicator_result.dart';
+import '../model/results/indicator/indicator_result.dart';
 import 'custom_datetime_format.dart';
 
 double valueToPos({required double currValue,

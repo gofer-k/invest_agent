@@ -39,10 +39,10 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   late final TextEditingController controller;
 
   // State variables
-  Map<AssetConfig, List<Indicator>> _config = {};
+  final Map<AssetConfig, List<Indicator>> _config = {};
   AssetConfig? _selectedAsset;
   PeriodType  _selectedPeriod = PeriodType.fiveYears;
-  Indicator _selectedIndicator = Indicator.defaultIndicator();
+  Indicator _selectedIndicator = Indicator.emptyIndicator();
   List<Indicator> _indicators = [];
 
   @override

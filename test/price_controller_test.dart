@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
-import 'package:invest_agent/model/results/price_result.dart';
+import 'package:invest_agent/model/results/indicator/price_result.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/model_config.dart';
 import 'package:invest_agent/providers/price_controller.dart';

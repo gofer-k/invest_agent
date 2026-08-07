@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
-import '../../model/results/sma_result.dart';
+import '../../model/results/indicator/sma_result.dart';
 
 class OverlaySimpleMovingAverage extends OverlayChart {
   final List<SimpleMovingAverage> data;

@@ -63,7 +63,7 @@ class ChartConfig extends Cache {
       mainChart: item["main_chart"] as bool,
       chartStyle: ChartStyle.values.firstWhere((e) => e.name == item["drawing_type"] as String),
       visible: item["visible"] as bool,
-      indicatorConfig: indicator ?? Indicator.defaultIndicator(),
+      indicatorConfig: indicator ?? Indicator.emptyIndicator(),
       drawingData: drawingData,
     );
   }

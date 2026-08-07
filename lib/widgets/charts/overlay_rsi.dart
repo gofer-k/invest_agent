@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:invest_agent/model/results/rsi_result.dart';
+import 'package:invest_agent/model/results/indicator/rsi_result.dart';
 
 import '../../model/chart_style.dart';
 import 'overlay_chart.dart';

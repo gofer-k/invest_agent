@@ -1,6 +1,6 @@
 
 import 'package:invest_agent/model/indicator_schema.dart';
-import 'chart_style.dart';
+import '../../chart_style.dart';
 
 abstract class BaseIndicatorValue {
   final DateTime dateTime;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
-import '../../model/results/ema_result.dart';
+import '../../model/results/indicator/ema_result.dart';
 
 class OverlayExponentialMovingAverage extends OverlayChart {
   final List<ExponentialMovingAverage> data;

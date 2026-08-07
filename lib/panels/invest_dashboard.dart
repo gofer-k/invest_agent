@@ -10,7 +10,7 @@ import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/task_bar_icon.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
-import 'package:invest_agent/model/results/price_result.dart';
+import 'package:invest_agent/model/results/indicator/price_result.dart';
 import '../model/chart_style.dart';
 import '../providers/model_config.dart';
 import 'analysis_settings_panel.dart';

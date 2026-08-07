@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../model/chart_style.dart';
-import '../../model/results/roc_result.dart';
+import '../../model/results/indicator/roc_result.dart';
 import '../../utils/chart_utils.dart';
 import 'overlay_chart.dart';
 
