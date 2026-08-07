@@ -111,25 +111,10 @@ class Indicator extends Cache {
     required this.parameters,
   }) : super.from([]);
 
-  IndicatorKey get uniqueKey {
+  CacheUniqueKey get uniqueKey {
     // Normalize parameters to ensure stability across gRPC/JSON round-trips
-    final normalized = _normalize(parameters);
+    final normalized = Cache.normalizeKey(parameters);
     return "$name-$type-${jsonEncode(normalized)}".hashCode;
-  }
-
-  static dynamic _normalize(dynamic value) {
-    if (value is Map) {
-      final sortedKeys = value.keys.map((e) => e.toString()).toList()..sort();
-      return {
-        for (final k in sortedKeys) k: _normalize(value[k])
-      };
-    } else if (value is List) {
-      if (value.length == 1) return _normalize(value[0]);
-      return value.map(_normalize).toList();
-    } else if (value is num) {
-      return value.toDouble();
-    }
-    return value;
   }
 
   @override
@@ -225,82 +210,6 @@ class Indicator extends Cache {
     return result;
   }
 
-  // --- Static Helpers for JSON Config Schema ---
-
-  static bool isEditable(dynamic parameterValue) {
-    if (parameterValue is Map) {
-      return parameterValue[IndicatorParam.edit.name]?.toString() == "1";
-    }
-    return true;
-  }
-
-  static bool isVisible(dynamic parameterValue) {
-    if (parameterValue is Map) {
-      return parameterValue[IndicatorParam.visible.name]?.toString() == "1";
-    }
-    return true;
-  }
-
-  static bool hasVisibilityOption(dynamic parameterValue) {
-    if (parameterValue is Map) {
-      return parameterValue.containsKey(IndicatorParam.visible.name);
-    }
-    return false;
-  }
-
-  static IndicatorParamType? getParameterType(dynamic parameterValue) {
-    if (parameterValue is Map) {
-      final typeStr = parameterValue[IndicatorParam.type.name]?.toString();
-      return IndicatorParamType.values.firstWhereOrNull((e) => e.name == typeStr);
-    }
-    return null;
-  }
-
-  static dynamic getParameterValue(dynamic parameterValue) {
-    if (parameterValue is Map) {
-      return parameterValue[IndicatorParam.value.name];
-    }
-    if (parameterValue is List && parameterValue.isNotEmpty) {
-      return parameterValue.first;
-    }
-    return parameterValue;
-  }
-
-  static dynamic updateParameterValue(dynamic oldParameterValue, dynamic newValue) {
-    if (oldParameterValue is Map) {
-      final newMap = Map<String, dynamic>.from(oldParameterValue);
-      newMap[IndicatorParam.value.name] = newValue.toString();
-      return newMap;
-    }
-    if (oldParameterValue is List) {
-      final list = List<dynamic>.from(oldParameterValue);
-      final val = newValue.toString();
-      if (list.contains(val)) {
-        list.remove(val);
-        list.insert(0, val);
-      }
-      return list;
-    }
-    return newValue;
-  }
-
-  static dynamic updateParameterAttr(dynamic oldParameterValue, IndicatorParam attr, dynamic newValue) {
-    if (oldParameterValue is Map) {
-      final newMap = Map<String, dynamic>.from(oldParameterValue);
-      newMap[attr.name] = newValue.toString();
-      return newMap;
-    }
-    return oldParameterValue;
-  }
-
-  static dynamic getSelectedValue(Map<String, dynamic> parameters, String key) {
-    final param = parameters[key];
-    if (param == null) return null;
-    return getParameterValue(param);
-  }
-
-  // --- End Static Helpers ---
-
   static Indicator emptyIndicator() {
     return Indicator(
       id: defaultId,
@@ -354,7 +263,7 @@ class Indicator extends Cache {
     parameters.forEach((param, value) {
       if (value is Map<String, dynamic>) {
         if (value[IndicatorParam.type.name] == IndicatorParamType.color.name) {
-          if (isVisible(value)) {
+          if (Cache.isVisible(value)) {
             final colorValue = value[IndicatorParam.value.name];
             if (colorValue != null) {
               final hexString = colorValue.toString().replaceFirst('#', '');

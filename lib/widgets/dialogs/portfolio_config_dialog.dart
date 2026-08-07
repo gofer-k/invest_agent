@@ -162,7 +162,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
                   )
                 );
               }
-            ).toList(),
+            ),
             // if (config.isNotEmpty) ...[
               // const SizedBox(height: 8),
               // Wrap(

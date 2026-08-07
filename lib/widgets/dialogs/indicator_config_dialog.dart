@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/widgets/utils/color_button.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
+import '../../model/cache_schema.dart';
 import '../../model/indicator_schema.dart';
 
 void showIndicator(BuildContext context,
@@ -143,7 +144,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                     final newList = List.from(list);
                       // Update the specific inner map value
                     newList[index] = {
-                      innerKey: Indicator.updateParameterValue(innerValue, newValue)
+                      innerKey: Cache.updateParameterValue(innerValue, newValue)
                     };
                     parameters[parameter.key] = newList;
                   });
@@ -164,7 +165,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               DropdownList<String>(
                 onSelected: (item) {
                   setState(() {
-                    parameters[parameter.key] = Indicator.updateParameterValue(parameter.value, item);
+                    parameters[parameter.key] = Cache.updateParameterValue(parameter.value, item);
                   });
                 },
                 choiceType: list.first.toString(),
@@ -186,22 +187,22 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     { void Function(dynamic)? onChanged} ) {
 
     final value = parameter.value;
-    final bool isEditable = Indicator.isEditable(value);
-    final bool hasVisibility = Indicator.hasVisibilityOption(value);
-    final bool isVisible = Indicator.isVisible(value);
+    final bool isEditable = Cache.isEditable(value);
+    final bool hasVisibility = Cache.hasVisibilityOption(value);
+    final bool isVisible = Cache.isVisible(value);
     
-    IndicatorParamType? type = Indicator.getParameterType(value);
+    CacheParamType? type = Cache.getParameterType(value);
     if (type == null && value is! String && value is! num) return const SizedBox.shrink();
 
     TextInputType keyboardType = switch(type) {
-      IndicatorParamType.int => TextInputType.number,
-      IndicatorParamType.double => const TextInputType.numberWithOptions(decimal: true),
-      IndicatorParamType.string => TextInputType.text,
-      IndicatorParamType.color => TextInputType.text,
+      CacheParamType.int => TextInputType.number,
+      CacheParamType.double => const TextInputType.numberWithOptions(decimal: true),
+      CacheParamType.string => TextInputType.text,
+      CacheParamType.color => TextInputType.text,
       null => TextInputType.text,
     };
 
-    final rawValue = Indicator.getParameterValue(value);
+    final rawValue = Cache.getParameterValue(value);
     final displayValue = rawValue?.toString() ?? '';
 
     return Padding(
@@ -209,7 +210,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (isEditable && type != IndicatorParamType.color)
+          if (isEditable && type != CacheParamType.color)
             Expanded(
               child: TextFormField(
                 key: ValueKey("edit_${parameter.key}_${widget.indicator?.id}"),
@@ -226,13 +227,13 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                   } else {
                     setState(() {
                       parameters[parameter.key] =
-                          Indicator.updateParameterValue(value, v);
+                          Cache.updateParameterValue(value, v);
                     });
                   }
                 },
               ),
             ),
-          if (type == IndicatorParamType.color)
+          if (type == CacheParamType.color)
             Padding(
               padding: const EdgeInsets.only(left: 8.0),
               child: ColorButton(
@@ -242,7 +243,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 showLabel: false, // Avoid internal Row with Expanded inside ColorButton
                 onColorChanged: (String colorHex) {
                   setState(() {
-                    parameters[parameter.key] = Indicator.updateParameterValue(value, colorHex);
+                    parameters[parameter.key] = Cache.updateParameterValue(value, colorHex);
                   });
                 },
               ),
@@ -254,7 +255,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
               onChanged: (val) {
                 if (val == null) return;
                 setState(() {
-                  parameters[parameter.key] = Indicator.updateParameterAttr(value, IndicatorParam.visible, val ? "1" : "0");
+                  parameters[parameter.key] = Cache.updateParameterAttr(value, CacheParam.visible, val ? "1" : "0");
                 });
               }
             ),

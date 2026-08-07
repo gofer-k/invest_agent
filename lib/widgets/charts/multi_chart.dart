@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/providers/trading_service.dart';
 import 'package:invest_agent/widgets/charts/indicator_overlay_taskbar.dart';
 import 'package:invest_agent/widgets/charts/main_overlay_taskbar.dart';
@@ -434,8 +435,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           case IndicatorType.roc:
             final rocResult = result as RocResult;
             final rocColors = rocResult.config.visibleIndicatorColors();
-            final lowBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.lowerLimit.name]));
-            final upperBound = parseNum(Indicator.getParameterValue(rocResult.config.parameters[RocParam.upperLimit.name]));
+            final lowBound = parseNum(Cache.getParameterValue(rocResult.config.parameters[RocParam.lowerLimit.name]));
+            final upperBound = parseNum(Cache.getParameterValue(rocResult.config.parameters[RocParam.upperLimit.name]));
             return OverlayRoc(
                 data: rocResult.getPoints(),
                 rocColors: rocColors,
@@ -444,9 +445,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           case IndicatorType.rsi:
             final rsiResult = result as RsiResult;
             final rsiColors = rsiResult.config.visibleIndicatorColors();
-            final lowBound = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.lowerLimit.name]));
-            final upperBound = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.upperLimit.name]));
-            final baseLevel = parseNum(Indicator.getParameterValue(rsiResult.config.parameters[RsiParam.middleLimit.name]));
+            final lowBound = parseNum(Cache.getParameterValue(rsiResult.config.parameters[RsiParam.lowerLimit.name]));
+            final upperBound = parseNum(Cache.getParameterValue(rsiResult.config.parameters[RsiParam.upperLimit.name]));
+            final baseLevel = parseNum(Cache.getParameterValue(rsiResult.config.parameters[RsiParam.middleLimit.name]));
             return OverlayRsi(
               data: rsiResult.getPoints(),
               rsiColors: rsiColors,
