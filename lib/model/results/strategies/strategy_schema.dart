@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:collection/collection.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
 class StrategySchema implements CacheSchema {
@@ -44,7 +43,7 @@ class StrategySchema implements CacheSchema {
       nextval('$sequenceName'),
       '${config.type.name}',
       '${config.name}', 
-      '${config.parameters}'
+      '${jsonEncode(config.toMap())}'
       ) ON CONFLICT(name) DO UPDATE SET
           type = excluded.type,
           parameters = excluded.parameters;
@@ -58,7 +57,7 @@ class StrategySchema implements CacheSchema {
       UPDATE $tableName
       SET type = '${config.type.name}',
           name = '${config.name}',
-          parameters = '${config.parameters}'
+          parameters = '${jsonEncode(config.toMap())}'
       WHERE id = ${config.id};
     ''';
   }
@@ -73,8 +72,12 @@ class StrategySchema implements CacheSchema {
 }
 
 enum StrategyType {
-  gem("Global equity momentum"),
+  arbitrary("Arbitrary"),
   asset("Asset allocation"),
+  gem("Global equity momentum"),
+  meanReversion("Mean reversion"),
+  indexFundRebalancing("Index fund rebalancing"),
+  trendFollowing("Trend following"),
   empty("-");
 
   final String name;
@@ -87,29 +90,15 @@ class Strategy extends Cache {
   final String name;
   final Map<String, dynamic> parameters;
 
+  static int defaultId = -1;
+
   Strategy({
     required this.id,
     required this.type,
-    required this.parameters,
+    this.parameters = const {},
     required this.name}) : super.from([]);
 
-  // factory Strategy.fromMap(Map<String, dynamic> item) {
-  //
-  // }
-  bool isEmpty() => id == -1 && type == StrategyType.empty;
-
-  Strategy copyWith({
-    String? newName,
-    StrategyType? newType,
-    String? newDescription,
-    Map<String, dynamic>? newParams}) {
-    return Strategy(
-        id: id,
-        type: newType ?? type,
-        parameters: newParams ?? parameters, name: newName ?? name);
-  }
-
-  static Strategy emptyStrategy() {
+  factory Strategy.emptyStrategy() {
     return Strategy(
       id: -1,
       type: StrategyType.asset,
@@ -118,14 +107,51 @@ class Strategy extends Cache {
     );
   }
 
-  CacheUniqueKey get uniqueKey {
-    // Normalize parameters to ensure stability across gRPC/JSON round-trips
-    final normalized = Cache.normalizeKey(parameters);
-    return "$name-$type-${jsonEncode(normalized)}".hashCode;
+  @override
+  factory Strategy.from(List<Object?> item) {
+    if (item.length >= 3) {
+      final strategyId = item[0] as int;
+      final typeString = (item[1] as String).toLowerCase();
+      // Resilience: check enum type
+      final jsonType = StrategyType.values.firstWhere(
+              (e) => e.name.toLowerCase() == typeString,
+          orElse: () => StrategyType.empty
+      );
+      final nameString = item[2] as String;
+      final jsonParams = item[3] as Map<String, dynamic>;
+      return Strategy(
+        id: strategyId,
+        type: jsonType,
+        name: nameString,
+        parameters: jsonParams,
+      );
+    }
+    return Strategy.emptyStrategy();
   }
 
+  bool isEmpty() => id == defaultId && type == StrategyType.empty;
+
+  Strategy copyWith({
+    int? newId,
+    String? newName,
+    StrategyType? newType,
+    Map<String, dynamic>? newParameters}) {
+    return Strategy(
+        id: newId ?? id,
+        type: newType ?? type,
+        name: newName ?? name,
+        parameters: parameters
+    );
+  }
+
+  // CacheUniqueKey get uniqueKey {
+  //   // Normalize parameters to ensure stability across gRPC/JSON round-trips
+  //   final normalized = Cache.normalizeKey(parameters);
+  //   return "$name-$type-${jsonEncode(normalized)}".hashCode;
+  // }
+
   @override
-  List<Object?> get props => [id, type, parameters];
+  List<Object?> get props => [id, type, name, parameters];
 
   @override
   bool operator ==(Object other) =>
@@ -135,10 +161,10 @@ class Strategy extends Cache {
     id == other.id &&
     type == other.type &&
     name == other.name &&
-    const MapEquality().equals(parameters, other.parameters));
+    parameters == other.parameters);
 
   @override
-  int get hashCode => id.hashCode ^ type.hashCode ^ name.hashCode ^ const MapEquality().hash(parameters);
+  int get hashCode => id.hashCode ^ type.hashCode ^ name.hashCode ^ parameters.hashCode;
 
   @override
   Map<String, dynamic> toMap() => {

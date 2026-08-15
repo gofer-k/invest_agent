@@ -1,4 +1,5 @@
 import 'package:invest_agent/model/portfolio_config.dart';
+import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
 
@@ -19,6 +20,7 @@ class CacheRegistry {
     AnalysisEntry: (item) => AnalysisEntry.from(item),
     Indicator: (item) => Indicator.from(item),
     MultiChartConfig: (item) => MultiChartConfig.from(item),
+    Strategy: (item) => Strategy.from(item),
   };
 
   static T create<T>(List<Object?> item) {
