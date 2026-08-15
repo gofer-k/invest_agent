@@ -1,8 +1,10 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../../cache_schema.dart';
+import '../../period_type.dart';
 
 class MeanReversionConfig extends Strategy {
   final AssetConfig asset;
@@ -10,9 +12,13 @@ class MeanReversionConfig extends Strategy {
 
   MeanReversionConfig({
     super.type = StrategyType.meanReversion,
-    super.parameters = const {},
     required super.id,
     required super.name,
+    required super.cash,
+    required super.currency,
+    required super.analysisPeriod,
+    required super.beginDate,
+    required super.endDate,
     required this.asset,
     required this.indicator});
 
@@ -21,17 +27,28 @@ class MeanReversionConfig extends Strategy {
   }
 
   factory MeanReversionConfig.emptyStrategy() {
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
     return MeanReversionConfig(
       id: Strategy.defaultId,
       asset: AssetConfig.defaultAsset(),
       type: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
-      name: '');
+      name: '',
+      cash: 10000.0,
+      currency: const FiatCurrency.pln(),
+      analysisPeriod: PeriodType.year,
+      beginDate: epoch,
+      endDate: epoch);
   }
 
   /*
   {
     "asset": 20,
+    "cash"; 10000.0
+    "currency|; "pln",
+    "analysisPeriod"; "year",
+    "beginDate"; "2023-01-01",
+    "endDate|; "2023-12-31",
     "indicator": [
       {
         "sma": {
@@ -65,11 +82,14 @@ class MeanReversionConfig extends Strategy {
   }
    */
   @override
-  factory MeanReversionConfig.fromMap(int id, String name, Map<String, dynamic> params) {
-    // 1. Safely handle the Asset
-    final assetId = params['asset'] as int? ?? 0;
+  factory MeanReversionConfig.fromMap(int id, String name,
+      double cash,
+      FiatCurrency currency,
+      PeriodType analysisPeriod,
+      DateTime beginDate, DateTime endDate,
+      Map<String, dynamic> params) {
 
-    // 2. Safely handle the Indicator List
+    final assetId = params['asset'] as int? ?? 0;
     final List<dynamic> indicatorList = params['indicator'] ?? [];
 
     Indicator indicator;
@@ -103,25 +123,38 @@ class MeanReversionConfig extends Strategy {
     return MeanReversionConfig(
       id: id,
       name: name,
+      cash: cash,
+      currency: currency,
+      analysisPeriod: analysisPeriod,
+      beginDate: beginDate,
+      endDate: endDate,
       asset: AssetConfig.of(id: assetId),
       indicator: indicator,
     );
   }
 
-  @override
   MeanReversionConfig copyWith({
     int? newId,
     String? newName,
     StrategyType? newType,
     AssetConfig? newAsset,
-    Indicator? newIndicator,
-    Map<String, dynamic>? newParameters}) {
+    double? newCash,
+    FiatCurrency? newCurrency,
+    PeriodType? newAnalysisPeriod,
+    DateTime? newBeginDate,
+    DateTime? newEndDate,
+    Indicator? newIndicator}) {
     return MeanReversionConfig(
         id: newId ?? id,
         asset: newAsset ?? asset,
         type: StrategyType.meanReversion,
         indicator: newIndicator ?? indicator,
-        name: newName ?? name);
+        name: newName ?? name,
+        cash: newCash ?? cash,
+        currency: newCurrency ?? currency,
+        analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
+        beginDate: newBeginDate ?? beginDate,
+        endDate: newEndDate ?? endDate);
   }
 
   @override
@@ -139,13 +172,14 @@ class MeanReversionConfig extends Strategy {
       runtimeType == other.runtimeType &&
       asset == other.asset &&
       indicator == other.indicator &&
-      super.id == other.id &&
-      super.type == other.type &&
-      super.name == other.name);
+      super == other);
 
   @override
-  int get hashCode => super.hashCode ^ asset.hashCode ^ indicator.hashCode;
+  int get hashCode => Object.hash(
+    super.hashCode,
+    asset,
+    indicator);
 
   @override
-  List<Object?> get props => [super.props, asset, indicator];
+  List<Object?> get props => [...super.props, asset, indicator];
 }

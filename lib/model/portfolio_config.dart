@@ -1,4 +1,4 @@
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
 import 'asset_config.dart';

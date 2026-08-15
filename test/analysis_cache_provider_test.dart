@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/analysis_schema.dart';
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/analysis_request.dart';
 import 'package:invest_agent/providers/analysis_notifier.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';

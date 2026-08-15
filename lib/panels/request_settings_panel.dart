@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
 import 'package:path/path.dart' as p;
 
-import '../model/analysis_period.dart';
+import '../model/period_type.dart';
 import '../model/analysis_request.dart';
 import '../themes/app_themes.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

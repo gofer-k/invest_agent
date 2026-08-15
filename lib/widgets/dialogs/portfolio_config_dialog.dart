@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';
 
-import '../../model/analysis_period.dart';
+import '../../model/period_type.dart';
 import '../../model/indicator_schema.dart';
 import '../../providers/indicator_provider.dart';
 import '../../providers/load_database_provider.dart';

@@ -1,4 +1,4 @@
-import 'analysis_period.dart';
+import 'period_type.dart';
 
 enum IntervalType {
   day('1d'),

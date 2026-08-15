@@ -1,4 +1,4 @@
-import '../model/analysis_period.dart';
+import '../model/period_type.dart';
 import '../model/results/indicator/indicator_result.dart';
 import 'custom_datetime_format.dart';
 

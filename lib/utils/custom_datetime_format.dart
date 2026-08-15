@@ -1,4 +1,4 @@
-import '../model/analysis_period.dart';
+import '../model/period_type.dart';
 
 class CustomDatetimeFormat {
   static Duration span(DateTime startDate, DateTime endDate, DateTime currTime) {

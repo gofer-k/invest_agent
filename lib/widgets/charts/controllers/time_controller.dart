@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 
 import '../../../utils/chart_utils.dart';
 

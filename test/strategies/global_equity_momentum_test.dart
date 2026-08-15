@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:invest_agent/model/asset_config.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
@@ -84,6 +85,11 @@ void main() {
         name: strategyName,
         mainAsset: riskAsset,
         momentumAsset: safeAsset,
+        cash: 1000.0,
+        currency: FiatCurrency.usd(),
+        analysisPeriod: PeriodType.year,
+        beginDate: DateTime.now(),
+        endDate: DateTime.now(),
       );
 
       // Assert
@@ -112,6 +118,11 @@ void main() {
       const id = 101;
       const name = "My GEM Strategy";
       final params = {
+        "cash": 10000.0,
+        "currency": "pln",
+        "analysisPeriod": "year",
+        "beginDate": "2023-01-01",
+        "endDate": "2023-12-31",
         "main-asset": {
           "asset-type": "equity",
           "main-asset-id": 20,
@@ -124,7 +135,13 @@ void main() {
         }
       };
 
-      final strategy = GemStrategyConfig.fromMap(id, name, params);
+      final strategy = GemStrategyConfig.fromMap(id, name,
+          10000.0,
+          const FiatCurrency.pln(),
+          PeriodType.year,
+          DateTime.parse("2023-01-01"),
+          DateTime.parse("2023-12-31"),
+          params);
 
       expect(strategy.id, id);
       expect(strategy.name, name);

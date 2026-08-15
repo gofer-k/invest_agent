@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/results/strategies/mean_reversion.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 void main() {
   group('MeanReversionConfig Tests', () {
@@ -18,6 +20,11 @@ void main() {
     test('should correctly instantiate fromMap', () {
       final params = {
         "asset": 20,
+        "cash": 10000.0,
+        "currency": "pln",
+        "analysisPeriod": "year",
+        "beginDate": "2023-01-01",
+        "endDate": "2023-12-31",
         "indicator": [
           {
             "sma": {
@@ -27,7 +34,13 @@ void main() {
         ]
       };
 
-      final strategy = MeanReversionConfig.fromMap(1, "Test Strategy", params);
+      final strategy = MeanReversionConfig.fromMap(1, "Test Strategy",
+          10000.0,
+          const FiatCurrency.pln(),
+          PeriodType.year,
+          DateTime.parse("2023-01-01"),
+          DateTime.parse("2023-12-31"),
+          params);
 
       expect(strategy.id, 1);
       expect(strategy.name, "Test Strategy");
@@ -47,6 +60,11 @@ void main() {
       final strategy = MeanReversionConfig(
         id: 1,
         name: "Test",
+        cash: 10000.0,
+        currency: const FiatCurrency.pln(),
+        analysisPeriod: PeriodType.year,
+        beginDate: DateTime.now(),
+        endDate: DateTime.now(),
         asset: AssetConfig.of(id: 10),
         indicator: indicator,
       );
@@ -78,11 +96,17 @@ void main() {
     test('equality and hashCode should work', () {
       final asset = AssetConfig.of(id: 1);
       final indicator = Indicator.emptyIndicator();
+      final epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
       final strategy1 = MeanReversionConfig(
         id: 1,
         name: "S1",
         asset: asset,
+        cash: 10000.0,
+        currency: const FiatCurrency.pln(),
+        analysisPeriod: PeriodType.year,
+        beginDate: epoch,
+        endDate: epoch,
         indicator: indicator,
       );
 
@@ -90,6 +114,11 @@ void main() {
         id: 1,
         name: "S1",
         asset: asset,
+        cash: 10000.0,
+        currency: const FiatCurrency.pln(),
+        analysisPeriod: PeriodType.year,
+        beginDate: epoch,
+        endDate: epoch,
         indicator: indicator,
       );
 
@@ -97,6 +126,11 @@ void main() {
         id: 2,
         name: "S1",
         asset: asset,
+        cash: 10000.0,
+        currency: const FiatCurrency.pln(),
+        analysisPeriod: PeriodType.year,
+        beginDate: epoch,
+        endDate: epoch,
         indicator: indicator,
       );
 

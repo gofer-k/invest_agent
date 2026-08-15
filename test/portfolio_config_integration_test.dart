@@ -1,4 +1,4 @@
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:test/test.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/portfolio_config.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/indicator/price_result.dart';
 import 'package:invest_agent/utils/choice_chart_parameter.dart';

@@ -1,6 +1,9 @@
-import 'dart:convert';
-
 import 'package:invest_agent/model/cache_schema.dart';
+import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
+
+import '../../period_type.dart';
+import 'mean_reversion.dart';
 
 class StrategySchema implements CacheSchema {
   const StrategySchema();
@@ -88,24 +91,34 @@ class Strategy extends Cache {
   final int id;
   final StrategyType type;
   final String name;
-  final Map<String, dynamic> parameters;
+  final double cash;
+  final FiatCurrency currency;
+  final PeriodType analysisPeriod;
+  final DateTime beginDate;
+  final DateTime endDate;
 
   static int defaultId = -1;
 
   Strategy({
     required this.id,
     required this.type,
-    this.parameters = const {},
-    required this.name}) : super.from([]);
+    required this.name,
+    this.cash = 10000.0,
+    this.currency = const FiatCurrency.pln(),
+    this.analysisPeriod = PeriodType.year,
+    required this.beginDate,
+    required this.endDate}) : super.from([]);
 
   factory Strategy.emptyStrategy() {
     return Strategy(
       id: -1,
       type: StrategyType.asset,
-      parameters: {},
       name: '',
+      beginDate: DateTime.now(),
+      endDate: DateTime.now(),
     );
   }
+
 
   @override
   factory Strategy.from(List<Object?> item) {
@@ -119,39 +132,59 @@ class Strategy extends Cache {
       );
       final nameString = item[2] as String;
       final jsonParams = item[3] as Map<String, dynamic>;
-      return Strategy(
-        id: strategyId,
-        type: jsonType,
-        name: nameString,
-        parameters: jsonParams,
-      );
+
+      // General strategy params
+      final cash = jsonParams['cash'] as double? ?? 10000.0;
+      final jsonCurrency = jsonParams['currency'] as String? ?? 'pln';
+      final currency = FiatCurrency.maybeFromCode(jsonCurrency.toUpperCase());
+      if (currency == null) {
+        throw Exception("Invalidate input currency: $jsonCurrency. It must tbe compatible to ISO 4217 code");
+      }
+      final analysisPeriod = PeriodType.values.firstWhere((e) => e.name == jsonParams['analysisPeriod'] as String);
+      final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+      final beginDate = DateTime.tryParse(jsonParams['beginDate'] as String) ?? epoch;
+      final endDate = DateTime.tryParse(jsonParams['endDate'] as String) ?? epoch;
+
+      return switch(jsonType) {
+        StrategyType.arbitrary =>
+        throw UnimplementedError(),
+        StrategyType.asset =>
+        throw UnimplementedError(),
+        StrategyType.gem =>
+          GemStrategyConfig.fromMap(strategyId, nameString, cash, currency, analysisPeriod, beginDate, endDate, jsonParams),
+        StrategyType.meanReversion =>
+          MeanReversionConfig.fromMap(strategyId, nameString, cash, currency, analysisPeriod, beginDate, endDate, jsonParams),
+        StrategyType.indexFundRebalancing =>
+        throw UnimplementedError(),
+        StrategyType.trendFollowing =>
+        throw UnimplementedError(),
+        StrategyType.empty => Strategy.emptyStrategy()
+      };
     }
     return Strategy.emptyStrategy();
   }
 
-  bool isEmpty() => id == defaultId && type == StrategyType.empty;
+  @override
+  Map<String, dynamic> toMap() {
+    final parameters = switch(this) {
+      final MeanReversionConfig strategy => strategy.toMap(),
+      final GemStrategyConfig strategy => strategy.toMap(),
+    // TODO: add other strategies
+      _ => <String, dynamic>{},
+    };
 
-  Strategy copyWith({
-    int? newId,
-    String? newName,
-    StrategyType? newType,
-    Map<String, dynamic>? newParameters}) {
-    return Strategy(
-        id: newId ?? id,
-        type: newType ?? type,
-        name: newName ?? name,
-        parameters: parameters
-    );
+    return {
+      "id": id,
+      "type": type.name,
+      "name": name,
+      "parameters": parameters,
+    };
   }
 
-  // CacheUniqueKey get uniqueKey {
-  //   // Normalize parameters to ensure stability across gRPC/JSON round-trips
-  //   final normalized = Cache.normalizeKey(parameters);
-  //   return "$name-$type-${jsonEncode(normalized)}".hashCode;
-  // }
+  bool isEmpty() => id == defaultId && type == StrategyType.empty;
 
   @override
-  List<Object?> get props => [id, type, name, parameters];
+  List<Object?> get props => [id, type, name, cash, currency, analysisPeriod, beginDate, endDate];
 
   @override
   bool operator ==(Object other) =>
@@ -161,18 +194,22 @@ class Strategy extends Cache {
     id == other.id &&
     type == other.type &&
     name == other.name &&
-    parameters == other.parameters);
+    cash == other.cash &&
+    currency == other.currency &&
+    analysisPeriod == other.analysisPeriod &&
+    beginDate.isAtSameMomentAs(other.beginDate) &&
+    endDate.isAtSameMomentAs(other.endDate));
 
   @override
-  int get hashCode => id.hashCode ^ type.hashCode ^ name.hashCode ^ parameters.hashCode;
-
-  @override
-  Map<String, dynamic> toMap() => {
-    "id": id,
-    "type": type.name,
-    "name": name,
-    "parameters": parameters,
-  };
+  int get hashCode => Object.hash(
+    id,
+    name,
+    type,
+    cash,
+    currency,
+    analysisPeriod,
+    beginDate,
+    endDate);
 
   @override
   String toString() => type.name;

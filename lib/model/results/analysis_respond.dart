@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import '../analysis_period.dart';
+import '../period_type.dart';
 import 'indicator/indicator_result.dart';
 import 'indicator/price_result.dart';
 

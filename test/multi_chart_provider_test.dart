@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:invest_agent/model/analysis_period.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/chart_style.dart';
 import 'package:invest_agent/model/drawing_schema.dart';

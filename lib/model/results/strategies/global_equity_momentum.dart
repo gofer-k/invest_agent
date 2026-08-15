@@ -33,12 +33,19 @@
 import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
+import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../../cache_schema.dart';
+import '../../period_type.dart';
 
 /*
 Note: The assets' prices are use to compute this strategy.
-    {
+  {
+    "cash"; 10000.0
+    "currency|; "pln",
+    "analysisPeriod"; "year",
+    "beginDate"; "2023-01-01",
+    "endDate|; "2023-12-31",
     "main-asset": {
       "asset-type": "equity",
       "main-asset-id": 20,
@@ -56,7 +63,7 @@ Note: The assets' prices are use to compute this strategy.
       ]
     }
   }
-   */
+ */
 enum GemAssetType {
   bond("bonds"),
   commodity("commodity"),
@@ -100,7 +107,7 @@ class GemAsset {
       const ListEquality().equals(supportingAssets, other.supportingAssets));
 
   @override
-  int get hashCode => type.hashCode ^ asset.hashCode ^ const ListEquality().hash(supportingAssets);
+  int get hashCode => Object.hash(asset, type, const ListEquality().hash(supportingAssets),);
 
   List<Object?> get props => [type, asset, supportingAssets];
 
@@ -113,30 +120,49 @@ class GemStrategyConfig extends Strategy {
   final GemAsset momentumAsset;
 
   GemStrategyConfig({
-    required super.id, required super.type, required super.name,
-    required this.mainAsset, required this.momentumAsset});
+    required super.id,
+    required super.type,
+    required super.name,
+    required super.cash,
+    required super.currency,
+    required super.analysisPeriod,
+    required super.beginDate,
+    required super.endDate,
+    required this.mainAsset,
+    required this.momentumAsset});
 
   CacheUniqueKey get uniqueKey {
     return "$name-$type--${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
   }
 
   factory GemStrategyConfig.emptyStrategy() {
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
+
     return GemStrategyConfig(
       id: Strategy.defaultId,
       type: StrategyType.gem,
+      cash: 10000.0,
+      currency: const FiatCurrency.pln(),
+      beginDate: epoch,
+      endDate: epoch,
+      analysisPeriod: PeriodType.year,
       name: '',
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
         supportingAssets: []),
       momentumAsset: GemAsset(
         type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
-        supportingAssets: []));
+        supportingAssets: []),
+    );
   }
 
-  @override
   Strategy copyWith({int? newId, String? newName,
     StrategyType? newType,
-    Map<String, dynamic>? newParameters,
+    double? newCash,
+    FiatCurrency? newCurrency,
+    PeriodType? newAnalysisPeriod,
+    DateTime? newBeginDate,
+    DateTime? newEndDate,
     GemAsset? newMainAsset,
     GemAsset? newMomentumAsset}) {
 
@@ -144,16 +170,29 @@ class GemStrategyConfig extends Strategy {
       id: newId ?? id,
       name: newName ?? name,
       type: newType ?? type,
+      cash: newCash ?? cash,
+      currency: newCurrency ?? currency,
+      analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
+      beginDate: newBeginDate ?? beginDate,
+      endDate: newEndDate ?? endDate,
       mainAsset: newMainAsset ?? mainAsset,
       momentumAsset: newMomentumAsset ?? momentumAsset);
   }
 
   @override
-  factory GemStrategyConfig.fromMap(int id, String name, Map<String, dynamic> params) {
+  factory GemStrategyConfig.fromMap(int id, String name,
+      double cash,
+      FiatCurrency currency,
+      PeriodType analysisPeriod,
+      DateTime beginDate, DateTime endDate,
+      Map<String, dynamic> params) {
+
     final jsonMainAsset = params['main-asset'] as Map<String, dynamic>;
     final jsonMomentumAsset = params['momentum-assets'] as Map<String, dynamic>;
 
     return GemStrategyConfig(id: id, type: StrategyType.gem, name: name,
+        cash: cash, currency: currency, analysisPeriod: analysisPeriod,
+        beginDate: beginDate, endDate: endDate,
         mainAsset: GemAsset.fromMap(jsonMainAsset),
         momentumAsset: GemAsset.fromMap(jsonMomentumAsset));
   }
@@ -169,16 +208,17 @@ class GemStrategyConfig extends Strategy {
     (identical(this, other)) ||
     (other is GemStrategyConfig &&
       runtimeType == other.runtimeType &&
+      super == other &&
       mainAsset == other.mainAsset &&
-      momentumAsset == other.momentumAsset &&
-      super.id == other.id &&
-      super.type == other.type &&
-      super.name == other.name
-    );
+      momentumAsset == other.momentumAsset);
+
 
   @override
-  int get hashCode => super.hashCode ^ mainAsset.hashCode ^ momentumAsset.hashCode;
+  int get hashCode => Object.hash(
+      super.hashCode,
+      mainAsset,
+      momentumAsset,);
 
   @override
-  List<Object?> get props => [mainAsset, momentumAsset];
+  List<Object?> get props => [...super.props, mainAsset, momentumAsset];
 }

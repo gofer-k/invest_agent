@@ -10,7 +10,7 @@ import 'package:invest_agent/widgets/charts/overlay_roc.dart';
 import 'package:invest_agent/widgets/charts/sync_chart.dart';
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';
 
-import '../../model/analysis_period.dart';
+import '../../model/period_type.dart';
 import '../../model/asset_config.dart';
 import '../../model/chart_style.dart';
 import '../../model/results/analysis_respond.dart';
