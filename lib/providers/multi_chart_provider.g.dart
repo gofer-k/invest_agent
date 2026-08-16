@@ -281,7 +281,7 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'52e1eec59b3a783a2f9c7afc081dde4857c77ab5';
+String _$multiChartsByHash() => r'65301f51c953123b3f39b429fc7dcb5aade22622';
 
 final class MultiChartsByFamily extends $Family
     with

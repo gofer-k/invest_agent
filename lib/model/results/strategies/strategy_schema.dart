@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
@@ -15,8 +17,8 @@ class StrategySchema implements CacheSchema {
     CREATE TABLE IF NOT EXISTS $tableName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       type TEXT NOT NULL,
-      name TEXT,
-      parameters TEXT, -- JSON string
+      name TEXT UNIQUE,
+      parameters TEXT -- JSON string
     );
   ''';
 
@@ -48,7 +50,6 @@ class StrategySchema implements CacheSchema {
       '${config.name}', 
       '${jsonEncode(config.toMap())}'
       ) ON CONFLICT(name) DO UPDATE SET
-          type = excluded.type,
           parameters = excluded.parameters;
     ''';
   }
@@ -131,7 +132,8 @@ class Strategy extends Cache {
           orElse: () => StrategyType.empty
       );
       final nameString = item[2] as String;
-      final jsonParams = item[3] as Map<String, dynamic>;
+      final jsonParamsString = item[3] as String;
+      final jsonParams = jsonDecode(jsonParamsString) as Map<String, dynamic>;
 
       // General strategy params
       final cash = jsonParams['cash'] as double? ?? 10000.0;
@@ -166,18 +168,31 @@ class Strategy extends Cache {
 
   @override
   Map<String, dynamic> toMap() {
-    final parameters = switch(this) {
-      final MeanReversionConfig strategy => strategy.toMap(),
-      final GemStrategyConfig strategy => strategy.toMap(),
-    // TODO: add other strategies
-      _ => <String, dynamic>{},
-    };
-
+    // final parameters = switch(this) {
+    //   final MeanReversionConfig strategy => strategy.toMap(),
+    //   final GemStrategyConfig strategy => strategy.toMap(),
+    // // TODO: add other strategies
+    //   _ => <String, dynamic>{},
+    // };
+    //
+    // parameters['cash'] = cash;
+    // parameters['currency'] = currency.code;
+    // parameters['analysisPeriod'] = analysisPeriod.name;
+    // parameters['beginDate'] = beginDate.toIso8601String();
+    // parameters['endDate'] = endDate.toIso8601String();
+    //
+    // return {
+    //   "id": id,
+    //   "type": type.name,
+    //   "name": name,
+    //   "parameters": parameters,
+    // };
     return {
-      "id": id,
-      "type": type.name,
-      "name": name,
-      "parameters": parameters,
+      "cash": cash,
+      "currency": currency.code,
+      "analysisPeriod": analysisPeriod.name,
+      "beginDate": beginDate.toIso8601String(),
+      "endDate": endDate.toIso8601String(),
     };
   }
 

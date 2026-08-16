@@ -148,4 +148,4 @@ final class SortedIndicatorsProvider
   }
 }
 
-String _$sortedIndicatorsHash() => r'36fedbe5d37740fa3f05b0bbdb9a099d93ef823c';
+String _$sortedIndicatorsHash() => r'091dcc8ad86a3e85e6737b6d695fa318903a1f11';
