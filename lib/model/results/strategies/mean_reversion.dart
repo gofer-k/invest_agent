@@ -159,6 +159,7 @@ class MeanReversionConfig extends Strategy {
 
   @override
   Map<String, dynamic> toMap() => {
+    ...super.toMap(),
     "asset": asset.id,
     "indicator": indicator.parameters.isNotEmpty
       ? [{indicator.type.shortName.toLowerCase(): indicator.parameters}]

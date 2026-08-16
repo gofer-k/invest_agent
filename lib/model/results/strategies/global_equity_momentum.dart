@@ -1,35 +1,3 @@
-/*
-{
-  "risk": [
-    {    
-      "asset": 20,
-      "main": 1,
-      "indicator": [
-        {
-          "sma": {
-            ....
-          }
-        }
-      ]
-    },
-    {    
-      "asset": 20,
-      "main": 0,
-      "indicator": [
-        {
-          "sma": {
-            ...
-          }
-        }
-      ]
-    }
-  ],
-  "free-risk": [ 
-  ...
-  ]
-}
- */
-
 import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
@@ -85,8 +53,11 @@ class GemAsset {
       (e) => e.name == params['asset-type'],
       orElse: () => GemAssetType.equity
     );
+
     final mainAssetId = params['main-asset-id'] as int;
-    final balanceAssets = params['balance-assets'] as List<int>;
+    final balanceAssetsRaw = params['balance-assets'] as List<dynamic>;
+    final balanceAssets = balanceAssetsRaw.cast<int>();
+
     final mainAsset = AssetConfig.of(id: mainAssetId);
     final supportingAssets = balanceAssets.map((e) => AssetConfig.of(id: e)).toList();
     return GemAsset(type: assetType, asset: mainAsset, supportingAssets: supportingAssets);
@@ -199,6 +170,7 @@ class GemStrategyConfig extends Strategy {
 
   @override
   Map<String, dynamic> toMap() => {
+    ...super.toMap(),
     "main-asset": mainAsset.toMap(),
     "momentum-assets": momentumAsset.toMap()
   };
