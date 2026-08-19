@@ -99,5 +99,53 @@ void main() {
       expect(state.cachedStrategies.first.type, StrategyType.meanReversion);
     });
 
+    test('updateEntry updates a strategy in the database', () async {
+      await container.read(loadDatabaseProvider(testPath).future);
+      final notifier = container.read(strategyProvider(testPath).notifier);
+      await notifier.addEntry(gemStrategy);
+      await notifier.addEntry(mrStrategy);
+      final state = container.read(strategyProvider(testPath));
+      expect(state.cachedStrategies.length, 2);
+      expect(state.cachedStrategies.first.id, gemStrategy.id);
+      expect(state.cachedStrategies.first.type, StrategyType.gem);
+      expect(state.cachedStrategies.last.id, mrStrategy.id);
+      expect(state.cachedStrategies.last.type, StrategyType.meanReversion);
+      final getName = 'Updated GEM Strategy';
+      await notifier.updateEntry(gemStrategy.copyWith(newName: getName) as GemStrategyConfig);
+      final updatedState = container.read(strategyProvider(testPath));
+      expect(updatedState.cachedStrategies.length, 2);
+      final updatedGem = updatedState.cachedStrategies.firstWhere((s) => s.id == gemStrategy.id);
+      expect(updatedGem.id, gemStrategy.id);
+      expect(updatedGem.type, StrategyType.gem);
+      expect(updatedGem.name, getName);
+    });
+
+    test('deleteEntry deletes a strategy from the database', () async {
+      await container.read(loadDatabaseProvider(testPath).future);
+      final notifier = container.read(strategyProvider(testPath).notifier);
+      await notifier.addEntry(gemStrategy);
+      await notifier.addEntry(mrStrategy);
+      final state = container.read(strategyProvider(testPath));
+      expect(state.cachedStrategies.length, 2);
+      expect(state.cachedStrategies.first.id, gemStrategy.id);
+
+      await notifier.deleteEntry(gemStrategy);
+      final updatedState = container.read(strategyProvider(testPath));
+      expect(updatedState.cachedStrategies.length, 1);
+      expect(updatedState.cachedStrategies.first.id, mrStrategy.id);
+      expect(updatedState.cachedStrategies.first.type, StrategyType.meanReversion);
+    });
+
+    test('clearAll deletes all strategies from the database', () async {
+      await container.read(loadDatabaseProvider(testPath).future);
+      final notifier = container.read(strategyProvider(testPath).notifier);
+      await notifier.addEntry(gemStrategy);
+      await notifier.addEntry(mrStrategy);
+      final state = container.read(strategyProvider(testPath));
+      expect(state.cachedStrategies.length, 2);
+      await notifier.clearAll();
+      final updatedState = container.read(strategyProvider(testPath));
+      expect(updatedState.cachedStrategies.length, 0);
+    });
   });
 }
