@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/panels/portfolio_panel.dart';
+import 'package:invest_agent/panels/strategies_panel.dart';
 import '../providers/load_database_provider.dart';
 import 'account_panel.dart';
 import 'index_price_panel.dart';
@@ -41,7 +42,8 @@ class MainSettingsPanel extends ConsumerStatefulWidget {
           AccountPanel(),
           IndexPricePanel(),
           IndicatorsPanel(),
-          PortfolioPanel()
+          PortfolioPanel(),
+          StrategiesPanel()
         ],
       ),
     );

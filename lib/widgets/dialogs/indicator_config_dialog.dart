@@ -47,7 +47,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AlertDialog.adaptive(
       title: Text("Indicator ${widget.indicator?.name ?? 'New'}"),
       content: SizedBox(
         width: 320, // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
