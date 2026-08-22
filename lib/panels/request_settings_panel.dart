@@ -137,18 +137,18 @@ class _RequestSettingsPanelState extends State<RequestSettingsPanel> {
 
   Future<void> _pickAndLoadFile(String extension) async {
   try {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: [extension],
     );
 
-    if (result == null || result.files.single.path == null) return;
+    if (result.isEmpty) return;
     // After the await, the widget might be gone.
     if (!mounted) return;
 
-    datasetSource = result.files.single.path!;
+    datasetSource = result.single.path;
     setState(() {
-      selectedSymbol = p.basenameWithoutExtension(result.files.single.path!);
+      selectedSymbol = p.basenameWithoutExtension(result.single.path!);
     });
   } catch (e) {
     // After the await (which might have thrown the error), check if the widget is still here.

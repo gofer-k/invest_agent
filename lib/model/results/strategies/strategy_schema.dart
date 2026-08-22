@@ -4,6 +4,7 @@ import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 
+import '../../../widgets/dialogs/asset_dialog.dart';
 import '../../period_type.dart';
 import 'mean_reversion.dart';
 
@@ -99,6 +100,9 @@ class Strategy extends Cache {
   final DateTime endDate;
 
   static int defaultId = -1;
+  static double defaultBudget = 10000.0;
+  static FiatCurrencyEnum defaultCurrency = FiatCurrencyEnum.pln;
+  static PeriodType defaultPeriod = PeriodType.year;
 
   Strategy({
     required this.id,
