@@ -30,8 +30,6 @@ class StrategyDialogState extends State<StrategyDialog> {
   late final TextEditingController controllerBudget;
   bool addingParameter = false;
   late final double _budget = widget.strategy?.cash ?? Strategy.defaultBudget;
-  late DateTime _beginDate;
-  late DateTime _endDate;
   bool _isDateRange = false;
   late Strategy _strategy = widget.strategy ?? Strategy.emptyStrategy();
 
@@ -88,8 +86,8 @@ class StrategyDialogState extends State<StrategyDialog> {
               currency: _strategy.currency,
               analysisPeriod: _strategy.analysisPeriod,
               type: _strategy.type,
-              beginDate: _beginDate,
-              endDate: _isDateRange ? _endDate : calculateEndDate(_beginDate, _strategy.analysisPeriod));
+              beginDate: _strategy.beginDate,
+              endDate: _isDateRange ? _strategy.endDate : calculateEndDate(_strategy.beginDate, _strategy.analysisPeriod));
             widget.onSave(newStrategy);
             Navigator.of(context).pop();
           },
@@ -136,13 +134,13 @@ class StrategyDialogState extends State<StrategyDialog> {
                 onPressed: () async {
                   final date = await showDatePicker(
                     context: context,
-                    initialDate: _beginDate,
+                    initialDate: _strategy.beginDate,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (date != null) setState(() => _beginDate = date);
+                  if (date != null) setState(() => _strategy = _strategy.copyWith(newBeginDate: date));
                 },
-                child: Text("Start: ${_beginDate.toIso8601String().split('T')[0]}"),
+                child: Text("Start: ${_strategy.beginDate.toIso8601String().split('T')[0]}"),
               ),
              const SizedBox(width: 6),
              if (_isDateRange)
@@ -150,13 +148,13 @@ class StrategyDialogState extends State<StrategyDialog> {
                   onPressed: () async {
                     final date = await showDatePicker(
                       context: context,
-                      initialDate: _endDate,
-                      firstDate: _beginDate,
+                      initialDate: _strategy.endDate,
+                      firstDate: _strategy.beginDate,
                       lastDate: DateTime(2100),
                     );
-                    if (date != null) setState(() => _endDate = date);
+                    if (date != null) setState(() => _strategy.copyWith(newEndDate: date));
                   },
-                  child: Text("End: ${_endDate.toIso8601String().split('T')[0]}"),
+                  child: Text("End: ${_strategy.endDate.toIso8601String().split('T')[0]}"),
                 ),
             if (!_isDateRange)
               Expanded(flex: 1,
