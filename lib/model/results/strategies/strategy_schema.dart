@@ -94,36 +94,58 @@ class Strategy extends Cache {
   final StrategyType type;
   final String name;
   final double cash;
-  final FiatCurrency currency;
+  final FiatCurrencyEnum currency;
   final PeriodType analysisPeriod;
   final DateTime beginDate;
   final DateTime endDate;
 
-  static int defaultId = -1;
-  static double defaultBudget = 10000.0;
-  static FiatCurrencyEnum defaultCurrency = FiatCurrencyEnum.pln;
-  static PeriodType defaultPeriod = PeriodType.year;
+  static const int defaultId = -1;
+  static const double defaultBudget = 10000.0;
+  static const FiatCurrencyEnum defaultCurrency = FiatCurrencyEnum.pln;
+  static const PeriodType defaultPeriod = PeriodType.year;
 
   Strategy({
     required this.id,
     required this.type,
     required this.name,
-    this.cash = 10000.0,
-    this.currency = const FiatCurrency.pln(),
-    this.analysisPeriod = PeriodType.year,
+    this.cash = Strategy.defaultBudget,
+    this.currency = defaultCurrency,
+    this.analysisPeriod = defaultPeriod,
     required this.beginDate,
     required this.endDate}) : super.from([]);
 
   factory Strategy.emptyStrategy() {
+    final firstAllowedDate = DateTime(2000);
     return Strategy(
-      id: -1,
+      id: defaultId,
       type: StrategyType.asset,
       name: '',
-      beginDate: DateTime.now(),
-      endDate: DateTime.now(),
+      beginDate: firstAllowedDate,
+      endDate: firstAllowedDate,
     );
   }
 
+  Strategy copyWith({
+    int? newId,
+    String? newName,
+    StrategyType? newType,
+    double? newCash,
+    FiatCurrencyEnum? newCurrency,
+    PeriodType? newAnalysisPeriod,
+    DateTime? newBeginDate,
+    DateTime? newEndDate}) {
+    final firstAllowedDate = DateTime(2000);
+
+    return Strategy(
+      id: newId ?? id,
+      name: newName ?? name,
+      type: newType ?? type,
+      cash: newCash ?? cash,
+      currency: newCurrency ?? currency,
+      analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
+      beginDate: newBeginDate ?? firstAllowedDate,
+      endDate: newEndDate ?? firstAllowedDate);
+  }
 
   @override
   factory Strategy.from(List<Object?> item) {
@@ -142,7 +164,7 @@ class Strategy extends Cache {
       // General strategy params
       final cash = jsonParams['cash'] as double? ?? 10000.0;
       final jsonCurrency = jsonParams['currency'] as String? ?? 'pln';
-      final currency = FiatCurrency.maybeFromCode(jsonCurrency.toUpperCase());
+      final currency = FiatCurrencyEnum.fromCurrency(FiatCurrency.maybeFromCode(jsonCurrency.toUpperCase()));
       if (currency == null) {
         throw Exception("Invalidate input currency: $jsonCurrency. It must tbe compatible to ISO 4217 code");
       }
@@ -193,7 +215,7 @@ class Strategy extends Cache {
     // };
     return {
       "cash": cash,
-      "currency": currency.code,
+      "currency": currency.data.code,
       "analysisPeriod": analysisPeriod.name,
       "beginDate": beginDate.toIso8601String(),
       "endDate": endDate.toIso8601String(),

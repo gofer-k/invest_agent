@@ -127,4 +127,6 @@ class StrategyNotifier extends _$StrategyNotifier {
     if (!ref.mounted) return;
     await fetchAll();
   }
+
+
 }

@@ -17,10 +17,6 @@ class StrategiesPanel extends ConsumerStatefulWidget{
 class _StrategiesState extends ConsumerState<StrategiesPanel> {
   Strategy? selectedStrategy;
 
-  // final strategyDetailsProvider = Provider.family<String, Strategy>((ref, strategy) {
-  //   // final allAssets = ref.watch(sortedAssetsProvider);
-  // });
-
   @override
   Widget build(BuildContext context) {
     final strategies = ref.watch(strategyProvider(CacheKeyType.analysisCache)).getItems();

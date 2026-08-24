@@ -1,7 +1,7 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
+import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
 
 import '../../cache_schema.dart';
 import '../../period_type.dart';
@@ -34,9 +34,9 @@ class MeanReversionConfig extends Strategy {
       type: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
       name: '',
-      cash: 10000.0,
-      currency: const FiatCurrency.pln(),
-      analysisPeriod: PeriodType.year,
+      cash: Strategy.defaultBudget,
+      currency: Strategy.defaultCurrency,
+      analysisPeriod: Strategy.defaultPeriod,
       beginDate: epoch,
       endDate: epoch);
   }
@@ -84,7 +84,7 @@ class MeanReversionConfig extends Strategy {
   @override
   factory MeanReversionConfig.fromMap(int id, String name,
       double cash,
-      FiatCurrency currency,
+      FiatCurrencyEnum currency,
       PeriodType analysisPeriod,
       DateTime beginDate, DateTime endDate,
       Map<String, dynamic> params) {
@@ -133,13 +133,14 @@ class MeanReversionConfig extends Strategy {
     );
   }
 
+  @override
   MeanReversionConfig copyWith({
     int? newId,
     String? newName,
     StrategyType? newType,
     AssetConfig? newAsset,
     double? newCash,
-    FiatCurrency? newCurrency,
+    FiatCurrencyEnum? newCurrency,
     PeriodType? newAnalysisPeriod,
     DateTime? newBeginDate,
     DateTime? newEndDate,

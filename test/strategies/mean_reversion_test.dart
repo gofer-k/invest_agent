@@ -4,7 +4,6 @@ import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/results/strategies/mean_reversion.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
 
 void main() {
   group('MeanReversionConfig Tests', () {
@@ -35,9 +34,9 @@ void main() {
       };
 
       final strategy = MeanReversionConfig.fromMap(1, "Test Strategy",
-          10000.0,
-          const FiatCurrency.pln(),
-          PeriodType.year,
+          Strategy.defaultBudget,
+          Strategy.defaultCurrency,
+          Strategy.defaultPeriod,
           DateTime.parse("2023-01-01"),
           DateTime.parse("2023-12-31"),
           params);
@@ -61,8 +60,8 @@ void main() {
         id: 1,
         name: "Test",
         cash: 10000.0,
-        currency: const FiatCurrency.pln(),
-        analysisPeriod: PeriodType.year,
+        currency: Strategy.defaultCurrency,
+        analysisPeriod: Strategy.defaultPeriod,
         beginDate: DateTime.now(),
         endDate: DateTime.now(),
         asset: AssetConfig.of(id: 10),
@@ -102,8 +101,8 @@ void main() {
         id: 1,
         name: "S1",
         asset: asset,
-        cash: 10000.0,
-        currency: const FiatCurrency.pln(),
+        cash: Strategy.defaultBudget,
+        currency: Strategy.defaultCurrency,
         analysisPeriod: PeriodType.year,
         beginDate: epoch,
         endDate: epoch,
@@ -114,8 +113,8 @@ void main() {
         id: 1,
         name: "S1",
         asset: asset,
-        cash: 10000.0,
-        currency: const FiatCurrency.pln(),
+        cash: Strategy.defaultBudget,
+        currency: Strategy.defaultCurrency,
         analysisPeriod: PeriodType.year,
         beginDate: epoch,
         endDate: epoch,
@@ -126,8 +125,8 @@ void main() {
         id: 2,
         name: "S1",
         asset: asset,
-        cash: 10000.0,
-        currency: const FiatCurrency.pln(),
+        cash: Strategy.defaultBudget,
+        currency: Strategy.defaultCurrency,
         analysisPeriod: PeriodType.year,
         beginDate: epoch,
         endDate: epoch,

@@ -59,7 +59,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
       // final metaIdsSet = widget.portfolioConfig!.metaIds.toSet();
     }
 
-    _indicators = await ref.read(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
+    _indicators = ref.read(indicatorProvider(CacheKeyType.analysisCache, true)).getItems();
   }
 
   @override

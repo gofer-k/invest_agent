@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart';
 
 import '../../model/period_type.dart';
+import '../../model/results/strategies/mean_reversion.dart';
 import '../../model/results/strategies/strategy_schema.dart';
 import '../../utils/chart_utils.dart';
 import '../utils/dropdown.dart';
@@ -15,44 +16,29 @@ void showStrategy(BuildContext context, Strategy? strategy, Function(Strategy? s
   );
 }
 
-class StrategyDialog extends ConsumerStatefulWidget {
+class StrategyDialog extends StatefulWidget {
   final Function(Strategy? strategy) onSave;
   final Strategy? strategy;
   const StrategyDialog({super.key, required this.onSave, required this.strategy});
 
   @override
-  ConsumerState<StrategyDialog> createState() => _StrategyDialogState();
+  StrategyDialogState createState() => StrategyDialogState();
 }
 
-class _StrategyDialogState extends ConsumerState<StrategyDialog> {
+class StrategyDialogState extends State<StrategyDialog> {
   late final TextEditingController controllerName;
   late final TextEditingController controllerBudget;
   bool addingParameter = false;
-  late StrategyType _selectedType = widget.strategy?.type ?? StrategyType.empty;
-  late PeriodType _selectedPeriod = Strategy.defaultPeriod;
-  FiatCurrencyEnum _selectedCurrency = Strategy.defaultCurrency;
   late final double _budget = widget.strategy?.cash ?? Strategy.defaultBudget;
   late DateTime _beginDate;
   late DateTime _endDate;
   bool _isDateRange = false;
+  late Strategy _strategy = widget.strategy ?? Strategy.emptyStrategy();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _selectedType = widget.strategy?.type ?? StrategyType.empty;
-    _selectedPeriod = widget.strategy?.analysisPeriod ?? Strategy.defaultPeriod;
-
-    final firstAllowedDate = DateTime(2000);
-
-    // Ensure initial dates are not before firstDate (2000) to avoid picker assertion errors
-    DateTime begin = widget.strategy?.beginDate ?? firstAllowedDate;
-    _beginDate = begin;
-
-    DateTime end = widget.strategy?.endDate ?? _beginDate.subtract(const Duration(days: yearDays));
-    if (end.isBefore(firstAllowedDate)) end = firstAllowedDate;
-    _endDate = end;
-
-    _isDateRange = widget.strategy?.endDate != null;
+    _isDateRange = _strategy.isEmpty();
   }
 
   @override
@@ -83,8 +69,7 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
               _generalStrategyContents(),
               _selectStrategy(),
               const SizedBox(height: 8),
-              _strategyContents(_selectedType)
-
+              _strategyContents(_strategy.type)
             ],
           )
         ),
@@ -94,33 +79,23 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
         ElevatedButton(
           onPressed: () {
             final name = controllerName.text.trim();
-            if (name.isEmpty ||  _selectedType == StrategyType.empty) return;
+            if (name.isEmpty ||  _strategy.type == StrategyType.empty) return;
 
             final newStrategy = Strategy(
-              id: widget.strategy?.id ?? Strategy.defaultId,
+              id: _strategy.id,
               name: name,
               cash: double.tryParse(controllerBudget.text) ?? _budget,
-              currency: _selectedCurrency.data,
-              analysisPeriod: _selectedPeriod,
-              type: _selectedType,
+              currency: _strategy.currency,
+              analysisPeriod: _strategy.analysisPeriod,
+              type: _strategy.type,
               beginDate: _beginDate,
-              endDate: _isDateRange ? _endDate : calculateEndDate(_beginDate, _selectedPeriod));
+              endDate: _isDateRange ? _endDate : calculateEndDate(_beginDate, _strategy.analysisPeriod));
             widget.onSave(newStrategy);
             Navigator.of(context).pop();
           },
           child: const Text("Save"),
         )
       ]
-    );
-  }
-
-  Widget _selectStrategy() {
-    return Dropdown<StrategyType>(
-      onSelected: (StrategyType newType) {
-        setState(() => _selectedType = newType);
-      },
-      choices:StrategyType.values,
-      choiceType: _selectedType,
     );
   }
 
@@ -145,8 +120,8 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
             const SizedBox(width: 8),
             Expanded(flex: 1,
               child: Dropdown<FiatCurrencyEnum>(
-                onSelected: (FiatCurrencyEnum c) => setState(() => _selectedCurrency = c),
-                choiceType: _selectedCurrency,
+                onSelected: (FiatCurrencyEnum c) => setState(() => _strategy = _strategy.copyWith(newCurrency: c)),
+                choiceType: _strategy.currency,
                 choices: FiatCurrencyEnum.values,
               ),
             ),
@@ -187,13 +162,13 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
               Expanded(flex: 1,
                 child: DropdownButtonFormField<PeriodType>(
                   decoration: const InputDecoration(labelText: "Period analysis"),
-                  initialValue: _selectedPeriod,
+                  initialValue: _strategy.analysisPeriod,
                   items: PeriodType.values.map((c) =>
                   DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
                   ).toList(),
                   onChanged: (val) {
-                  if (val == null) return;
-                  setState(() => _selectedPeriod = val);
+                    if (val == null) return;
+                    setState(() => _strategy = _strategy.copyWith(newAnalysisPeriod: val));
                   }
                 ),
               ),
@@ -217,9 +192,25 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
     );
   }
 
+  Widget _selectStrategy() {
+    return Dropdown<StrategyType>(
+      onSelected: (StrategyType newType) {
+        setState(() => _strategy = _strategy.copyWith(newType: newType));
+      },
+      choices:StrategyType.values,
+      choiceType: _strategy.type,
+    );
+  }
+
   Widget _strategyContents(StrategyType type) {
     return switch (type) {
-      StrategyType.meanReversion => throw UnimplementedError(),
+      StrategyType.meanReversion => StrategyConfigMeanReversion(
+        strategyConfig: (widget.strategy != null)
+            ? widget.strategy as MeanReversionConfig
+            : MeanReversionConfig.emptyStrategy(),
+        onSave: (MeanReversionConfig strategyConfig) {
+          setState(() => _strategy = strategyConfig);
+        }),
       _ => Text("No implemented more strategies"),
       // StrategyType.momentum => throw UnimplementedError(),
       // StrategyType.arbitrary => throw UnimplementedError(),
@@ -229,14 +220,6 @@ class _StrategyDialogState extends ConsumerState<StrategyDialog> {
       // StrategyType.trendFollowing => throw UnimplementedError(),
       // StrategyType.empty => throw UnimplementedError(),
     };
-  }
-
-  Widget _meanReversionStrategy() {
-    return Column(
-      children: [
-
-      ]
-    );
   }
 
   DateTime calculateEndDate(DateTime beginDate, PeriodType period) {

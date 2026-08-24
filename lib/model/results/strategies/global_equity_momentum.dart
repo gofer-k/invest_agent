@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
+import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
 
 import '../../cache_schema.dart';
 import '../../period_type.dart';
@@ -112,11 +112,11 @@ class GemStrategyConfig extends Strategy {
     return GemStrategyConfig(
       id: Strategy.defaultId,
       type: StrategyType.gem,
-      cash: 10000.0,
-      currency: const FiatCurrency.pln(),
+      cash: Strategy.defaultBudget,
+      currency: Strategy.defaultCurrency,
       beginDate: epoch,
       endDate: epoch,
-      analysisPeriod: PeriodType.year,
+      analysisPeriod: Strategy.defaultPeriod,
       name: '',
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
@@ -127,10 +127,11 @@ class GemStrategyConfig extends Strategy {
     );
   }
 
+  @override
   Strategy copyWith({int? newId, String? newName,
     StrategyType? newType,
     double? newCash,
-    FiatCurrency? newCurrency,
+    FiatCurrencyEnum? newCurrency,
     PeriodType? newAnalysisPeriod,
     DateTime? newBeginDate,
     DateTime? newEndDate,
@@ -153,7 +154,7 @@ class GemStrategyConfig extends Strategy {
   @override
   factory GemStrategyConfig.fromMap(int id, String name,
       double cash,
-      FiatCurrency currency,
+      FiatCurrencyEnum currency,
       PeriodType analysisPeriod,
       DateTime beginDate, DateTime endDate,
       Map<String, dynamic> params) {
