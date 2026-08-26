@@ -11,10 +11,10 @@ class StrategiesPanel extends ConsumerStatefulWidget{
   const StrategiesPanel({super.key});
 
   @override
-  ConsumerState<StrategiesPanel> createState() => _StrategiesState();
+  ConsumerState<StrategiesPanel> createState() => _StrategiesPanelState();
 }
 
-class _StrategiesState extends ConsumerState<StrategiesPanel> {
+class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
   Strategy? selectedStrategy;
 
   @override
@@ -54,22 +54,37 @@ class _StrategiesState extends ConsumerState<StrategiesPanel> {
       children: [
         IconButton(
           icon: Icon(Icons.edit),
-          onPressed: (){},
+          onPressed: (){
+            showStrategy(context, strategy, (newStrategy) {
+              if (newStrategy != null && newStrategy != strategy) {
+                ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
+                    .updateEntry(newStrategy);
+              }
+            });
+          },
         ),
         IconButton(
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-          onPressed: () => {},
+          onPressed: () => {
+            if (!strategy.isEmpty()) {
+              ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
+                  .deleteEntry(strategy)
+            }
+          },
         ),
       ]
     );
   }
 
-  void _handleAddStrategy(BuildContext context, WidgetRef ref) {
-    showStrategy(context, null, (newStrategy) {
-      if (newStrategy != null) {
-        ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
-           .addEntry(newStrategy);
-      }
-    });
+  void _handleAddStrategy(BuildContext context, WidgetRef ref) async {
+    final newStrategy = await showDialog<Strategy>(
+      context: context,
+      builder: (context) => StrategyDialog(strategy: null),
+    );
+
+    if (newStrategy != null) {
+      ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
+          .addEntry(newStrategy);
+    }
   }
 }

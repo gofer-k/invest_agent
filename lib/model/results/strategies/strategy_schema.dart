@@ -18,7 +18,7 @@ class StrategySchema implements CacheSchema {
     CREATE TABLE IF NOT EXISTS $tableName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       type TEXT NOT NULL,
-      name TEXT UNIQUE,
+      name TEXT NOT NULL UNIQUE,
       parameters TEXT -- JSON string
     );
   ''';
@@ -44,13 +44,14 @@ class StrategySchema implements CacheSchema {
   String saveOne(Cache cache) {
     final config = cache as Strategy;
     return '''
-      INSERT INTO $tableName 
+      INSERT INTO $tableName
       VALUES (
       nextval('$sequenceName'),
       '${config.type.name}',
       '${config.name}', 
       '${jsonEncode(config.toMap())}'
       ) ON CONFLICT(name) DO UPDATE SET
+          type = excluded.type,
           parameters = excluded.parameters;
     ''';
   }
@@ -134,8 +135,6 @@ class Strategy extends Cache {
     PeriodType? newAnalysisPeriod,
     DateTime? newBeginDate,
     DateTime? newEndDate}) {
-    final firstAllowedDate = DateTime(2000);
-
     return Strategy(
       id: newId ?? id,
       name: newName ?? name,
@@ -143,8 +142,8 @@ class Strategy extends Cache {
       cash: newCash ?? cash,
       currency: newCurrency ?? currency,
       analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
-      beginDate: newBeginDate ?? firstAllowedDate,
-      endDate: newEndDate ?? firstAllowedDate);
+      beginDate: newBeginDate ?? beginDate,
+      endDate: newEndDate ?? endDate);
   }
 
   @override
@@ -194,25 +193,6 @@ class Strategy extends Cache {
 
   @override
   Map<String, dynamic> toMap() {
-    // final parameters = switch(this) {
-    //   final MeanReversionConfig strategy => strategy.toMap(),
-    //   final GemStrategyConfig strategy => strategy.toMap(),
-    // // TODO: add other strategies
-    //   _ => <String, dynamic>{},
-    // };
-    //
-    // parameters['cash'] = cash;
-    // parameters['currency'] = currency.code;
-    // parameters['analysisPeriod'] = analysisPeriod.name;
-    // parameters['beginDate'] = beginDate.toIso8601String();
-    // parameters['endDate'] = endDate.toIso8601String();
-    //
-    // return {
-    //   "id": id,
-    //   "type": type.name,
-    //   "name": name,
-    //   "parameters": parameters,
-    // };
     return {
       "cash": cash,
       "currency": currency.data.code,
@@ -253,6 +233,5 @@ class Strategy extends Cache {
     endDate);
 
   @override
-  String toString() => type.name;
+  String toString() => "${type.name} $name ($id) - ${cash.toStringAsFixed(2)} ${currency.data.code} - ${beginDate.toIso8601String()} - ${endDate.toIso8601String()} - ${analysisPeriod.name}";
 }
-

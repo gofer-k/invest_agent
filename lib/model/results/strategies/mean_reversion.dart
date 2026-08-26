@@ -133,6 +133,21 @@ class MeanReversionConfig extends Strategy {
     );
   }
 
+  factory MeanReversionConfig.fromStrategy(Strategy strategy) {
+    return MeanReversionConfig(
+      id: strategy.id,
+      name: strategy.name,
+      cash: strategy.cash,
+      currency: strategy.currency,
+      analysisPeriod: strategy.analysisPeriod,
+      beginDate: strategy.beginDate,
+      endDate: strategy.endDate,
+      type: StrategyType.meanReversion,
+      indicator: Indicator.emptyIndicator(),
+      asset: AssetConfig.defaultAsset(),
+    );
+  }
+
   @override
   MeanReversionConfig copyWith({
     int? newId,

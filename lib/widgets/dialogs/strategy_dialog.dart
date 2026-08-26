@@ -1,49 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/providers/strategy_session.dart';
 import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart';
 
 import '../../model/period_type.dart';
-import '../../model/results/strategies/mean_reversion.dart';
 import '../../model/results/strategies/strategy_schema.dart';
 import '../../utils/chart_utils.dart';
 import '../utils/dropdown.dart';
 import 'asset_dialog.dart';
 
-void showStrategy(BuildContext context, Strategy? strategy, Function(Strategy? strategy) onSave) {
-  showDialog(context: context,
-    builder: (BuildContext context) {
-      return StrategyDialog(strategy: strategy, onSave: onSave);
-    }
+Future<void> showStrategy(BuildContext context, Strategy? strategy,
+    Function(Strategy? strategy) onSave) async {
+  final result = await showDialog<Strategy>(
+    context: context,
+    builder: (context) => StrategyDialog(strategy: strategy),
   );
+  onSave(result);
 }
 
-class StrategyDialog extends StatefulWidget {
-  final Function(Strategy? strategy) onSave;
+class StrategyDialog extends ConsumerStatefulWidget {
   final Strategy? strategy;
-  const StrategyDialog({super.key, required this.onSave, required this.strategy});
+
+  const StrategyDialog({super.key, required this.strategy});
 
   @override
-  StrategyDialogState createState() => StrategyDialogState();
+  ConsumerState<StrategyDialog> createState() => StrategyDialogState();
 }
-
-class StrategyDialogState extends State<StrategyDialog> {
+class StrategyDialogState extends ConsumerState<StrategyDialog> {
   late final TextEditingController controllerName;
   late final TextEditingController controllerBudget;
   bool addingParameter = false;
-  late final double _budget = widget.strategy?.cash ?? Strategy.defaultBudget;
   bool _isDateRange = false;
-  late Strategy _strategy = widget.strategy ?? Strategy.emptyStrategy();
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _isDateRange = _strategy.isEmpty();
-  }
 
   @override
   void initState() {
     super.initState();
     controllerName = TextEditingController(text:  widget.strategy?.name ?? '');
-    controllerBudget = TextEditingController(text:  _budget.toString());
+    controllerBudget = TextEditingController(text:  widget.strategy?.cash.toStringAsFixed(2) ?? Strategy.defaultBudget.toStringAsFixed(2));
   }
 
   @override
@@ -55,8 +48,11 @@ class StrategyDialogState extends State<StrategyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final currentStrategy = ref.watch(strategySessionProvider(widget.strategy));
+    final notifier = ref.read(strategySessionProvider(widget.strategy).notifier);
+
     return AlertDialog.adaptive(
-      title: Text("Strategy: ${widget.strategy?.name ?? 'New'}"),
+      title: Text("Strategy: ${currentStrategy.name}"),
       content: SizedBox(
         width: 320,
         child: SingleChildScrollView(
@@ -64,10 +60,14 @@ class StrategyDialogState extends State<StrategyDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _generalStrategyContents(),
-              _selectStrategy(),
+              _generalStrategyContents(
+                currentStrategy,
+                notifier),
+              _selectStrategy(currentStrategy,
+                notifier),
               const SizedBox(height: 8),
-              _strategyContents(_strategy.type)
+              _strategyContents(currentStrategy,
+                notifier),
             ],
           )
         ),
@@ -77,19 +77,14 @@ class StrategyDialogState extends State<StrategyDialog> {
         ElevatedButton(
           onPressed: () {
             final name = controllerName.text.trim();
-            if (name.isEmpty ||  _strategy.type == StrategyType.empty) return;
+            final cash = double.tryParse(controllerBudget.text) ?? Strategy.defaultBudget;
 
-            final newStrategy = Strategy(
-              id: _strategy.id,
-              name: name,
-              cash: double.tryParse(controllerBudget.text) ?? _budget,
-              currency: _strategy.currency,
-              analysisPeriod: _strategy.analysisPeriod,
-              type: _strategy.type,
-              beginDate: _strategy.beginDate,
-              endDate: _isDateRange ? _strategy.endDate : calculateEndDate(_strategy.beginDate, _strategy.analysisPeriod));
-            widget.onSave(newStrategy);
-            Navigator.of(context).pop();
+            if (name.isEmpty || currentStrategy.type == StrategyType.empty) return;
+
+            notifier.updateField((s) => s.copyWith(newName: name, newCash: cash));
+
+            final finalizedStrategy = ref.read(strategySessionProvider(widget.strategy));
+            Navigator.of(context).pop(finalizedStrategy);
           },
           child: const Text("Save"),
         )
@@ -97,7 +92,7 @@ class StrategyDialogState extends State<StrategyDialog> {
     );
   }
 
-  Widget _generalStrategyContents() {
+  Widget _generalStrategyContents(Strategy currentStrategy, StrategySession notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -118,8 +113,9 @@ class StrategyDialogState extends State<StrategyDialog> {
             const SizedBox(width: 8),
             Expanded(flex: 1,
               child: Dropdown<FiatCurrencyEnum>(
-                onSelected: (FiatCurrencyEnum c) => setState(() => _strategy = _strategy.copyWith(newCurrency: c)),
-                choiceType: _strategy.currency,
+                onSelected: (FiatCurrencyEnum c) => notifier.updateField(
+                  (strategy) => strategy.copyWith(newCurrency: c)),
+                choiceType: currentStrategy.currency,
                 choices: FiatCurrencyEnum.values,
               ),
             ),
@@ -134,13 +130,15 @@ class StrategyDialogState extends State<StrategyDialog> {
                 onPressed: () async {
                   final date = await showDatePicker(
                     context: context,
-                    initialDate: _strategy.beginDate,
+                    initialDate: notifier.beginDate,
                     firstDate: DateTime(2000),
                     lastDate: DateTime(2100),
                   );
-                  if (date != null) setState(() => _strategy = _strategy.copyWith(newBeginDate: date));
+                  if (date != null) {
+                    notifier.updateField((strategy) => strategy.copyWith(newBeginDate: date));
+                  }
                 },
-                child: Text("Start: ${_strategy.beginDate.toIso8601String().split('T')[0]}"),
+                child: Text("Start: ${notifier.beginDate.toIso8601String().split('T')[0]}"),
               ),
              const SizedBox(width: 6),
              if (_isDateRange)
@@ -148,25 +146,27 @@ class StrategyDialogState extends State<StrategyDialog> {
                   onPressed: () async {
                     final date = await showDatePicker(
                       context: context,
-                      initialDate: _strategy.endDate,
-                      firstDate: _strategy.beginDate,
+                      initialDate: notifier.endDate,
+                      firstDate: notifier.beginDate,
                       lastDate: DateTime(2100),
                     );
-                    if (date != null) setState(() => _strategy.copyWith(newEndDate: date));
+                    if (date != null) {
+                      notifier.updateField((strategy) => strategy.copyWith(newEndDate: date));
+                    }
                   },
-                  child: Text("End: ${_strategy.endDate.toIso8601String().split('T')[0]}"),
+                  child: Text("End: ${notifier.endDate.toIso8601String().split('T')[0]}"),
                 ),
             if (!_isDateRange)
               Expanded(flex: 1,
                 child: DropdownButtonFormField<PeriodType>(
                   decoration: const InputDecoration(labelText: "Period analysis"),
-                  initialValue: _strategy.analysisPeriod,
+                  initialValue: notifier.analysisPeriod,
                   items: PeriodType.values.map((c) =>
                   DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
                   ).toList(),
                   onChanged: (val) {
                     if (val == null) return;
-                    setState(() => _strategy = _strategy.copyWith(newAnalysisPeriod: val));
+                    notifier.updateField((strategy) => strategy.copyWith(newAnalysisPeriod: val));
                   }
                 ),
               ),
@@ -190,33 +190,21 @@ class StrategyDialogState extends State<StrategyDialog> {
     );
   }
 
-  Widget _selectStrategy() {
+  Widget _selectStrategy(Strategy currentStrategy, StrategySession notifier) {
     return Dropdown<StrategyType>(
       onSelected: (StrategyType newType) {
-        setState(() => _strategy = _strategy.copyWith(newType: newType));
+        notifier.updateType(newType);
       },
       choices:StrategyType.values,
-      choiceType: _strategy.type,
+      choiceType: currentStrategy.type,
     );
   }
 
-  Widget _strategyContents(StrategyType type) {
-    return switch (type) {
+  Widget _strategyContents(Strategy currentStrategy, StrategySession notifier) {
+    return switch (currentStrategy.type) {
       StrategyType.meanReversion => StrategyConfigMeanReversion(
-        strategyConfig: (widget.strategy != null)
-            ? widget.strategy as MeanReversionConfig
-            : MeanReversionConfig.emptyStrategy(),
-        onSave: (MeanReversionConfig strategyConfig) {
-          setState(() => _strategy = strategyConfig);
-        }),
+          strategyKey: widget.strategy),
       _ => Text("No implemented more strategies"),
-      // StrategyType.momentum => throw UnimplementedError(),
-      // StrategyType.arbitrary => throw UnimplementedError(),
-      // StrategyType.asset => throw UnimplementedError(),
-      // StrategyType.gem => throw UnimplementedError(),
-      // StrategyType.indexFundRebalancing => throw UnimplementedError(),
-      // StrategyType.trendFollowing => throw UnimplementedError(),
-      // StrategyType.empty => throw UnimplementedError(),
     };
   }
 
