@@ -169,6 +169,25 @@ class GemStrategyConfig extends Strategy {
         momentumAsset: GemAsset.fromMap(jsonMomentumAsset));
   }
 
+  factory GemStrategyConfig.fromStrategy(Strategy strategy) {
+    return GemStrategyConfig(
+      id: strategy.id,
+      name: strategy.name,
+      cash: strategy.cash,
+      currency: strategy.currency,
+      analysisPeriod: strategy.analysisPeriod,
+      beginDate: strategy.beginDate,
+      endDate: strategy.endDate,
+      type: StrategyType.gem,
+      mainAsset: GemAsset(
+        type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
+        supportingAssets: []),
+      momentumAsset: GemAsset(
+        type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
+        supportingAssets: []),
+    );
+  }
+
   @override
   Map<String, dynamic> toMap() => {
     ...super.toMap(),
