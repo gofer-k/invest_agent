@@ -41,7 +41,7 @@ class StrategyConfigMeanReversion extends ConsumerWidget {
                 choiceType: currentStrategy.asset,
                 choices: assets,
                 backgroundColor: Colors.transparent)
-            )
+            ),
           ],
         ),
         const SizedBox(height: 8),

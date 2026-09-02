@@ -26,14 +26,14 @@ void main() {
       expect(gemAsset.type, GemAssetType.bond);
       expect(gemAsset.asset.id, 2);
       expect(gemAsset.supportingAssets.length, 2);
-      expect(gemAsset.supportingAssets[0].id, 3);
+      expect(gemAsset.supportingAssets.first.id, 3);
     });
 
     test('GemAsset.toMap should produce correct map', () {
       final gemAsset = GemAsset(
         type: GemAssetType.equity,
         asset: createMockAsset(id: 10),
-        supportingAssets: [createMockAsset(id: 11)],
+        supportingAssets: {createMockAsset(id: 11)},
       );
 
       final map = gemAsset.toMap();
@@ -58,9 +58,9 @@ void main() {
     test('should initialize GemStrategy with correct parameters', () {
       // Arrange
       final riskMain = createMockAsset(id: 20);
-      final riskBalances = [createMockAsset(id: 21)];
+      final riskBalances = {createMockAsset(id: 21)};
       final safeMain = createMockAsset(id: 2);
-      final safeBalances = [createMockAsset(id: 3), createMockAsset(id: 4)];
+      final safeBalances = {createMockAsset(id: 3), createMockAsset(id: 4)};
 
       final riskAsset = GemAsset(
         type: GemAssetType.equity,
@@ -154,7 +154,7 @@ void main() {
       final newMainAsset = GemAsset(
         type: GemAssetType.commodity,
         asset: createMockAsset(id: 99),
-        supportingAssets: [],
+        supportingAssets: {},
       );
 
       final updated = original.copyWith(

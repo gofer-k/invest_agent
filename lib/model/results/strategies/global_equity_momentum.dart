@@ -32,6 +32,8 @@ Note: The assets' prices are use to compute this strategy.
     }
   }
  */
+
+// TODO: This move to extended asset config
 enum GemAssetType {
   bond("bonds"),
   commodity("commodity"),
@@ -44,9 +46,16 @@ enum GemAssetType {
 class GemAsset {
   final GemAssetType type;
   final AssetConfig asset;
-  final List<AssetConfig> supportingAssets;
+  final Set<AssetConfig> supportingAssets;
 
   GemAsset({required this.type, required this.asset, required this.supportingAssets});
+
+  GemAsset copyWith({GemAssetType? newType, AssetConfig? newAsset, Set<AssetConfig>? newSupportingAssets}) {
+    return GemAsset(
+      type: newType ?? type,
+      asset: newAsset ?? asset,
+      supportingAssets: newSupportingAssets ?? supportingAssets);
+  }
 
   factory GemAsset.fromMap(Map<String, dynamic> params) {
     final assetType = GemAssetType.values.firstWhere(
@@ -59,7 +68,7 @@ class GemAsset {
     final balanceAssets = balanceAssetsRaw.cast<int>();
 
     final mainAsset = AssetConfig.of(id: mainAssetId);
-    final supportingAssets = balanceAssets.map((e) => AssetConfig.of(id: e)).toList();
+    final supportingAssets = balanceAssets.map((e) => AssetConfig.of(id: e)).toSet();
     return GemAsset(type: assetType, asset: mainAsset, supportingAssets: supportingAssets);
   }
 
@@ -75,10 +84,10 @@ class GemAsset {
       runtimeType == other.runtimeType &&
       type == other.type &&
       asset == other.asset &&
-      const ListEquality().equals(supportingAssets, other.supportingAssets));
+      const SetEquality().equals(supportingAssets, other.supportingAssets));
 
   @override
-  int get hashCode => Object.hash(asset, type, const ListEquality().hash(supportingAssets),);
+  int get hashCode => Object.hash(asset, type, const SetEquality().hash(supportingAssets),);
 
   List<Object?> get props => [type, asset, supportingAssets];
 
@@ -120,10 +129,10 @@ class GemStrategyConfig extends Strategy {
       name: '',
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
-        supportingAssets: []),
+        supportingAssets: {}),
       momentumAsset: GemAsset(
         type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
-        supportingAssets: []),
+        supportingAssets: {}),
     );
   }
 
@@ -181,10 +190,10 @@ class GemStrategyConfig extends Strategy {
       type: StrategyType.gem,
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
-        supportingAssets: []),
+        supportingAssets: {}),
       momentumAsset: GemAsset(
         type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
-        supportingAssets: []),
+        supportingAssets: {}),
     );
   }
 

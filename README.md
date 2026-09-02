@@ -44,9 +44,9 @@ dart pub global activate protoc_plugin
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
+- crud strategy UI operations
+- extend assets config for assets type type (equity, bonds, regions: usa, acits, emi, pol) 
 - support customizable interval for chart ?
-- load portfolio assets frm db cache
-- add new portfolio isset: a) manual, b) from MarketPlace api ?
 - display candles signals
 - filter out the respond data by specific intervals??
 - custom style visualization, themes

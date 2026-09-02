@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/strategy_session.dart';
+import 'package:invest_agent/widgets/dialogs/strategy_config_gem.dart';
 import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart';
 
 import '../../model/period_type.dart';
@@ -204,6 +205,7 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
     return switch (currentStrategy.type) {
       StrategyType.meanReversion => StrategyConfigMeanReversion(
           strategyKey: widget.strategy),
+      StrategyType.gem => StrategyConfigGem(strategyKey: widget.strategy),
       _ => Text("No implemented more strategies"),
     };
   }
