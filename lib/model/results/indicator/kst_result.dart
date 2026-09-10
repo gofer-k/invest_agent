@@ -132,9 +132,9 @@ class KstResult extends BaseIndicatorResult {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! KstResult) return false;
-    return super == other && points == other.points;
+    return super == other && ListEquality().equals(points, other.points);
   }
 
   @override
-  int get hashCode => super.hashCode ^ points.hashCode;
+  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
 }

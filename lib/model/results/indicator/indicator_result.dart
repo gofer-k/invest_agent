@@ -29,5 +29,5 @@ abstract class BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => style.hashCode ^ config.hashCode;
+  int get hashCode => Object.hash(style, config);
 }

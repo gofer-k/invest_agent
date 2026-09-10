@@ -248,15 +248,7 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
             volume == other.volume;
 
   @override
-  int get hashCode =>
-      id.hashCode ^
-      assetId.hashCode ^
-      dateTime.hashCode ^
-      openPrice.hashCode ^
-      closePrice.hashCode ^
-      highPrice.hashCode ^
-      lowPrice.hashCode ^
-      volume.hashCode;
+  int get hashCode => Object.hash(id, assetId, dateTime, openPrice, closePrice, highPrice, lowPrice, volume);
 
   @override
   List<Object?> get props => [id, assetId, dateTime, openPrice, closePrice, highPrice, lowPrice, volume];

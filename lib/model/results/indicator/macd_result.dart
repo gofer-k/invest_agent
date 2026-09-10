@@ -149,9 +149,9 @@ class MacdResult extends BaseIndicatorResult {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! MacdResult) return false;
-    return super == other && data == other.data;
+    return super == other && ListEquality().equals(data, other.data);
   }
 
   @override
-  int get hashCode => super.hashCode ^ data.hashCode;
+  int get hashCode => Object.hash(const ListEquality().hash(data), super.hashCode);
 }

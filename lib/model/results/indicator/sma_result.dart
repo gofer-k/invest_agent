@@ -123,11 +123,11 @@ class SmaResult extends BaseIndicatorResult {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SmaResult) return false;
-    return super == other && points == other.points;
+    return super == other && ListEquality().equals(points, other.points);
   }
 
   @override
-  int get hashCode => super.hashCode ^ points.hashCode;
+  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
 
   Iterable<SimpleMovingAverage> _filterPoints(DateTime? start, DateTime? end) {
     if (start == null && end == null) return points;

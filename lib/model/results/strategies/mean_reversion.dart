@@ -41,6 +41,13 @@ class MeanReversionConfig extends Strategy {
       endDate: epoch);
   }
 
+  @override
+  Strategy fillAssets(List<AssetConfig> assets) {
+    if (assets.isEmpty) return this;
+    final filledAsset = assets.firstWhere((a) => a.id == asset.id, orElse: () => asset);
+    return copyWith(newAsset: filledAsset);
+  }
+
   /*
   {
     "asset": 20,
