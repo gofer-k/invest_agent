@@ -1,10 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'cache_notifier.dart';
 import 'load_database_provider.dart';
+import 'model_config.dart';
 
 part 'strategy_provider.g.dart';
 
@@ -43,23 +43,23 @@ class StrategyNotifier extends _$StrategyNotifier {
   StrategyNotifierState build([CacheKeyType? type, bool? keepAlive]) {
     if (keepAlive == true) ref.keepAlive();
 
-    final pathAsync = ref.watch(
-      loadDatabaseProvider(type ?? CacheKeyType.analysisCache));
+    // Watch dependencies: path and available assets
+    final path = ref.watch(loadDatabaseProvider(type ?? CacheKeyType.analysisCache)).value;
+    final assets = ref.watch(assetsLoaderProvider).value;
 
-    // Use AsyncValue to check if we have a valid path
-    return pathAsync.maybeWhen(
-      data: (path) {
-        _dbPath = path;
-        final cacheAsync = ref.watch(
-            cacheProvider<Strategy, StrategySchema>(_schema, path));
+    // Return empty state if prerequisites aren't loaded yet
+    if (path == null || assets == null) {
+      _dbPath = path ?? "";
+      return const StrategyNotifierState();
+    }
 
-        return StrategyNotifierState(cachedStrategies: cacheAsync.value ?? const []);
-      },
-      orElse: () {
-        _dbPath = "";
-        return const StrategyNotifierState();
-      },
-    );
+    _dbPath = path;
+    
+    // Watch the underlying cache provider
+    final cacheAsync = ref.watch(cacheProvider<Strategy, StrategySchema>(_schema, path));
+    final strategies = cacheAsync.value?.map((s) => s.fillAssets(assets)).toList() ?? const [];
+    
+    return StrategyNotifierState(cachedStrategies: strategies);
   }
 
   Future<List<Strategy>> fetchAll() async {
@@ -72,8 +72,13 @@ class StrategyNotifier extends _$StrategyNotifier {
         .fetchAll();
 
     if (!ref.mounted) return items;
-    state = state.copyWith(newCache: items);
-    return items;
+
+    // Ensure manually fetched items also have assets filled
+    final assets = ref.read(assetsLoaderProvider).value ?? const [];
+    final filledItems = items.map((s) => s.fillAssets(assets)).toList();
+
+    state = state.copyWith(newCache: filledItems);
+    return filledItems;
   }
 
   Future<void> addEntry(Strategy entry) async {

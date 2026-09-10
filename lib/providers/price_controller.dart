@@ -46,9 +46,7 @@ class PriceController extends _$PriceController {
       next.whenData((db) async {
         try {
           await db.createCache(IndexPriceSchema());
-          // if (ref.mounted) {
           await refreshAllDetails();
-          // }
         } catch (e) {
           if (e.toString().contains('disposed')) return;
           dev.log('IndexPriceManager Init Error: $e');

@@ -98,6 +98,12 @@ class GemAsset {
 class GemStrategyConfig extends Strategy {
   final GemAsset mainAsset;
   final GemAsset momentumAsset;
+  final double inflation;
+  final int absoluteMomentumInteval;
+  final int relativeMomentumInterval;
+
+  static const double defaultInflation = 0.0;
+  static const int defaultIntervalInMonth = 12;
 
   GemStrategyConfig({
     required super.id,
@@ -109,10 +115,33 @@ class GemStrategyConfig extends Strategy {
     required super.beginDate,
     required super.endDate,
     required this.mainAsset,
-    required this.momentumAsset});
+    required this.momentumAsset,
+    this.inflation = defaultInflation,
+    this.absoluteMomentumInteval = defaultIntervalInMonth,
+    this.relativeMomentumInterval = defaultIntervalInMonth,
+  });
 
   CacheUniqueKey get uniqueKey {
-    return "$name-$type--${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
+    return "$name-$type-$inflation-$absoluteMomentumInteval-$relativeMomentumInterval-${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
+  }
+
+  @override
+  Strategy fillAssets(List<AssetConfig> assets) {
+    if (assets.isEmpty) return this;
+
+    AssetConfig find(AssetConfig original) =>
+        assets.firstWhere((a) => a.id == original.id, orElse: () => original);
+
+    return copyWith(
+      newMainAsset: mainAsset.copyWith(
+        newAsset: find(mainAsset.asset),
+        newSupportingAssets: mainAsset.supportingAssets.map(find).toSet()
+      ),
+      newMomentumAsset: momentumAsset.copyWith(
+        newAsset: find(momentumAsset.asset),
+        newSupportingAssets: momentumAsset.supportingAssets.map(find).toSet()
+      )
+    );
   }
 
   factory GemStrategyConfig.emptyStrategy() {
@@ -127,6 +156,9 @@ class GemStrategyConfig extends Strategy {
       endDate: epoch,
       analysisPeriod: Strategy.defaultPeriod,
       name: '',
+      inflation: defaultInflation,
+      absoluteMomentumInteval: defaultIntervalInMonth,
+      relativeMomentumInterval: defaultIntervalInMonth,
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
         supportingAssets: {}),
@@ -145,7 +177,11 @@ class GemStrategyConfig extends Strategy {
     DateTime? newBeginDate,
     DateTime? newEndDate,
     GemAsset? newMainAsset,
-    GemAsset? newMomentumAsset}) {
+    GemAsset? newMomentumAsset,
+    double? newInflation,
+    int? newAbsoluteMomentumInMonth,
+    int? newRelativeMomentumInMonth,
+  }) {
 
     return GemStrategyConfig(
       id: newId ?? id,
@@ -157,7 +193,11 @@ class GemStrategyConfig extends Strategy {
       beginDate: newBeginDate ?? beginDate,
       endDate: newEndDate ?? endDate,
       mainAsset: newMainAsset ?? mainAsset,
-      momentumAsset: newMomentumAsset ?? momentumAsset);
+      momentumAsset: newMomentumAsset ?? momentumAsset,
+      inflation: newInflation ?? inflation,
+      absoluteMomentumInteval: newAbsoluteMomentumInMonth ?? absoluteMomentumInteval,
+      relativeMomentumInterval: newRelativeMomentumInMonth ?? relativeMomentumInterval,
+    );
   }
 
   @override
@@ -170,12 +210,19 @@ class GemStrategyConfig extends Strategy {
 
     final jsonMainAsset = params['main-asset'] as Map<String, dynamic>;
     final jsonMomentumAsset = params['momentum-assets'] as Map<String, dynamic>;
+    final jsonInflation = params['inflation'] as double;
+    final jsonRebalanceIntervalInMonth = params['absolute-momentum'] as int;
+    final jsonRelativeRebalanceIntervalInMonth = params['relative-momentum'] as int;
 
     return GemStrategyConfig(id: id, type: StrategyType.gem, name: name,
-        cash: cash, currency: currency, analysisPeriod: analysisPeriod,
-        beginDate: beginDate, endDate: endDate,
-        mainAsset: GemAsset.fromMap(jsonMainAsset),
-        momentumAsset: GemAsset.fromMap(jsonMomentumAsset));
+      cash: cash, currency: currency, analysisPeriod: analysisPeriod,
+      beginDate: beginDate, endDate: endDate,
+      mainAsset: GemAsset.fromMap(jsonMainAsset),
+      momentumAsset: GemAsset.fromMap(jsonMomentumAsset),
+      inflation: jsonInflation,
+      absoluteMomentumInteval: jsonRebalanceIntervalInMonth,
+      relativeMomentumInterval: jsonRelativeRebalanceIntervalInMonth,
+    );
   }
 
   factory GemStrategyConfig.fromStrategy(Strategy strategy) {
@@ -194,12 +241,18 @@ class GemStrategyConfig extends Strategy {
       momentumAsset: GemAsset(
         type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
         supportingAssets: {}),
+      inflation: defaultInflation,
+      absoluteMomentumInteval: defaultIntervalInMonth,
+      relativeMomentumInterval: defaultIntervalInMonth,
     );
   }
 
   @override
   Map<String, dynamic> toMap() => {
     ...super.toMap(),
+    "inflation": inflation,
+    "absolute-momentum": absoluteMomentumInteval,
+    "relative-momentum": relativeMomentumInterval,
     "main-asset": mainAsset.toMap(),
     "momentum-assets": momentumAsset.toMap()
   };
@@ -210,16 +263,21 @@ class GemStrategyConfig extends Strategy {
     (other is GemStrategyConfig &&
       runtimeType == other.runtimeType &&
       super == other &&
+      absoluteMomentumInteval == other.absoluteMomentumInteval &&
+      relativeMomentumInterval == other.relativeMomentumInterval &&
+      inflation == other.inflation &&
       mainAsset == other.mainAsset &&
       momentumAsset == other.momentumAsset);
-
 
   @override
   int get hashCode => Object.hash(
       super.hashCode,
+      inflation,
+      absoluteMomentumInteval,
+      relativeMomentumInterval,
       mainAsset,
       momentumAsset,);
 
   @override
-  List<Object?> get props => [...super.props, mainAsset, momentumAsset];
+  List<Object?> get props => [...super.props, inflation, absoluteMomentumInteval, relativeMomentumInterval, mainAsset, momentumAsset];
 }

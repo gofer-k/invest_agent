@@ -64,6 +64,7 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
               _generalStrategyContents(
                 currentStrategy,
                 notifier),
+              const SizedBox(height: 8),
               _selectStrategy(currentStrategy,
                 notifier),
               const SizedBox(height: 8),

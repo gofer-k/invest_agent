@@ -5,6 +5,7 @@ import 'package:invest_agent/model/results/strategies/global_equity_momentum.dar
 import 'package:sealed_currencies/sealed_currencies.dart';
 
 import '../../../widgets/dialogs/asset_dialog.dart';
+import '../../asset_config.dart';
 import '../../period_type.dart';
 import 'mean_reversion.dart';
 
@@ -114,6 +115,10 @@ class Strategy extends Cache {
     this.analysisPeriod = defaultPeriod,
     required this.beginDate,
     required this.endDate}) : super.from([]);
+
+  Strategy fillAssets(List<AssetConfig> assets) {
+    return this;
+  }
 
   factory Strategy.emptyStrategy() {
     final firstAllowedDate = DateTime(2000);
