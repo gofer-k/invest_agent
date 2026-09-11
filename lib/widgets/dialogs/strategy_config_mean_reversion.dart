@@ -51,8 +51,13 @@ class StrategyConfigMeanReversion extends ConsumerWidget {
             const SizedBox(width: 8),
             Flexible(flex: 1,
               child: DropdownList<Indicator>(
-                onSelected: (Indicator ind) => notifier.save(currentStrategy.copyWith(newIndicator: ind)),
-                choiceType: currentStrategy.indicator,
+                onSelected: (Indicator ind) =>
+                  notifier.save(currentStrategy.copyWith(newIndicator: ind)),
+                // choiceType: currentStrategy.indicator,
+                choiceType: indicators.firstWhere(
+                  (e) => e.type == currentStrategy.indicator.type,
+                  orElse: () => currentStrategy.indicator,
+                ),
                 choices: indicators,
                 backgroundColor: Colors.transparent,
               ),
