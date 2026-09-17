@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/multi_chart_provider.dart';
@@ -100,7 +101,25 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                 body: Card(
                   child: ListTile(
                     dense: true,
-                    title: Text(asset.symbol),
+                    // title: Text(asset.symbol),
+                    title: RichText(
+                      text: TextSpan(
+                        text: asset.symbol,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            if (asset.links.isNotEmpty) {
+                              final url = asset.links.first;
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            }
+                          },
+                      ),
+                    ),
                     subtitle: Text(detailText, style: const TextStyle(fontSize: 11)),
                     trailing: _buildTrailingActions(context, asset, isRefreshing),
                   )),
