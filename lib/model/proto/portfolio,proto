@@ -1,0 +1,208 @@
+syntax = "proto3";
+
+package trading.portfolio;
+
+import "google/protobuf/timestamp.proto";
+
+// ============================================================
+// Portfolio KPI Dashboard
+// ============================================================
+message PortfolioKpiDashboard {
+  string portfolio_id = 1;
+  string portfolio_name = 2;
+
+  // Date/time when the dashboard was calculated.
+  google.protobuf.Timestamp as_of = 3;
+
+  // Available measurement periods.
+  repeated KpiPeriod periods = 4;
+
+  // KPI values grouped by measurement period.
+  repeated KpiSnapshot snapshots = 5;
+
+  // Current, point-in-time portfolio information.
+  PortfolioSnapshot current = 6;
+
+  // Benchmark used for relative performance metrics.
+  Benchmark benchmark = 7;
+}
+
+
+// ============================================================
+// Measurement Period
+// ============================================================
+
+message KpiPeriod {
+  KpiPeriodType type = 1;
+
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+
+  // Human-readable label, e.g. "1 Year", "5 Years", "YTD".
+  string display_name = 4;
+}
+
+enum KpiPeriodType {
+  KPI_PERIOD_UNSPECIFIED = 0;
+
+  KPI_PERIOD_1M = 1;
+  KPI_PERIOD_3M = 2;
+  KPI_PERIOD_6M = 3;
+  KPI_PERIOD_YTD = 4;
+  KPI_PERIOD_1Y = 5;
+  KPI_PERIOD_3Y = 6;
+  KPI_PERIOD_5Y = 7;
+  KPI_PERIOD_10Y = 8;
+  KPI_PERIOD_SINCE_INCEPTION = 9;
+}
+
+
+// ============================================================
+// KPI Snapshot
+// ============================================================
+
+message KpiSnapshot {
+  KpiPeriodType period = 1;
+
+  // Main dashboard KPIs for this period.
+  KpiValue total_return = 2;
+  KpiValue cagr = 3;
+  KpiValue volatility = 4;
+  KpiValue sharpe_ratio = 5;
+  KpiValue sortino_ratio = 6;
+  KpiValue max_drawdown = 7;
+  KpiValue calmar_ratio = 8;
+  KpiValue beta = 9;
+  KpiValue correlation = 10;
+  KpiValue tracking_error = 11;
+  KpiValue tracking_difference = 12;
+
+  // Income-related metric.
+  KpiValue dividend_yield = 13;
+}
+
+// ============================================================
+// Point-in-time / current ETF portfolio metrics
+// ============================================================
+message PortfolioSnapshot {
+  KpiValue expense_ratio = 1;
+  KpiValue bid_ask_spread = 2;
+  KpiValue portfolio_concentration = 3;
+
+  // Optional portfolio-level metrics.
+  KpiValue assets_under_management = 4;
+  KpiValue number_of_holdings = 5;
+
+  // Allocation.
+  repeated Allocation allocation = 6;
+}
+
+
+// ============================================================
+// Generic KPI value
+// ============================================================
+
+message KpiValue {
+  // Raw numerical value used by the application.
+  double value = 1;
+
+  // Unit determines how the UI should interpret the value.
+  KpiUnit unit = 2;
+
+  // Optional preformatted value, e.g. "8.7%", "0.78", "-18.6%".
+  //
+  // Useful when the backend owns localization/formatting.
+  string display_value = 3;
+
+  // Optional description shown in tooltip/help UI.
+  string description = 4;
+
+  // Whether the value is currently available.
+  KpiAvailability availability = 5;
+
+  // Optional comparison with a benchmark or previous period.
+  KpiComparison comparison = 6;
+}
+
+enum KpiUnit {
+  KPI_UNIT_UNSPECIFIED = 0;
+
+  KPI_UNIT_PERCENT = 1;
+  KPI_UNIT_RATIO = 2;
+  KPI_UNIT_CURRENCY = 3;
+  KPI_UNIT_CURRENCY_MILLIONS = 4;
+  KPI_UNIT_CURRENCY_BILLIONS = 5;
+  KPI_UNIT_COUNT = 6;
+  KPI_UNIT_BASIS_POINTS = 7;
+}
+
+enum KpiAvailability {
+  KPI_AVAILABILITY_UNSPECIFIED = 0;
+  KPI_AVAILABILITY_AVAILABLE = 1;
+  KPI_AVAILABILITY_NOT_AVAILABLE = 2;
+  KPI_AVAILABILITY_INSUFFICIENT_HISTORY = 3;
+}
+
+
+// ============================================================
+// Benchmark comparison
+// ============================================================
+
+message KpiComparison {
+  // Benchmark value for the same measurement period.
+  double benchmark_value = 1;
+
+  // Portfolio value minus benchmark value.
+  double difference = 2;
+
+  // Optional display representation.
+  string display_difference = 3;
+
+  // Benchmark-relative interpretation.
+  ComparisonDirection direction = 4;
+}
+
+enum ComparisonDirection {
+  COMPARISON_DIRECTION_UNSPECIFIED = 0;
+  COMPARISON_DIRECTION_ABOVE = 1;
+  COMPARISON_DIRECTION_BELOW = 2;
+  COMPARISON_DIRECTION_EQUAL = 3;
+}
+
+
+// ============================================================
+// Benchmark
+// ============================================================
+
+message Benchmark {
+  string id = 1;
+  string name = 2;
+
+  // Example: "MSCI World", "S&P 500".
+  string ticker = 3;
+}
+
+
+// ============================================================
+// Portfolio allocation
+// ============================================================
+
+message Allocation {
+  string asset_id = 1;
+  string name = 2;
+
+  // Current portfolio weight.
+  double weight = 3;
+
+  AllocationType type = 4;
+}
+
+enum AllocationType {
+  ALLOCATION_TYPE_UNSPECIFIED = 0;
+
+  ALLOCATION_TYPE_EQUITY = 1;
+  ALLOCATION_TYPE_BOND = 2;
+  ALLOCATION_TYPE_COMMODITY = 3;
+  ALLOCATION_TYPE_CASH = 4;
+  ALLOCATION_TYPE_OTHER = 5;
+}

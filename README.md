@@ -30,7 +30,14 @@ dart pub global activate protoc_plugin
         "visible": "1"      <- Visible or not (Checkbox)
     }, 
     "smooth type": ["SMA","EMA"],   <- [Dropdown, Radio] 
-}   
+} 
+
+Useful commands:
+Create the output directory
+mkdir -p lib/model/proto/generated
+
+Run the compiler
+protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/proto/*.proto  
 ```
 
 ### TODO:
@@ -38,7 +45,7 @@ dart pub global activate protoc_plugin
 - display portfolio strategies:
   - shrinkable strategy config
   - add/edit/remove strategy
-- - asset's indicators (multi chart configs)
+  - asset's indicators (multi chart configs)
 
 - display vertical multi chart's bar
 - display tooltips on the chart's board

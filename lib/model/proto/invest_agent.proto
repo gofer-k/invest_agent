@@ -2,53 +2,24 @@ syntax = "proto3";
 
 package trading;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "asset.proto";
+import "indicators.proto";
 
 service InvestAgentService {
-// Two-side communication: stream of requests to stream of results
-rpc CalculateIndicators (stream TradingRequest) returns (stream TradingResponse);
+  // Two-side communication: stream of requests to stream of results
+  rpc CalculateIndicators (stream TradingRequest) returns (stream TradingResponse);
+  rpc CalculateStrategy (stream StrategyRequest) returns (stream StrategyResponse);
+  rpc requestAssets(stream trading.asset.AssetsRequest) returns (google.protobuf.Empty);
 }
 
-// Maps to lib/model/price_result.dart: IndexPriceItem
-message IndexPriceItem {
-int32 id = 1;
-int32 asset_id = 2;
-double open = 3;
-double high = 4;
-double low = 5;
-double close = 6;
-double volume = 7;
-google.protobuf.Timestamp date_time = 8;
-}
-
-// Maps to lib/model/indicator_schema.dart: IndicatorType
-enum IndicatorType {
-UNDEFINED = 0;
-PRICE = 1;
-BOLLINGER_BANDS = 2;
-SMA = 3;
-EMA = 4;
-MACD = 5;
-RSI = 6;
-VOLUME = 7;
-KST = 8;
-ROC = 9;
-}
-
-// Maps to lib/model/indicator_schema.dart: Indicator
-message Indicator {
-int32 id = 1;
-string name = 2;
-IndicatorType type = 3;
-// Dynamic parameters (Map<String, dynamic>)
-google.protobuf.Struct parameters = 4;
-}
 
 // Constraint 1: TradingRequest class definition
 message TradingRequest {
-repeated IndexPriceItem prices = 1;
-repeated Indicator indicators = 2;
+  repeated trading.indicators.IndexPriceItem prices = 1;
+  repeated trading.indicators.Indicator indicators = 2;
 }
 
 // --- Response Models ---
@@ -56,27 +27,70 @@ repeated Indicator indicators = 2;
 // Constraint 2: Compliable with IndicatorResultMap
 // (Map<IndicatorType, List<BaseIndicatorResult>>)
 message TradingResponse {
-// Key is the IndicatorType (as a string or integer)
-// We use string key to map easily to IndicatorType.name
-map<string, IndicatorResultList> results = 1;
+  // Key is the IndicatorType (as a string or integer)
+  // We use string key to map easily to IndicatorType.name
+  map<string, trading.indicators.IndicatorResultList> results = 1;
 }
 
-// Represents List<BaseIndicatorResult>
-message IndicatorResultList {
-repeated IndicatorSeries items = 1;
+
+enum StrategyType {
+  EMPTY = 0;
+  ARBITARY = 1;
+  ASSETALLOCATION = 2;
+  GEM = 3;
+  MEANREVESION = 4;
+  INDEXFUNDREBALANCING = 5;
+  TRENDfOLLOWING= 6;
 }
 
-// Represents a single BaseIndicatorResult (e.g., a specific SMA series)
-message IndicatorSeries {
-string chart_style = 1; // Maps to ChartStyle enum name
-Indicator config = 2;
-repeated IndicatorPoint points = 3;
+message StrategyRequest {
+  int32 id = 1;
+  StrategyType type = 2;  
+  double capital = 3;
+  google.protobuf.Timestamp begin_date = 4;
+  google.protobuf.Timestamp end_date = 5;
+  int32 loopback = 6;
+  string name = 7;
+  string currency = 8;
+  google.protobuf.Struct parameters = 9;
 }
 
-// Represents a single point in the series (BaseIndicatorValue)
-message IndicatorPoint {
-google.protobuf.Timestamp date_time = 1;
-// Flexible map for varied results:
-// e.g., {"mean": 150.0, "std": 2.5} for SMA, or {"value": 70.0} for RSI
-map<string, double> values = 2;
+
+// GEM Strategy
+// ────────────────────────────
+// Current allocation
+
+// US Equities       100%
+// MSCI ex-US          0%
+// Emerging Markets    0%
+// Bonds               0%
+
+// Absolute momentum
+// US equities        +18.2%
+// Bonds               +6.7%
+
+// Relative momentum
+// US equities        +18.2%
+// MSCI ex-US         +14.1%
+// Emerging Markets   +11.8%
+
+// Decision
+// US Equities
+message StrategyResponse {
+  int32 Strategy_id = 1;
+  float cagr = 2;
+  float volatility = 3;
+  float sharpe = 4;
+  float max_drawdown = 5;
+  float sortino = 6;
+  float calmar = 7;
+  float beta = 8;
+  float correlation = 9;
+  float tracking_error = 10;
+  float tracking_diff = 11;
+  float expense_ratio = 12;
+  float bid_ask_spread = 13;
+  float concentration = 14;
+  float dividend_yield = 15;
+  float total_return =16;  
 }

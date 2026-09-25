@@ -6,7 +6,8 @@ import 'package:invest_agent/model/results/indicator/sma_result.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:invest_agent/providers/trading_service.dart';
-import 'package:invest_agent/model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem;
+import 'package:invest_agent/model/proto/generated/invest_agent.pbgrpc.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart' as $pb_inds;
 import 'package:invest_agent/model/proto/generated/invest_agent.pb.dart' as $pb;
 import 'package:invest_agent/model/results/indicator/price_result.dart';
 import 'package:invest_agent/model/indicator_schema.dart' as schema;
@@ -100,7 +101,7 @@ void main() {
       expect(request.prices.first.close, 105.0);
       expect(request.indicators, hasLength(1));
       expect(request.indicators.first.name, 'SMA 20');
-      expect(request.indicators.first.type, $pb.IndicatorType.SMA);
+      expect(request.indicators.first.type, $pb_inds.IndicatorType.SMA);
     });
 
     test('state should update when stream receives TradingResponse with SMA data', () async {
@@ -116,21 +117,21 @@ void main() {
 
       // Simulate a server response
       final response = $pb.TradingResponse();
-      final series = $pb.IndicatorSeries()
+      final series = $pb_inds.IndicatorSeries()
         ..chartStyle = 'line'
-        ..config = ($pb.Indicator()
+        ..config = ($pb_inds.Indicator()
           ..id = 1
           ..name = 'SMA 20'
-          ..type = $pb.IndicatorType.SMA);
+          ..type = $pb_inds.IndicatorType.SMA);
       
       series.config.ensureParameters().mergeFromProto3Json({'window': 20});
 
-      series.points.add($pb.IndicatorPoint()
+      series.points.add($pb_inds.IndicatorPoint()
         ..dateTime = $ts.Timestamp.fromDateTime(DateTime(2023, 1, 1))
         ..values.addAll({'mean': 102.5, 'std': 2.0}));
       
       // Use standard name (e.g. "SMA") to ensure matching in _mapResponse
-      response.results[$pb.IndicatorType.SMA.name] = $pb.IndicatorResultList()..items.add(series);
+      response.results[$pb_inds.IndicatorType.SMA.name] = $pb_inds.IndicatorResultList()..items.add(series);
 
       // Send response through the controller
       responseController.add(response);
@@ -167,20 +168,20 @@ void main() {
       ]);
 
       final response = $pb.TradingResponse();
-      final series = $pb.IndicatorSeries()
+      final series = $pb_inds.IndicatorSeries()
         ..chartStyle = 'line'
-        ..config = ($pb.Indicator()..type = $pb.IndicatorType.SMA)
+        ..config = ($pb_inds.Indicator()..type = $pb_inds.IndicatorType.SMA)
         ..points.addAll([
-          $pb.IndicatorPoint()
+          $pb_inds.IndicatorPoint()
             ..dateTime = $ts.Timestamp.fromDateTime(DateTime(2023, 1, 1))
             ..values.addAll({'mean': 100.0}),
-          $pb.IndicatorPoint()
+          $pb_inds.IndicatorPoint()
             ..dateTime = $ts.Timestamp.fromDateTime(DateTime(2023, 1, 2))
             ..values.addAll({'mean': 150.0}),
         ]);
       
       // Use "SMA" key which matches toString() of IndicatorType.sma
-      response.results[schema.IndicatorType.sma.toString()] = $pb.IndicatorResultList()..items.add(series);
+      response.results[schema.IndicatorType.sma.toString()] = $pb_inds.IndicatorResultList()..items.add(series);
       responseController.add(response);
 
       await pumpEventQueue();

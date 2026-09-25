@@ -13,8 +13,9 @@ import '../model/results/indicator/bollinger_bands_result.dart';
 import '../model/results/indicator/ema_result.dart';
 import '../model/results/indicator/kst_result.dart';
 import '../model/results/indicator/macd_result.dart';
-import '../model/proto/generated/invest_agent.pbgrpc.dart' hide IndexPriceItem, Indicator, IndicatorType;
+import '../model/proto/generated/indicators.pb.dart' as $pb_inds;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
+import '../model/proto/generated/invest_agent.pbgrpc.dart';
 import '../model/results/indicator/indicator_result.dart';
 import '../model/indicator_schema.dart' as schema;
 import '../model/results/indicator/price_result.dart' as model;
@@ -180,8 +181,8 @@ class TradingService extends _$TradingService {
     _outgoingController?.add(request);
   }
 
-  $pb.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
-    return $pb.IndexPriceItem()
+  $pb_inds.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
+    return $pb_inds.IndexPriceItem()
       ..id = item.id
       ..assetId = item.assetId
       ..open = item.openPrice
@@ -192,8 +193,8 @@ class TradingService extends _$TradingService {
       ..dateTime = $pb_ts.Timestamp.fromDateTime(item.dateTime);
   }
 
-  $pb.Indicator _toProtoIndicator(InternalIndicator indicator) {
-    final proto = $pb.Indicator()
+  $pb_inds.Indicator _toProtoIndicator(InternalIndicator indicator) {
+    final proto = $pb_inds.Indicator()
       ..id = indicator.id
       ..name = indicator.name
       ..type = _toProtoIndicatorType(indicator.type);
@@ -204,18 +205,18 @@ class TradingService extends _$TradingService {
     return proto;
   }
 
-  $pb.IndicatorType _toProtoIndicatorType(schema.IndicatorType type) {
+  $pb_inds.IndicatorType _toProtoIndicatorType(schema.IndicatorType type) {
     return switch (type) {
-      schema.IndicatorType.price => $pb.IndicatorType.PRICE,
-      schema.IndicatorType.bollingerBands => $pb.IndicatorType.BOLLINGER_BANDS,
-      schema.IndicatorType.sma => $pb.IndicatorType.SMA,
-      schema.IndicatorType.ema => $pb.IndicatorType.EMA,
-      schema.IndicatorType.macd => $pb.IndicatorType.MACD,
-      schema.IndicatorType.rsi => $pb.IndicatorType.RSI,
-      schema.IndicatorType.volume => $pb.IndicatorType.VOLUME,
-      schema.IndicatorType.kst => $pb.IndicatorType.KST,
-      schema.IndicatorType.roc => $pb.IndicatorType.ROC,
-      schema.IndicatorType.undefined => $pb.IndicatorType.UNDEFINED,
+      schema.IndicatorType.price => $pb_inds.IndicatorType.PRICE,
+      schema.IndicatorType.bollingerBands => $pb_inds.IndicatorType.BOLLINGER_BANDS,
+      schema.IndicatorType.sma => $pb_inds.IndicatorType.SMA,
+      schema.IndicatorType.ema => $pb_inds.IndicatorType.EMA,
+      schema.IndicatorType.macd => $pb_inds.IndicatorType.MACD,
+      schema.IndicatorType.rsi => $pb_inds.IndicatorType.RSI,
+      schema.IndicatorType.volume => $pb_inds.IndicatorType.VOLUME,
+      schema.IndicatorType.kst => $pb_inds.IndicatorType.KST,
+      schema.IndicatorType.roc => $pb_inds.IndicatorType.ROC,
+      schema.IndicatorType.undefined => $pb_inds.IndicatorType.UNDEFINED,
     };
   }
 
@@ -240,7 +241,7 @@ class TradingService extends _$TradingService {
     return resultMap;
   }
 
-  BaseIndicatorResult? _mapSeries($pb.IndicatorSeries series) {
+  BaseIndicatorResult? _mapSeries($pb_inds.IndicatorSeries series) {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
     return switch (indicatorType) {
       schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
@@ -255,17 +256,17 @@ class TradingService extends _$TradingService {
     };
   }
 
-  schema.IndicatorType _fromProtoIndicatorType($pb.IndicatorType type) {
+  schema.IndicatorType _fromProtoIndicatorType($pb_inds.IndicatorType type) {
     return switch (type) {
-      $pb.IndicatorType.PRICE => schema.IndicatorType.price,
-      $pb.IndicatorType.BOLLINGER_BANDS => schema.IndicatorType.bollingerBands,
-      $pb.IndicatorType.SMA => schema.IndicatorType.sma,
-      $pb.IndicatorType.EMA => schema.IndicatorType.ema,
-      $pb.IndicatorType.MACD => schema.IndicatorType.macd,
-      $pb.IndicatorType.RSI => schema.IndicatorType.rsi,
-      $pb.IndicatorType.VOLUME => schema.IndicatorType.volume,
-      $pb.IndicatorType.KST => schema.IndicatorType.kst,
-      $pb.IndicatorType.ROC => schema.IndicatorType.roc,
+      $pb_inds.IndicatorType.PRICE => schema.IndicatorType.price,
+      $pb_inds.IndicatorType.BOLLINGER_BANDS => schema.IndicatorType.bollingerBands,
+      $pb_inds.IndicatorType.SMA => schema.IndicatorType.sma,
+      $pb_inds.IndicatorType.EMA => schema.IndicatorType.ema,
+      $pb_inds.IndicatorType.MACD => schema.IndicatorType.macd,
+      $pb_inds.IndicatorType.RSI => schema.IndicatorType.rsi,
+      $pb_inds.IndicatorType.VOLUME => schema.IndicatorType.volume,
+      $pb_inds.IndicatorType.KST => schema.IndicatorType.kst,
+      $pb_inds.IndicatorType.ROC => schema.IndicatorType.roc,
       _ => schema.IndicatorType.undefined,
     };
   }

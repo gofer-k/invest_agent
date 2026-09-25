@@ -14,48 +14,38 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-/// Maps to lib/model/indicator_schema.dart: IndicatorType
-class IndicatorType extends $pb.ProtobufEnum {
-  static const IndicatorType UNDEFINED =
-      IndicatorType._(0, _omitEnumNames ? '' : '-');
-  static const IndicatorType PRICE =
-      IndicatorType._(1, _omitEnumNames ? '' : 'Price');
-  static const IndicatorType BOLLINGER_BANDS =
-      IndicatorType._(2, _omitEnumNames ? '' : 'Bollinger Bands');
-  static const IndicatorType SMA =
-      IndicatorType._(3, _omitEnumNames ? '' : 'SMA');
-  static const IndicatorType EMA =
-      IndicatorType._(4, _omitEnumNames ? '' : 'EMA');
-  static const IndicatorType MACD =
-      IndicatorType._(5, _omitEnumNames ? '' : 'MACD');
-  static const IndicatorType RSI =
-      IndicatorType._(6, _omitEnumNames ? '' : 'RSI');
-  static const IndicatorType VOLUME =
-      IndicatorType._(7, _omitEnumNames ? '' : 'Volume');
-  static const IndicatorType KST =
-      IndicatorType._(8, _omitEnumNames ? '' : 'KST');
-  static const IndicatorType ROC =
-      IndicatorType._(9, _omitEnumNames ? '' : 'ROC');
+class StrategyType extends $pb.ProtobufEnum {
+  static const StrategyType EMPTY =
+      StrategyType._(0, _omitEnumNames ? '' : 'EMPTY');
+  static const StrategyType ARBITARY =
+      StrategyType._(1, _omitEnumNames ? '' : 'ARBITARY');
+  static const StrategyType ASSETALLOCATION =
+      StrategyType._(2, _omitEnumNames ? '' : 'ASSETALLOCATION');
+  static const StrategyType GEM =
+      StrategyType._(3, _omitEnumNames ? '' : 'GEM');
+  static const StrategyType MEANREVESION =
+      StrategyType._(4, _omitEnumNames ? '' : 'MEANREVESION');
+  static const StrategyType INDEXFUNDREBALANCING =
+      StrategyType._(5, _omitEnumNames ? '' : 'INDEXFUNDREBALANCING');
+  static const StrategyType TRENDfOLLOWING =
+      StrategyType._(6, _omitEnumNames ? '' : 'TRENDfOLLOWING');
 
-  static const $core.List<IndicatorType> values = <IndicatorType>[
-    UNDEFINED,
-    PRICE,
-    BOLLINGER_BANDS,
-    SMA,
-    EMA,
-    MACD,
-    RSI,
-    VOLUME,
-    KST,
-    ROC,
+  static const $core.List<StrategyType> values = <StrategyType>[
+    EMPTY,
+    ARBITARY,
+    ASSETALLOCATION,
+    GEM,
+    MEANREVESION,
+    INDEXFUNDREBALANCING,
+    TRENDfOLLOWING,
   ];
 
-  static final $core.List<IndicatorType?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 9);
-  static IndicatorType? valueOf($core.int value) =>
+  static final $core.List<StrategyType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 6);
+  static StrategyType? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
-  const IndicatorType._(super.value, super.name);
+  const StrategyType._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

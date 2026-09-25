@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package trading.asset;
+
+message Asset {
+  int32 id = 1;
+  string symbol = 2;
+  string currencyCode = 3;
+  string rype = 4;
+  string assetTypeDetails = 5;
+}
+
+message AssetsRequest {
+  repeated Asset assets = 1;
+}
