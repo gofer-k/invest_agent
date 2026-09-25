@@ -24,6 +24,8 @@ class AssetConfigSchema implements CacheSchema
 {
   static const String cacheName = "metadata";
   static const String cacheSequenceName = "metadata_id_sequence";
+  static const String assetTypeTable = "asset_type";
+  static const String assetTypeSequenceName = "asset_type_id_sequence";
 
   @override
   String get create =>
@@ -34,12 +36,22 @@ class AssetConfigSchema implements CacheSchema
         exchange VARCHAR,
         currency VARCHAR,
         symbol_suffix VARCHAR,
-        links TEXT
-      );
+        links TEXT,
+        asset_type INTEGER);
+        
+        -- asset_type table
+        CREATE TABLE IF NOT EXISTS $assetTypeTable (
+          id INTEGER PRIMARY KEY DEFAULT nextval('$assetTypeSequenceName'),
+          name VARCHAR NOT NULL,
+          details VARCHAR);
     ''';
 
   @override
-  String get createKey => "CREATE SEQUENCE IF NOT EXISTS $cacheSequenceName START 1;";
+  String get createKey => '''
+    CREATE SEQUENCE IF NOT EXISTS $cacheSequenceName START 1;
+    -- Create Asset Type sequence
+    CREATE SEQUENCE IF NOT EXISTS $assetTypeSequenceName START 1;
+  ''';
 
   @override
   String get deleteAll => "DELETE FROM $cacheName;";
@@ -48,10 +60,20 @@ class AssetConfigSchema implements CacheSchema
   String deleteOne(Cache cache) => "DELETE FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
 
   @override
-  String get readAll => "SELECT * FROM $cacheName ORDER BY id DESC;";
+  String get readAll => '''
+    select * from $cacheName m
+      left join $assetTypeTable t on m.asset_type = t.id
+      order by m.id desc;
+  ''';
+// "SELECT * FROM $cacheName ORDER BY id DESC;";
 
   @override
-  String readOne(Cache cache) => "SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
+  String readOne(Cache cache) => '''
+    select * from $cacheName m 
+      left join $assetTypeTable t on m.asset_type = t.id
+      where m.id = ${(cache as AssetConfig).id};
+  ''';
+  // "SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
 
   @override
   String saveOne(Cache cache) {
@@ -65,7 +87,8 @@ class AssetConfigSchema implements CacheSchema
      '${assetConfig.stockExchange.code}',
      '${assetConfig.currency.code}',
      '${assetConfig.stockExchange.suffix}',
-     '$linksJson' 
+     '$linksJson',
+     ${assetConfig.assetTypeId}
       );
     ''';
   }
@@ -80,7 +103,8 @@ class AssetConfigSchema implements CacheSchema
           exchange = '${assetConfig.stockExchange.code}',
           currency = '${assetConfig.currency.code}',
           symbol_suffix = '${assetConfig.stockExchange.suffix}',
-          links = '$linksJson'
+          links = '$linksJson',
+          asset_type = ${assetConfig.assetTypeId}
       WHERE id = ${assetConfig.id};
       ''';
   }
@@ -94,6 +118,9 @@ class AssetConfig extends Cache{
   final FiatCurrency currency;
   final StockExchange stockExchange;
   final List<Uri> links;
+  final int assetTypeId;
+  final String? assetTypeName;
+  final String? assetTypeDetails;
 
   static StockExchange? _stockExchangeFromString(String stockSymbol, String stockSuffix) {
     try {
@@ -137,6 +164,9 @@ class AssetConfig extends Cache{
     required this.currency,
     required this.stockExchange,
     this.links = const [],
+    this.assetTypeId = -1,
+    this.assetTypeName,
+    this.assetTypeDetails,
   }) : super.from([]);
 
   static AssetConfig defaultAsset() => 
@@ -151,10 +181,13 @@ class AssetConfig extends Cache{
   AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock, List<Uri>? links) {
     return AssetConfig(
       id: id ?? this.id,
+      assetTypeId: assetTypeId,
       symbol: symbol ?? this.symbol,
       currency: currency ?? this.currency,
       stockExchange: stock ?? stockExchange,
       links: links ?? this.links,
+      assetTypeName: assetTypeName,
+      assetTypeDetails: assetTypeDetails
     );
   }
 
@@ -169,7 +202,7 @@ class AssetConfig extends Cache{
 
   @override
   factory AssetConfig.from(List<Object?> item) {
-    if (item.length < 6) {
+    if (item.length < 9) {
       throw Exception("Invalidate input data");
     }
     final dbCurrency = item[3] as String;
@@ -183,13 +216,19 @@ class AssetConfig extends Cache{
     }
     
     final links = _linksFromJson(item[5]);
+    final jsonAssetTypeName = item[8] as String?;
+    final jsonAssetTypeDetails = item[9] as String?;
 
     return AssetConfig(
         id: item[0] as int,
         symbol: item[1] as String,
         currency: currency,
         stockExchange: stockExchange,
-        links: links ?? []);
+        links: links ?? [],
+        assetTypeId: item[7] as int,
+        assetTypeName: jsonAssetTypeName,
+        assetTypeDetails: jsonAssetTypeDetails
+    );
   }
 
   @override
@@ -199,7 +238,10 @@ class AssetConfig extends Cache{
     'exchange': stockExchange.code,
     'currency': currency.code,
     'symbol_suffix': stockExchange.suffix,
-    'links': AssetConfig._toJsonLinks(links)
+    'links': AssetConfig._toJsonLinks(links),
+    'asset_type_id': assetTypeId,
+    'asset_type_name': assetTypeName,
+    'asset_type_details': assetTypeDetails
   };
 
   @override
@@ -208,12 +250,12 @@ class AssetConfig extends Cache{
       other is AssetConfig &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          assetTypeId == other.assetTypeId &&
           symbol == other.symbol;
 
   @override
-  int get hashCode => id.hashCode ^ symbol.hashCode;
+  int get hashCode => Object.hash(id, assetTypeId, symbol);
 
   @override
-  List<Object?> get props => [id, symbol];
-
+  List<Object?> get props => [id, assetTypeId, symbol];
 }
