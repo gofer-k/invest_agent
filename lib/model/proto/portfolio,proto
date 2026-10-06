@@ -3,6 +3,7 @@ syntax = "proto3";
 package trading.portfolio;
 
 import "google/protobuf/timestamp.proto";
+import "asset.proto";
 
 // ============================================================
 // Portfolio KPI Dashboard
@@ -186,23 +187,9 @@ message Benchmark {
 // ============================================================
 // Portfolio allocation
 // ============================================================
-
 message Allocation {
-  string asset_id = 1;
-  string name = 2;
-
+  Asset asset = 1;
+  
   // Current portfolio weight.
   double weight = 3;
-
-  AllocationType type = 4;
-}
-
-enum AllocationType {
-  ALLOCATION_TYPE_UNSPECIFIED = 0;
-
-  ALLOCATION_TYPE_EQUITY = 1;
-  ALLOCATION_TYPE_BOND = 2;
-  ALLOCATION_TYPE_COMMODITY = 3;
-  ALLOCATION_TYPE_CASH = 4;
-  ALLOCATION_TYPE_OTHER = 5;
 }

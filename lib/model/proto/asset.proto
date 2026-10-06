@@ -1,13 +1,28 @@
 syntax = "proto3";
 
 package trading.asset;
+import "price.proto";
+
+enum AssetType {
+  UNSPECIFIED = 0;
+  US_EQUITY = 1;
+  MSCI = 2;
+  MSCI_EX = 3;
+  EM_EQUITY = 4;
+  POL_EQUIITY = 5;
+  US_BOND = 6;
+  POL_BONDS = 7;
+  COMMODITY = 8;
+  CASH = 9;
+}
 
 message Asset {
   int32 id = 1;
   string symbol = 2;
   string currencyCode = 3;
-  string rype = 4;
+  AssetType type = 4;
   string assetTypeDetails = 5;
+  repeated trading.price.IndexPriceItem prices = 6;
 }
 
 message AssetsRequest {

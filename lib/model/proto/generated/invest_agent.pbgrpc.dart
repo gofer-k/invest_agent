@@ -43,19 +43,11 @@ class InvestAgentServiceClient extends $grpc.Client {
         options: options);
   }
 
-  $grpc.ResponseStream<$0.StrategyResponse> calculateStrategy(
-    $async.Stream<$0.StrategyRequest> request, {
-    $grpc.CallOptions? options,
-  }) {
-    return $createStreamingCall(_$calculateStrategy, request, options: options);
-  }
-
-  $grpc.ResponseFuture<$2.Empty> requestAssets(
+  $grpc.ResponseFuture<$2.Empty> assets(
     $async.Stream<$1.AssetsRequest> request, {
     $grpc.CallOptions? options,
   }) {
-    return $createStreamingCall(_$requestAssets, request, options: options)
-        .single;
+    return $createStreamingCall(_$assets, request, options: options).single;
   }
 
   // method descriptors
@@ -65,13 +57,8 @@ class InvestAgentServiceClient extends $grpc.Client {
           '/trading.InvestAgentService/CalculateIndicators',
           ($0.TradingRequest value) => value.writeToBuffer(),
           $0.TradingResponse.fromBuffer);
-  static final _$calculateStrategy =
-      $grpc.ClientMethod<$0.StrategyRequest, $0.StrategyResponse>(
-          '/trading.InvestAgentService/CalculateStrategy',
-          ($0.StrategyRequest value) => value.writeToBuffer(),
-          $0.StrategyResponse.fromBuffer);
-  static final _$requestAssets = $grpc.ClientMethod<$1.AssetsRequest, $2.Empty>(
-      '/trading.InvestAgentService/requestAssets',
+  static final _$assets = $grpc.ClientMethod<$1.AssetsRequest, $2.Empty>(
+      '/trading.InvestAgentService/Assets',
       ($1.AssetsRequest value) => value.writeToBuffer(),
       $2.Empty.fromBuffer);
 }
@@ -88,16 +75,9 @@ abstract class InvestAgentServiceBase extends $grpc.Service {
         true,
         ($core.List<$core.int> value) => $0.TradingRequest.fromBuffer(value),
         ($0.TradingResponse value) => value.writeToBuffer()));
-    $addMethod($grpc.ServiceMethod<$0.StrategyRequest, $0.StrategyResponse>(
-        'CalculateStrategy',
-        calculateStrategy,
-        true,
-        true,
-        ($core.List<$core.int> value) => $0.StrategyRequest.fromBuffer(value),
-        ($0.StrategyResponse value) => value.writeToBuffer()));
     $addMethod($grpc.ServiceMethod<$1.AssetsRequest, $2.Empty>(
-        'requestAssets',
-        requestAssets,
+        'Assets',
+        assets,
         true,
         false,
         ($core.List<$core.int> value) => $1.AssetsRequest.fromBuffer(value),
@@ -107,9 +87,6 @@ abstract class InvestAgentServiceBase extends $grpc.Service {
   $async.Stream<$0.TradingResponse> calculateIndicators(
       $grpc.ServiceCall call, $async.Stream<$0.TradingRequest> request);
 
-  $async.Stream<$0.StrategyResponse> calculateStrategy(
-      $grpc.ServiceCall call, $async.Stream<$0.StrategyRequest> request);
-
-  $async.Future<$2.Empty> requestAssets(
+  $async.Future<$2.Empty> assets(
       $grpc.ServiceCall call, $async.Stream<$1.AssetsRequest> request);
 }

@@ -38,35 +38,6 @@ final $typed_data.Uint8List indicatorTypeDescriptor = $convert.base64Decode(
     'JBTkRTEAISBwoDU01BEAMSBwoDRU1BEAQSCAoETUFDRBAFEgcKA1JTSRAGEgoKBlZPTFVNRRAH'
     'EgcKA0tTVBAIEgcKA1JPQxAJ');
 
-@$core.Deprecated('Use indexPriceItemDescriptor instead')
-const IndexPriceItem$json = {
-  '1': 'IndexPriceItem',
-  '2': [
-    {'1': 'id', '3': 1, '4': 1, '5': 5, '10': 'id'},
-    {'1': 'asset_id', '3': 2, '4': 1, '5': 5, '10': 'assetId'},
-    {'1': 'open', '3': 3, '4': 1, '5': 1, '10': 'open'},
-    {'1': 'high', '3': 4, '4': 1, '5': 1, '10': 'high'},
-    {'1': 'low', '3': 5, '4': 1, '5': 1, '10': 'low'},
-    {'1': 'close', '3': 6, '4': 1, '5': 1, '10': 'close'},
-    {'1': 'volume', '3': 7, '4': 1, '5': 1, '10': 'volume'},
-    {
-      '1': 'date_time',
-      '3': 8,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'dateTime'
-    },
-  ],
-};
-
-/// Descriptor for `IndexPriceItem`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List indexPriceItemDescriptor = $convert.base64Decode(
-    'Cg5JbmRleFByaWNlSXRlbRIOCgJpZBgBIAEoBVICaWQSGQoIYXNzZXRfaWQYAiABKAVSB2Fzc2'
-    'V0SWQSEgoEb3BlbhgDIAEoAVIEb3BlbhISCgRoaWdoGAQgASgBUgRoaWdoEhAKA2xvdxgFIAEo'
-    'AVIDbG93EhQKBWNsb3NlGAYgASgBUgVjbG9zZRIWCgZ2b2x1bWUYByABKAFSBnZvbHVtZRI3Cg'
-    'lkYXRlX3RpbWUYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUghkYXRlVGltZQ==');
-
 @$core.Deprecated('Use indicatorDescriptor instead')
 const Indicator$json = {
   '1': 'Indicator',

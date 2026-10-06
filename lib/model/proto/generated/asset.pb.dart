@@ -14,22 +14,29 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'asset.pbenum.dart';
+import 'price.pb.dart' as $0;
+
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+export 'asset.pbenum.dart';
 
 class Asset extends $pb.GeneratedMessage {
   factory Asset({
     $core.int? id,
     $core.String? symbol,
     $core.String? currencyCode,
-    $core.String? rype,
+    AssetType? type,
     $core.String? assetTypeDetails,
+    $core.Iterable<$0.IndexPriceItem>? prices,
   }) {
     final result = create();
     if (id != null) result.id = id;
     if (symbol != null) result.symbol = symbol;
     if (currencyCode != null) result.currencyCode = currencyCode;
-    if (rype != null) result.rype = rype;
+    if (type != null) result.type = type;
     if (assetTypeDetails != null) result.assetTypeDetails = assetTypeDetails;
+    if (prices != null) result.prices.addAll(prices);
     return result;
   }
 
@@ -49,9 +56,12 @@ class Asset extends $pb.GeneratedMessage {
     ..aI(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'symbol')
     ..aOS(3, _omitFieldNames ? '' : 'currencyCode', protoName: 'currencyCode')
-    ..aOS(4, _omitFieldNames ? '' : 'rype')
+    ..aE<AssetType>(4, _omitFieldNames ? '' : 'type',
+        enumValues: AssetType.values)
     ..aOS(5, _omitFieldNames ? '' : 'assetTypeDetails',
         protoName: 'assetTypeDetails')
+    ..pPM<$0.IndexPriceItem>(6, _omitFieldNames ? '' : 'prices',
+        subBuilder: $0.IndexPriceItem.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -100,13 +110,13 @@ class Asset extends $pb.GeneratedMessage {
   void clearCurrencyCode() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $core.String get rype => $_getSZ(3);
+  AssetType get type => $_getN(3);
   @$pb.TagNumber(4)
-  set rype($core.String value) => $_setString(3, value);
+  set type(AssetType value) => $_setField(4, value);
   @$pb.TagNumber(4)
-  $core.bool hasRype() => $_has(3);
+  $core.bool hasType() => $_has(3);
   @$pb.TagNumber(4)
-  void clearRype() => $_clearField(4);
+  void clearType() => $_clearField(4);
 
   @$pb.TagNumber(5)
   $core.String get assetTypeDetails => $_getSZ(4);
@@ -116,6 +126,9 @@ class Asset extends $pb.GeneratedMessage {
   $core.bool hasAssetTypeDetails() => $_has(4);
   @$pb.TagNumber(5)
   void clearAssetTypeDetails() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $pb.PbList<$0.IndexPriceItem> get prices => $_getList(5);
 }
 
 class AssetsRequest extends $pb.GeneratedMessage {

@@ -3,26 +3,22 @@ syntax = "proto3";
 package trading;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/struct.proto";
 import "asset.proto";
 import "indicators.proto";
+import "price.proto";
 
 service InvestAgentService {
   // Two-side communication: stream of requests to stream of results
   rpc CalculateIndicators (stream TradingRequest) returns (stream TradingResponse);
-  rpc CalculateStrategy (stream StrategyRequest) returns (stream StrategyResponse);
-  rpc requestAssets(stream trading.asset.AssetsRequest) returns (google.protobuf.Empty);
+  rpc Assets(stream trading.asset.AssetsRequest) returns (google.protobuf.Empty);
 }
-
 
 // Constraint 1: TradingRequest class definition
 message TradingRequest {
-  repeated trading.indicators.IndexPriceItem prices = 1;
+  repeated trading.price.IndexPriceItem prices = 1;
   repeated trading.indicators.Indicator indicators = 2;
 }
 
-// --- Response Models ---
 
 // Constraint 2: Compliable with IndicatorResultMap
 // (Map<IndicatorType, List<BaseIndicatorResult>>)
@@ -32,65 +28,3 @@ message TradingResponse {
   map<string, trading.indicators.IndicatorResultList> results = 1;
 }
 
-
-enum StrategyType {
-  EMPTY = 0;
-  ARBITARY = 1;
-  ASSETALLOCATION = 2;
-  GEM = 3;
-  MEANREVESION = 4;
-  INDEXFUNDREBALANCING = 5;
-  TRENDfOLLOWING= 6;
-}
-
-message StrategyRequest {
-  int32 id = 1;
-  StrategyType type = 2;  
-  double capital = 3;
-  google.protobuf.Timestamp begin_date = 4;
-  google.protobuf.Timestamp end_date = 5;
-  int32 loopback = 6;
-  string name = 7;
-  string currency = 8;
-  google.protobuf.Struct parameters = 9;
-}
-
-
-// GEM Strategy
-// ────────────────────────────
-// Current allocation
-
-// US Equities       100%
-// MSCI ex-US          0%
-// Emerging Markets    0%
-// Bonds               0%
-
-// Absolute momentum
-// US equities        +18.2%
-// Bonds               +6.7%
-
-// Relative momentum
-// US equities        +18.2%
-// MSCI ex-US         +14.1%
-// Emerging Markets   +11.8%
-
-// Decision
-// US Equities
-message StrategyResponse {
-  int32 Strategy_id = 1;
-  float cagr = 2;
-  float volatility = 3;
-  float sharpe = 4;
-  float max_drawdown = 5;
-  float sortino = 6;
-  float calmar = 7;
-  float beta = 8;
-  float correlation = 9;
-  float tracking_error = 10;
-  float tracking_diff = 11;
-  float expense_ratio = 12;
-  float bid_ask_spread = 13;
-  float concentration = 14;
-  float dividend_yield = 15;
-  float total_return =16;  
-}
