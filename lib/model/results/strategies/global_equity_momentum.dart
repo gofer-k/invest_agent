@@ -99,7 +99,7 @@ class GemStrategyConfig extends Strategy {
   final GemAsset mainAsset;
   final GemAsset momentumAsset;
   final double inflation;
-  final int absoluteMomentumInteval;
+  final int absoluteMomentumInterval;
   final int relativeMomentumInterval;
 
   static const double defaultInflation = 0.0;
@@ -117,12 +117,12 @@ class GemStrategyConfig extends Strategy {
     required this.mainAsset,
     required this.momentumAsset,
     this.inflation = defaultInflation,
-    this.absoluteMomentumInteval = defaultIntervalInMonth,
+    this.absoluteMomentumInterval = defaultIntervalInMonth,
     this.relativeMomentumInterval = defaultIntervalInMonth,
   });
 
   CacheUniqueKey get uniqueKey {
-    return "$name-$type-$inflation-$absoluteMomentumInteval-$relativeMomentumInterval-${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
+    return "$name-$type-$inflation-$absoluteMomentumInterval-$relativeMomentumInterval-${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
   }
 
   @override
@@ -157,7 +157,7 @@ class GemStrategyConfig extends Strategy {
       analysisPeriod: Strategy.defaultPeriod,
       name: '',
       inflation: defaultInflation,
-      absoluteMomentumInteval: defaultIntervalInMonth,
+      absoluteMomentumInterval: defaultIntervalInMonth,
       relativeMomentumInterval: defaultIntervalInMonth,
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
@@ -195,7 +195,7 @@ class GemStrategyConfig extends Strategy {
       mainAsset: newMainAsset ?? mainAsset,
       momentumAsset: newMomentumAsset ?? momentumAsset,
       inflation: newInflation ?? inflation,
-      absoluteMomentumInteval: newAbsoluteMomentumInMonth ?? absoluteMomentumInteval,
+      absoluteMomentumInterval: newAbsoluteMomentumInMonth ?? absoluteMomentumInterval,
       relativeMomentumInterval: newRelativeMomentumInMonth ?? relativeMomentumInterval,
     );
   }
@@ -220,7 +220,7 @@ class GemStrategyConfig extends Strategy {
       mainAsset: GemAsset.fromMap(jsonMainAsset),
       momentumAsset: GemAsset.fromMap(jsonMomentumAsset),
       inflation: jsonInflation,
-      absoluteMomentumInteval: jsonRebalanceIntervalInMonth,
+      absoluteMomentumInterval: jsonRebalanceIntervalInMonth,
       relativeMomentumInterval: jsonRelativeRebalanceIntervalInMonth,
     );
   }
@@ -242,7 +242,7 @@ class GemStrategyConfig extends Strategy {
         type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
         supportingAssets: {}),
       inflation: defaultInflation,
-      absoluteMomentumInteval: defaultIntervalInMonth,
+      absoluteMomentumInterval: defaultIntervalInMonth,
       relativeMomentumInterval: defaultIntervalInMonth,
     );
   }
@@ -251,7 +251,7 @@ class GemStrategyConfig extends Strategy {
   Map<String, dynamic> toMap() => {
     ...super.toMap(),
     "inflation": inflation,
-    "absolute-momentum": absoluteMomentumInteval,
+    "absolute-momentum": absoluteMomentumInterval,
     "relative-momentum": relativeMomentumInterval,
     "main-asset": mainAsset.toMap(),
     "momentum-assets": momentumAsset.toMap()
@@ -263,7 +263,7 @@ class GemStrategyConfig extends Strategy {
     (other is GemStrategyConfig &&
       runtimeType == other.runtimeType &&
       super == other &&
-      absoluteMomentumInteval == other.absoluteMomentumInteval &&
+      absoluteMomentumInterval == other.absoluteMomentumInterval &&
       relativeMomentumInterval == other.relativeMomentumInterval &&
       inflation == other.inflation &&
       mainAsset == other.mainAsset &&
@@ -273,11 +273,11 @@ class GemStrategyConfig extends Strategy {
   int get hashCode => Object.hash(
       super.hashCode,
       inflation,
-      absoluteMomentumInteval,
+      absoluteMomentumInterval,
       relativeMomentumInterval,
       mainAsset,
       momentumAsset,);
 
   @override
-  List<Object?> get props => [...super.props, inflation, absoluteMomentumInteval, relativeMomentumInterval, mainAsset, momentumAsset];
+  List<Object?> get props => [...super.props, inflation, absoluteMomentumInterval, relativeMomentumInterval, mainAsset, momentumAsset];
 }

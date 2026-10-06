@@ -213,7 +213,7 @@ to check out the current strategy's assets results against free risk rate.""",
                  onSelected: (int rebalanceInterval) {
                    notifier.save(currentStrategy.copyWith(newAbsoluteMomentumInMonth: rebalanceInterval));
                  },
-                 choiceType: currentStrategy.absoluteMomentumInteval,
+                 choiceType: currentStrategy.absoluteMomentumInterval,
                  choices: rebalanceIntervalsInMonth,
                  backgroundColor: Colors.transparent,
                ),
