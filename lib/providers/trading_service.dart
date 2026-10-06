@@ -14,6 +14,7 @@ import '../model/results/indicator/ema_result.dart';
 import '../model/results/indicator/kst_result.dart';
 import '../model/results/indicator/macd_result.dart';
 import '../model/proto/generated/indicators.pb.dart' as $pb_inds;
+import '../model/proto/generated/price.pb.dart' as $pb_price;
 import '../model/proto/generated/invest_agent.pb.dart' as $pb;
 import '../model/proto/generated/invest_agent.pbgrpc.dart';
 import '../model/results/indicator/indicator_result.dart';
@@ -181,8 +182,8 @@ class TradingService extends _$TradingService {
     _outgoingController?.add(request);
   }
 
-  $pb_inds.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
-    return $pb_inds.IndexPriceItem()
+  $pb_price.IndexPriceItem _toProtoPrice(InternalIndexPriceItem item) {
+    return $pb_price.IndexPriceItem()
       ..id = item.id
       ..assetId = item.assetId
       ..open = item.openPrice
