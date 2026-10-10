@@ -19,7 +19,9 @@ class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final strategies = ref.watch(strategyProvider(CacheKeyType.analysisCache)).getItems();
+    final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
+    final strategies = strategiesAsync.value?.getItems() ?? [];
+
     return Shrinkable(title: "Strategies",
       body: Column(
         children: [

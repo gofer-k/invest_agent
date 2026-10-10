@@ -13,7 +13,7 @@ part of 'strategy_provider.dart';
 final strategyProvider = StrategyNotifierFamily._();
 
 final class StrategyNotifierProvider
-    extends $NotifierProvider<StrategyNotifier, StrategyNotifierState> {
+    extends $AsyncNotifierProvider<StrategyNotifier, AnalysisState<Strategy>> {
   StrategyNotifierProvider._({
     required StrategyNotifierFamily super.from,
     required (CacheKeyType?, bool?) super.argument,
@@ -39,14 +39,6 @@ final class StrategyNotifierProvider
   @override
   StrategyNotifier create() => StrategyNotifier();
 
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(StrategyNotifierState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<StrategyNotifierState>(value),
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     return other is StrategyNotifierProvider && other.argument == argument;
@@ -58,15 +50,15 @@ final class StrategyNotifierProvider
   }
 }
 
-String _$strategyNotifierHash() => r'204f2b19408d4679ed1fafed3ce645da9007ff95';
+String _$strategyNotifierHash() => r'4bbb98df0c41b909329d5542121c12ff2eeda1fa';
 
 final class StrategyNotifierFamily extends $Family
     with
         $ClassFamilyOverride<
           StrategyNotifier,
-          StrategyNotifierState,
-          StrategyNotifierState,
-          StrategyNotifierState,
+          AsyncValue<AnalysisState<Strategy>>,
+          AnalysisState<Strategy>,
+          FutureOr<AnalysisState<Strategy>>,
           (CacheKeyType?, bool?)
         > {
   StrategyNotifierFamily._()
@@ -85,21 +77,33 @@ final class StrategyNotifierFamily extends $Family
   String toString() => r'strategyProvider';
 }
 
-abstract class _$StrategyNotifier extends $Notifier<StrategyNotifierState> {
+abstract class _$StrategyNotifier
+    extends $AsyncNotifier<AnalysisState<Strategy>> {
   late final _$args = ref.$arg as (CacheKeyType?, bool?);
   CacheKeyType? get type => _$args.$1;
   bool? get keepAlive => _$args.$2;
 
-  StrategyNotifierState build([CacheKeyType? type, bool? keepAlive]);
+  FutureOr<AnalysisState<Strategy>> build([
+    CacheKeyType? type,
+    bool? keepAlive,
+  ]);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<StrategyNotifierState, StrategyNotifierState>;
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<AnalysisState<Strategy>>,
+              AnalysisState<Strategy>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<StrategyNotifierState, StrategyNotifierState>,
-              StrategyNotifierState,
+              AnyNotifier<
+                AsyncValue<AnalysisState<Strategy>>,
+                AnalysisState<Strategy>
+              >,
+              AsyncValue<AnalysisState<Strategy>>,
               Object?,
               Object?
             >;

@@ -19,6 +19,12 @@ Install:
 sudo apt  install protobuf-compiler
 dart pub global activate protoc_plugin
 
+Generate rcp API:
+protoc --dart_out=grpc:lib/model/proto/generated -I proto ./*.proto
+
+Generate riverpod API:
+dart run build_runner build --delete-conflicting-outputs
+
 #Chart config schema:
 [!JSON schema:]
 ```
