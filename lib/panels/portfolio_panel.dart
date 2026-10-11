@@ -20,19 +20,9 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   final portfolioDetailsProvider = Provider.family<String, PortfolioConfig>((ref, portfolio) {
     // Use watch so this updates if the model manager or assets change
-    final allAssets = ref.watch(sortedAssetsProvider);
-
-    final symbols = allAssets
-        .where((asset) => portfolio.metaIds.contains(asset.id))
-        .map((asset) => asset.symbol)
-        .join(', ');
-
-    final weight = (portfolio.targetWeight * 100).toStringAsFixed(0);
-    final balance = (portfolio.rebalanceThreshold * 100).toStringAsFixed(0);
-
-    return "${portfolio.portfolioName}: [weight: $weight%], "
-        "[balance: $balance%], "
-        "[$symbols]";
+    // final allAssets = ref.watch(sortedAssetsProvider);
+    // TODO: implement this
+    return "";
   });
 
 

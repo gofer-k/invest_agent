@@ -13,7 +13,7 @@ typedef CacheFactory<T> = T Function(List<Object?> item);
 class CacheRegistry {
   // A map that links Types to their specific factory functions
   static final Map<Type, CacheFactory<Object>> _factories = {
-    PortfolioConfig: (item) => PortfolioConfig.from(item),
+    PortfolioConfig: (item) => PortfolioConfig.fromMap(item),
     AssetConfig: (item) => AssetConfig.from(item),
     UserAccount: (item) => UserAccount.fromList(item),
     IndexPriceItem: (item) => IndexPriceItem.from(item),

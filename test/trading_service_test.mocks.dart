@@ -3,15 +3,18 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i4;
 
 import 'package:grpc/service_api.dart' as _i2;
 import 'package:grpc/src/client/call.dart' as _i3;
+import 'package:invest_agent/model/proto/generated/asset.pb.dart' as _i8;
 import 'package:invest_agent/model/proto/generated/invest_agent.pb.dart' as _i6;
 import 'package:invest_agent/model/proto/generated/invest_agent.pbgrpc.dart'
     as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i7;
+import 'package:mockito/src/dummies.dart' as _i9;
+import 'package:protobuf/well_known_types/google/protobuf/empty.pb.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -34,15 +37,15 @@ class _FakeResponseStream_0<R> extends _i1.SmartFake
     : super(parent, parentInvocation);
 }
 
-class _FakeClientCall_1<Q1, R1> extends _i1.SmartFake
-    implements _i3.ClientCall<Q1, R1> {
-  _FakeClientCall_1(Object parent, Invocation parentInvocation)
+class _FakeResponseFuture_1<R> extends _i1.SmartFake
+    implements _i2.ResponseFuture<R> {
+  _FakeResponseFuture_1(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
-class _FakeResponseFuture_2<R1> extends _i1.SmartFake
-    implements _i2.ResponseFuture<R1> {
-  _FakeResponseFuture_2(Object parent, Invocation parentInvocation)
+class _FakeClientCall_2<Q1, R1> extends _i1.SmartFake
+    implements _i3.ClientCall<Q1, R1> {
+  _FakeClientCall_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -89,6 +92,20 @@ class MockInvestAgentServiceClient extends _i1.Mock
           as _i2.ResponseStream<_i6.TradingResponse>);
 
   @override
+  _i2.ResponseFuture<_i7.Empty> assets(
+    _i4.Stream<_i8.AssetsRequest>? request, {
+    _i2.CallOptions? options,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#assets, [request], {#options: options}),
+            returnValue: _FakeResponseFuture_1<_i7.Empty>(
+              this,
+              Invocation.method(#assets, [request], {#options: options}),
+            ),
+          )
+          as _i2.ResponseFuture<_i7.Empty>);
+
+  @override
   _i3.ClientCall<Q, R> $createCall<Q, R>(
     _i2.ClientMethod<Q, R>? method,
     _i4.Stream<Q>? requests, {
@@ -100,7 +117,7 @@ class MockInvestAgentServiceClient extends _i1.Mock
               [method, requests],
               {#options: options},
             ),
-            returnValue: _FakeClientCall_1<Q, R>(
+            returnValue: _FakeClientCall_2<Q, R>(
               this,
               Invocation.method(
                 #$createCall,
@@ -123,7 +140,7 @@ class MockInvestAgentServiceClient extends _i1.Mock
               [method, request],
               {#options: options},
             ),
-            returnValue: _FakeResponseFuture_2<R>(
+            returnValue: _FakeResponseFuture_1<R>(
               this,
               Invocation.method(
                 #$createUnaryCall,
@@ -170,7 +187,7 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
   _i2.ResponseFuture<R> get single =>
       (super.noSuchMethod(
             Invocation.getter(#single),
-            returnValue: _FakeResponseFuture_2<R>(
+            returnValue: _FakeResponseFuture_1<R>(
               this,
               Invocation.getter(#single),
             ),
@@ -223,8 +240,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.getter(#first),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(this, Invocation.getter(#first)),
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(this, Invocation.getter(#first)),
                   (R v) => _i4.Future<R>.value(v),
                 ) ??
                 _FakeFuture_3<R>(this, Invocation.getter(#first)),
@@ -236,8 +253,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.getter(#last),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(this, Invocation.getter(#last)),
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(this, Invocation.getter(#last)),
                   (R v) => _i4.Future<R>.value(v),
                 ) ??
                 _FakeFuture_3<R>(this, Invocation.getter(#last)),
@@ -371,8 +388,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#reduce, [combine]),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(
                     this,
                     Invocation.method(#reduce, [combine]),
                   ),
@@ -387,8 +404,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#fold, [initialValue, combine]),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<S>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<S>(
                     this,
                     Invocation.method(#fold, [initialValue, combine]),
                   ),
@@ -406,7 +423,7 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#join, [separator]),
             returnValue: _i4.Future<String>.value(
-              _i7.dummyValue<String>(
+              _i9.dummyValue<String>(
                 this,
                 Invocation.method(#join, [separator]),
               ),
@@ -476,8 +493,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#drain, [futureValue]),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<E>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<E>(
                     this,
                     Invocation.method(#drain, [futureValue]),
                   ),
@@ -535,8 +552,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#firstWhere, [test], {#orElse: orElse}),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(
                     this,
                     Invocation.method(#firstWhere, [test], {#orElse: orElse}),
                   ),
@@ -554,8 +571,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#lastWhere, [test], {#orElse: orElse}),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(
                     this,
                     Invocation.method(#lastWhere, [test], {#orElse: orElse}),
                   ),
@@ -573,8 +590,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#singleWhere, [test], {#orElse: orElse}),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(
                     this,
                     Invocation.method(#singleWhere, [test], {#orElse: orElse}),
                   ),
@@ -592,8 +609,8 @@ class MockResponseStream<R> extends _i1.Mock implements _i2.ResponseStream<R> {
       (super.noSuchMethod(
             Invocation.method(#elementAt, [index]),
             returnValue:
-                _i7.ifNotNull(
-                  _i7.dummyValueOrNull<R>(
+                _i9.ifNotNull(
+                  _i9.dummyValueOrNull<R>(
                     this,
                     Invocation.method(#elementAt, [index]),
                   ),

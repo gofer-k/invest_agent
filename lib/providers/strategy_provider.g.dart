@@ -50,7 +50,7 @@ final class StrategyNotifierProvider
   }
 }
 
-String _$strategyNotifierHash() => r'4bbb98df0c41b909329d5542121c12ff2eeda1fa';
+String _$strategyNotifierHash() => r'903e14e0056bbf3f6785aaf5588ca0b429b2f3ef';
 
 final class StrategyNotifierFamily extends $Family
     with

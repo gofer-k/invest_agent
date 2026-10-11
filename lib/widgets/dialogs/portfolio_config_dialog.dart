@@ -220,11 +220,9 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     final newPortfolio = PortfolioConfig(
       id: widget.portfolioConfig?.id,
       portfolioName: name,
-      assetIndicators: _config,
-      periodType: PeriodType.fiveYears,
-      targetWeight: 0.0,
-      rebalanceThreshold: 0.0,
-      metaIds: [],
+      portfolioDesc: "",
+      createdDateTime: DateTime.now(),
+      assets: _config.keys.toList(),
     );
 
     widget.onSave(newPortfolio);

@@ -88,7 +88,7 @@ final class TradingServiceProvider
   }
 }
 
-String _$tradingServiceHash() => r'9ccafeb634ff7525f2901ced29e5b907592791a9';
+String _$tradingServiceHash() => r'5743e31395d299ab2ec2fd1d400f0dcbc8cb9313';
 
 abstract class _$TradingService extends $Notifier<TradingServiceState> {
   TradingServiceState build();

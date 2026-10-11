@@ -4,9 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'cache_notifier.dart';
 import 'load_database_provider.dart';
-import 'model_config.dart';
-
-part 'analysis_notifier.g.dart';
 
 @immutable
 class AnalysisState<TConfigCache extends Cache> {
@@ -70,26 +67,5 @@ mixin AnalysisNotifierMixin<TConfigCache extends Cache, TSchema extends CacheSch
     if (!ref.mounted) return;
     final path = await getDbPath();
     await ref.read(cacheProvider<TConfigCache, TSchema>(mixinSchema, path).notifier).clearAll();
-  }
-}
-
-@riverpod
-class AnalysisNotifier<TConfigCache extends Cache, TSchema extends CacheSchema>
-  extends _$AnalysisNotifier<TConfigCache, TSchema> with AnalysisNotifierMixin<TConfigCache, TSchema> {
-
-  @override
-  Future<AnalysisState<TConfigCache>> build(TSchema schema, CacheKeyType type, [String? path]) async {
-    mixinSchema = schema;
-    mixinCacheKeyType = type;
-
-    // Await prerequisites
-    final dbPathResult = await ref.watch(loadDatabaseProvider(mixinCacheKeyType).future);
-    await ref.watch(assetsLoaderProvider.future);
-
-    mixinDbPath = path ?? dbPathResult;
-
-    // Watch the underlying cache provider. This keeps it alive and reacts to changes.
-    final items = await ref.watch(cacheProvider<TConfigCache, TSchema>(mixinSchema, mixinDbPath).future);
-    return AnalysisState(cachedConfig: items);
   }
 }
