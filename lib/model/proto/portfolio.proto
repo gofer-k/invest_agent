@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package trading.portfolio.analytics;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+//import "google/type/money.proto";
+import "price.proto";
+
+// Service handling portfolio analytics calculations
+service AnalyticsService {
+  // Evaluates a specific portfolio strategy based on historical parameters
+  rpc EvaluatePortfolio (EvaluatePortfolioRequest) returns (EvaluatePortfolioResponse);
+
+  // Streams real-time or step-by-step historical backtest metrics to the desktop client
+  rpc StreamBacktestMetrics (StreamBacktestRequest) returns (stream StreamBacktestResponse);
+}
+
+message Portfolio {
+  string id = 1;
+  string name = 2;
+  string description = 3;  
+  google.protobuf.Timestamp created_at = 4;
+  repeated AssetAllocation allocations = 5;
+  double risk_free_rate = 6;
+}
+
+enum StrategyType {
+  EMPTY = 0;
+  ARBITRARY = 1;
+  ASSETALLOCATION = 2;
+  GEM = 3;
+  MEANREVERSION = 4;
+  INDEXFUNDREBALANCING = 5;
+  TRENDfOLLOWING= 6;
+}
+
+// Rebalancing frequencies for the algorithm
+enum RebalanceFrequency {
+  UNSPECIFIED = 0;
+  DAILY = 1;
+  WEEKLY = 2;
+  MONTHLY = 3;
+  QUARTERLY = 4;
+  YEARLY = 5;
+  TWO_YEARS = 6;
+  SPECIFIC_PERIOD = 7;
+}
+
+// Defines an individual ETF asset weight within a portfolio
+message AssetAllocation {
+  int32 asset_id = 1;
+  double target_weight = 2; // Represented as a decimal (e.g., 0.40 for 40%)
+  int32 asset_shares_count = 3; // Opt-in/out number of holding asset's share units
+  repeated trading.price.IndexPriceItem price = 4;
+}
+
+// Configuration parameters for the algorithmic execution
+message StrategyConfig {
+  StrategyType strategy_type = 1;
+  RebalanceFrequency rebalance_frequency = 2;
+  google.protobuf.Struct custom_parameters = 3; // For strategy-specific parameters (e.g., moving average windows)
+}
+
+
+// Calculated risk and performance indicators
+message PerformanceMetrics {
+  double total_return = 1;
+  double annualized_return = 2;
+  double volatility = 3;
+  double sharpe_ratio = 4;
+  double sortino_ratio = 5;
+  double max_drawdown = 6;
+  double alpha = 7;
+  double beta = 8;
+  float cagr = 9;
+  float calmar = 10;
+  float correlation = 11;
+  float tracking_error = 12;
+  float tracking_diff = 13;
+  float expense_ratio = 14;
+  float bid_ask_spread = 15;
+  float concentration = 16;
+  float dividend_yield = 17;
+}
+
+// Equity curve data point over time
+message EquityCurvePoint {
+  google.protobuf.Timestamp timestamp = 1;
+  double portfolio_value = 2;
+  double drawdown = 3;
+}
+
+// Request payload for single evaluation execution
+message EvaluatePortfolioRequest {
+  Portfolio portfolio = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+//  repeated AssetAllocation allocations = 4;
+  StrategyConfig strategy_config = 5;
+  double initial_capital = 6;
+  //google.type.Money capital_params = 7;
+}
+
+// Response payload containing completed analytics compilation
+message EvaluatePortfolioResponse {
+  string portfolio_id = 1;
+  PerformanceMetrics summary_metrics = 2;
+  repeated EquityCurvePoint equity_curve = 3;
+  google.protobuf.Timestamp calculated_at = 4;
+}
+
+// Request payload for progressive streaming backtest execution
+message StreamBacktestRequest {
+  Portfolio portfolio = 1;
+  google.protobuf.Timestamp start_date = 2;
+  google.protobuf.Timestamp end_date = 3;
+  repeated AssetAllocation allocations = 4;
+  StrategyConfig strategy_config = 5;
+  double initial_capital = 7;
+}
+
+// Incremental update message emitted during streaming backtests
+message StreamBacktestResponse {
+  string portfolio_id = 1;
+  google.protobuf.Timestamp current_simulated_date = 2;
+  double current_portfolio_value = 3;
+  PerformanceMetrics running_metrics = 4;
+  bool is_completed = 5;
+}

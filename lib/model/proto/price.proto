@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package trading.price;
+import "google/protobuf/timestamp.proto";
+
+// Maps to lib/model/price_result.dart: IndexPriceItem
+message IndexPriceItem {
+  int32 id = 1;
+  int32 asset_id = 2;
+  double open = 3;
+  double high = 4;
+  double low = 5;
+  double close = 6;
+  double volume = 7;
+  google.protobuf.Timestamp date_time = 8;
+}
