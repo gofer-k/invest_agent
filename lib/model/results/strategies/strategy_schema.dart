@@ -151,6 +151,16 @@ class Strategy extends Cache {
       endDate: newEndDate ?? endDate);
   }
 
+  factory Strategy.of({id = defaultId}) {
+    return Strategy(
+      id: id,
+      type: StrategyType.empty,
+      name: '',
+      beginDate: DateTime.now(),
+      endDate: DateTime.now(),
+    );
+  }
+
   @override
   factory Strategy.from(List<Object?> item) {
     if (item.length >= 3) {

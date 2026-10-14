@@ -22,9 +22,7 @@ class StrategySession extends _$StrategySession {
   DateTime get beginDate => state.beginDate;
   DateTime get endDate => state.endDate;
 
-  void save(Strategy updatedStrategy) {
-    state = updatedStrategy;
-  }
+  void save(Strategy updatedStrategy) => state = updatedStrategy;
 
   void updateType(StrategyType newType) {
     if (state.type == newType) return;
@@ -45,8 +43,5 @@ class StrategySession extends _$StrategySession {
     state = Strategy.emptyStrategy();
   }
 
-  Strategy finalize() {
-    return state;
-  }
-
+  Strategy finalize() => state;
 }
