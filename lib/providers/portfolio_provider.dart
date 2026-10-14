@@ -2,7 +2,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'analysis_notifier.dart';
-import 'package:invest_agent/model/portfolio_config.dart';
+import 'package:invest_agent/model/portfolio_schema.dart';
 
 import 'cache_notifier.dart';
 import 'load_database_provider.dart';

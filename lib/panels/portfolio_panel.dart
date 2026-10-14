@@ -2,8 +2,9 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:invest_agent/providers/portfolio_provider.dart';
 import '../providers/model_config.dart';
-import '../model/portfolio_config.dart';
+import '../model/portfolio_schema.dart';
 import '../providers/load_database_provider.dart';
 import '../widgets/dialogs/portfolio_config_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
@@ -28,85 +29,69 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final dbAsync = ref.watch(loadDatabaseProvider(CacheKeyType.priceCache));
     final portfolioAsync = ref.watch(portfolioLoaderProvider);
     final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value ?? [];
 
     return Shrinkable(
       title: "Portfolios",
-      body: dbAsync.when(
-        data: (_) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _addPortfolio(),
-                for (var portfolio in portfolios)
-                  _changePortfolio(portfolio),
-              ],
-            ),
-          );
-        },
-        loading: () => const Center(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: CircularProgressIndicator(),
+      body: Column(
+        children: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            onPressed: () => _openPortfolioDialog(context),
+            label: const Text('Add portfolio'),
           ),
-        ),
-        error: (err, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Text('Database Error: $err', style: const TextStyle(color: Colors.red)),
-          ),
-        ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: portfolios.length,
+            itemBuilder: (BuildContext context, int index) {
+              final portfolio = portfolios[index];
+              return Card(child: ListTile(
+                title: Text(portfolio.portfolioName),
+                subtitle: Text(portfolio.portfolioDesc, style: const TextStyle(fontSize: 11)),
+                trailing: _buildTrailingActions(context, portfolio)
+                ));
+            }),
+        ]
       ),
     );
   }
 
-  Widget _addPortfolio() {
+  Future<void> _openPortfolioDialog(BuildContext context, {PortfolioConfig? portfolio}) async {
+    final result = await showDialog<PortfolioConfig>(
+        context: context,
+        builder: (context) => PortfolioDialog(portfolioConfig: portfolio));
+    if (result != null) {
+      final notifier = ref.read(portfolioProvider(CacheKeyType.analysisCache).notifier);
+      if (portfolio == null) {
+        notifier.addEntry(result);
+      } else {
+        notifier.updateEntry(result);
+      }
+    }
+  }
+
+  Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.max,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        const Text("New portfolio"),
         IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            showPortfolio(context, selectedPortfolio, (newPortfolio) async {
-              await ref.read(modelConfigProvider.notifier).save<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
-              ref.invalidate(portfolioLoaderProvider);
-            });
-          },
-        )
-      ],
+          icon: Icon(Icons.edit),
+          onPressed: () => _openPortfolioDialog(context, portfolio: portfolio),
+        ),
+        IconButton(
+          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+          onPressed: () => _handleDelete(ref, portfolio),
+        ),
+      ]
     );
   }
 
-  Widget _changePortfolio(PortfolioConfig portfolio) {
-    final details = ref.watch(portfolioDetailsProvider(portfolio));
-
-    return Shrinkable(
-      title: portfolio.portfolioName,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.update_outlined),
-          onPressed: () {
-            showPortfolio(context, portfolio, (newPortfolio) async {
-              await ref.read(modelConfigProvider.notifier).update<PortfolioConfig>(PortfolioConfigSchema(), newPortfolio);
-              ref.invalidate(portfolioLoaderProvider);
-            });
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.remove_outlined),
-          onPressed: () async {
-            await ref.read(modelConfigProvider.notifier).delete<PortfolioConfig>(PortfolioConfigSchema(), portfolio);
-            ref.invalidate(portfolioLoaderProvider);
-          },
-        ),
-      ],
-      expanded: true,
-      body: Text(details, style: Theme.of(context).textTheme.titleLarge),
-    );
+  void _handleDelete(WidgetRef ref, PortfolioConfig portfolio) {
+    if (!portfolio.isEmpty()) {
+      ref.read(portfolioProvider(CacheKeyType.analysisCache).notifier)
+          .deleteEntry(portfolio);
+    }
   }
 }

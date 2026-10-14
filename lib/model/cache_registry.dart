@@ -1,4 +1,4 @@
-import 'package:invest_agent/model/portfolio_config.dart';
+import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:invest_agent/model/user_account.dart';
 import 'package:invest_agent/model/analysis_schema.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:invest_agent/model/cache_schema.dart';
-import 'package:invest_agent/model/portfolio_config.dart';
+import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'load_database_provider.dart';
