@@ -122,6 +122,8 @@ class AssetConfig extends Cache{
   final String? assetTypeName;
   final String? assetTypeDetails;
 
+  static const int defaultAssetId = -1;
+
   static StockExchange? _stockExchangeFromString(String stockSymbol, String stockSuffix) {
     try {
       return StockExchange.values.firstWhere((e) =>
@@ -170,13 +172,13 @@ class AssetConfig extends Cache{
   }) : super.from([]);
 
   static AssetConfig defaultAsset() => 
-    AssetConfig(id: -1, 
+    AssetConfig(id: defaultAssetId,
       symbol: 'no symbol',
       currency: FiatCurrency.pln(),
       stockExchange: StockExchange.xWar,
       links: []);
 
-  bool isDefault() => id == -1;
+  bool isDefault() => id == defaultAssetId;
 
   AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock, List<Uri>? links) {
     return AssetConfig(
