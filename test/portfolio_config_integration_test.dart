@@ -34,7 +34,7 @@ void main() {
       final config = PortfolioConfig(
         id: 1,
         portfolioName: "New portfolio",
-        assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)],
+        assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
         createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
@@ -55,7 +55,7 @@ void main() {
       final portfolios = [
         PortfolioConfig(id: 1,
           portfolioName: "Portfolio 1",
-          assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)],
+          assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
           riskFreeRatePerYear: 0.1,
           createdDateTime: DateTime(2023, 1, 1),
           startDateTime: DateTime(2023, 1, 1),
@@ -63,7 +63,7 @@ void main() {
         ),
         PortfolioConfig(id: 2,
           portfolioName: "Portfolio 2",
-          assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)],
+          assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)},
           riskFreeRatePerYear: 0.1,
           createdDateTime: DateTime(2023, 1, 1),
           startDateTime: DateTime(2023, 1, 1),
@@ -89,7 +89,7 @@ void main() {
     test('deleteOne() generates SQL that actually deletes the record', () async {
       final portfolio = PortfolioConfig(id: 1,
         portfolioName: "Portfolio 1",
-        assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)],
+        assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
         createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
@@ -104,7 +104,7 @@ void main() {
     test('updateOne() generates SQL that actually updates the record', () async {
       final origin = PortfolioConfig(id: 1,
         portfolioName: "Portfolio 1",
-        assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)],
+        assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
         createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
@@ -112,7 +112,7 @@ void main() {
       );
       final updated = PortfolioConfig(id: 1,
         portfolioName: "Portfolio 1",
-        assetAllocations: [AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)],
+        assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)},
         riskFreeRatePerYear: 0.2,
         createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),

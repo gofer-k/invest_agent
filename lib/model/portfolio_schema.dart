@@ -96,13 +96,20 @@ class PortfolioConfigSchema implements CacheSchema {
 
 class AssetAllocation extends Equatable {
   final AssetConfig asset;
-  final double targetWeight;
+  final double targetWeight;  // Percentage of the portfolio
   final int assetSharesCount;
 
   const AssetAllocation({
     required this.asset,
     required this.targetWeight,
     required this.assetSharesCount});
+
+  factory AssetAllocation.of({required AssetConfig? asset, double? targetWeight, int? assetSharesCount}) {
+    return AssetAllocation(
+      asset: asset ?? AssetConfig.defaultAsset(),
+      targetWeight: targetWeight ?? 100.0,
+      assetSharesCount: assetSharesCount ?? 0);
+  }
 
   factory AssetAllocation.fromMap(Map<String, dynamic> map) {
     int assetId = map['asset_id'] as int? ?? AssetConfig.defaultAssetId;
@@ -153,7 +160,7 @@ class PortfolioConfig implements Cache{
   final String portfolioName;
   final String portfolioDesc;
   final double riskFreeRatePerYear;
-  final List<AssetAllocation> assetAllocations;
+  final Set<AssetAllocation> assetAllocations;
   final DateTime createdDateTime;
   final DateTime startDateTime;
   final DateTime endDateTime;
@@ -168,7 +175,7 @@ class PortfolioConfig implements Cache{
     this.portfolioDesc = "",
     this.riskFreeRatePerYear = defaultRiskFreeRate,
     required this.createdDateTime,
-    this.assetAllocations = const [],
+    this.assetAllocations = const {},
     required this.startDateTime,
     required this.endDateTime,
     this.strategy,
@@ -183,7 +190,7 @@ class PortfolioConfig implements Cache{
       createdDateTime: DateTime.now(),
       startDateTime: firstAllowedDate,
       endDateTime: firstAllowedDate,
-      assetAllocations: [],
+      assetAllocations: {},
     );
   }
 
@@ -192,7 +199,7 @@ class PortfolioConfig implements Cache{
     String? newName,
     String? newDesc,
     double? newRiskFreeRatePerYear,
-    List<AssetAllocation>? newAssetAllocations,
+    Set<AssetAllocation>? newAssetAllocations,
     DateTime? newCreatedDataTime,
     DateTime? newStartDateTime,
     DateTime? newEndDateTime,
@@ -218,7 +225,7 @@ class PortfolioConfig implements Cache{
     final portfolioAllocations = assetAllocations.where(
       (allocation) =>
           allocation.asset.id != AssetConfig.defaultAssetId &&
-          assets.any((asset) => asset.id == allocation.asset.id)).toList();
+          assets.any((asset) => asset.id == allocation.asset.id)).toSet();
 
     return copyWith(newAssetAllocations: portfolioAllocations);
   }
@@ -234,7 +241,7 @@ class PortfolioConfig implements Cache{
     final beginDate = DateTime.tryParse(item[4] as String) ?? epoch;
     final endDate = DateTime.tryParse(item[5] as String) ?? epoch;
     final jsonAllocations = jsonDecode(item[7] as String) as List<dynamic>;
-    final allocations = jsonAllocations.map((e) => AssetAllocation.fromMap(e as Map<String, dynamic>)).toList();
+    final allocations = jsonAllocations.map((e) => AssetAllocation.fromMap(e as Map<String, dynamic>)).toSet();
     return PortfolioConfig(
       id: item[0] as int?,
       portfolioName: item[1] as String,
@@ -247,6 +254,10 @@ class PortfolioConfig implements Cache{
       strategy: Strategy.of(id: item[8] as int? ?? Strategy.defaultId),
       riskFreeRatePerYear: item[9] as double? ?? defaultRiskFreeRate,
     );
+  }
+
+  AssetAllocation? getAssetAllocation(AssetConfig asset) {
+    return assetAllocations.firstWhere((allocation) => allocation.asset == asset);
   }
 
   @override
@@ -278,7 +289,7 @@ class PortfolioConfig implements Cache{
           portfolioName == other.portfolioName &&
           portfolioDesc == other.portfolioDesc &&
           riskFreeRatePerYear == other.riskFreeRatePerYear &&
-          const ListEquality().equals(assetAllocations, other.assetAllocations) &&
+          const SetEquality().equals(assetAllocations, other.assetAllocations) &&
           createdDateTime == other.createdDateTime &&
           startDateTime == other.startDateTime &&
           endDateTime == other.endDateTime &&
@@ -291,7 +302,7 @@ class PortfolioConfig implements Cache{
       portfolioName,
       portfolioDesc,
       riskFreeRatePerYear,
-      const ListEquality().hash(assetAllocations),
+      const SetEquality().hash(assetAllocations),
       createdDateTime,
       startDateTime,
       endDateTime,

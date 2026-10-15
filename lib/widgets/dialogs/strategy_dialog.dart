@@ -6,7 +6,6 @@ import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart
 
 import '../../model/period_type.dart';
 import '../../model/results/strategies/strategy_schema.dart';
-import '../../utils/chart_utils.dart';
 import '../utils/dropdown.dart';
 import 'asset_dialog.dart';
 
@@ -209,12 +208,5 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
       StrategyType.gem => StrategyConfigGem(strategyKey: widget.strategy),
       _ => Text("No implemented more strategies"),
     };
-  }
-
-  DateTime calculateEndDate(DateTime beginDate, PeriodType period) {
-    if (period.days < 0) {
-      return DateTime.now();
-    }
-    return beginDate.add(periodSpan(period) ?? Duration.zero);
   }
 }
