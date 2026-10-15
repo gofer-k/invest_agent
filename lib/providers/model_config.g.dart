@@ -44,7 +44,7 @@ final class ModelConfigProvider
   }
 }
 
-String _$modelConfigHash() => r'ae4383c57a07bc59db4b69bc27819150afc08048';
+String _$modelConfigHash() => r'83cd349964bfe82c8c5053b5594f5a19ed1f008d';
 
 /// Riverpod 3.0 style (Modern Riverpod) Notifier for managing app data.
 
@@ -112,53 +112,6 @@ final class SortedAssetsProvider
 }
 
 String _$sortedAssetsHash() => r'e32455484d43e8228e0f1c8d34abbf2ff9031f72';
-
-@ProviderFor(portfolios)
-final portfoliosProvider = PortfoliosProvider._();
-
-final class PortfoliosProvider
-    extends
-        $FunctionalProvider<
-          List<PortfolioConfig>,
-          List<PortfolioConfig>,
-          List<PortfolioConfig>
-        >
-    with $Provider<List<PortfolioConfig>> {
-  PortfoliosProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'portfoliosProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$portfoliosHash();
-
-  @$internal
-  @override
-  $ProviderElement<List<PortfolioConfig>> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  List<PortfolioConfig> create(Ref ref) {
-    return portfolios(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<PortfolioConfig> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<PortfolioConfig>>(value),
-    );
-  }
-}
-
-String _$portfoliosHash() => r'e497b6519b29cc09a7de3015f5e2f87802027c3d';
 
 @ProviderFor(userAccounts)
 final userAccountsProvider = UserAccountsProvider._();
@@ -247,44 +200,3 @@ final class AssetsLoaderProvider
 }
 
 String _$assetsLoaderHash() => r'2f00c734c063fb7247d8128ddc21535c183334c3';
-
-@ProviderFor(portfolioLoader)
-final portfolioLoaderProvider = PortfolioLoaderProvider._();
-
-final class PortfolioLoaderProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<PortfolioConfig>>,
-          List<PortfolioConfig>,
-          FutureOr<List<PortfolioConfig>>
-        >
-    with
-        $FutureModifier<List<PortfolioConfig>>,
-        $FutureProvider<List<PortfolioConfig>> {
-  PortfolioLoaderProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'portfolioLoaderProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$portfolioLoaderHash();
-
-  @$internal
-  @override
-  $FutureProviderElement<List<PortfolioConfig>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<List<PortfolioConfig>> create(Ref ref) {
-    return portfolioLoader(ref);
-  }
-}
-
-String _$portfolioLoaderHash() => r'fffc2fa945491c63390d146222d1bada2aa83d78';

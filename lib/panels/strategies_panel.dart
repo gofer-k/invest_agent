@@ -56,14 +56,6 @@ class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
         IconButton(
           icon: Icon(Icons.edit),
           onPressed: () => _openStrategyDialog(context, strategy: strategy),
-          // {
-          //   showStrategy(context, strategy, (newStrategy) {
-          //     if (newStrategy != null && newStrategy != strategy) {
-          //       ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
-          //           .updateEntry(newStrategy);
-          //     }
-          //   });
-          // },
         ),
         IconButton(
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),

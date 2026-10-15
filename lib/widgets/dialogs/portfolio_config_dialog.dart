@@ -28,14 +28,14 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   late final TextEditingController controllerName;
   late final TextEditingController controllerDesc;
   late final TextEditingController controllerRiskFreeRate;
-  bool _isDateRange = false;
+  final bool _isDateRange = false;
 
   @override
   void initState() {
     super.initState();
     controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
-    controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
-    controllerName = TextEditingController(text: widget.portfolioConfig?.riskFreeRatePerYear.toString() ?? '');
+    controllerDesc = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
+    controllerRiskFreeRate = TextEditingController(text: widget.portfolioConfig?.riskFreeRatePerYear.toString() ?? '');
   }
 
   @override
@@ -84,12 +84,10 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           decoration: const InputDecoration(labelText: 'Portfolio Description'),
         ),
         const SizedBox(height: 8),
-        Expanded(flex: 2,
-          child: TextField(
-            controller: controllerRiskFreeRate,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Risk free rate'),
-          ),
+        TextField(
+          controller: controllerRiskFreeRate,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: 'Risk free rate'),
         ),
         const SizedBox(height: 8),
         _selectPeriod(currentPortfolio, notifier),

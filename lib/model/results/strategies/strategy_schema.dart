@@ -151,7 +151,7 @@ class Strategy extends Cache {
       endDate: newEndDate ?? endDate);
   }
 
-  factory Strategy.of({id = defaultId}) {
+  factory Strategy.of({int id = defaultId}) {
     return Strategy(
       id: id,
       type: StrategyType.empty,

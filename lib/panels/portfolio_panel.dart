@@ -3,7 +3,6 @@ import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/portfolio_provider.dart';
-import '../providers/model_config.dart';
 import '../model/portfolio_schema.dart';
 import '../providers/load_database_provider.dart';
 import '../widgets/dialogs/portfolio_config_dialog.dart';
@@ -29,8 +28,8 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final portfolioAsync = ref.watch(portfolioLoaderProvider);
-    final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value ?? [];
+    final portfolioAsync = ref.watch(portfolioProvider(CacheKeyType.analysisCache));
+    final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value?.cachedConfig ?? [];
 
     return Shrinkable(
       title: "Portfolios",

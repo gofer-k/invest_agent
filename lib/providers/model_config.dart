@@ -44,12 +44,10 @@ class ModelConfig extends _$ModelConfig {
         try {
           await db.createCache(UserAccountSchema());
           await db.createCache(AssetConfigSchema());
-          await db.createCache(PortfolioConfigSchema());
 
           // Trigger initial background fetches to populate the cache
           await fetchType<UserAccount>();
           await fetchType<AssetConfig>();
-          await fetchType<PortfolioConfig>();
         } catch (e) {
           debugPrint('ModelManager Init Error: $e');
         }
@@ -162,13 +160,6 @@ List<AssetConfig> sortedAssets(Ref ref) {
 }
 
 @riverpod
-List<PortfolioConfig> portfolios(Ref ref) {
-  return ref.watch(modelConfigProvider.select(
-        (s) => s.getItems<PortfolioConfig>(),
-  ));
-}
-
-@riverpod
 List<UserAccount> userAccounts(Ref ref) {
   return ref.watch(modelConfigProvider).getItems<UserAccount>();
 }
@@ -176,9 +167,4 @@ List<UserAccount> userAccounts(Ref ref) {
 @riverpod
 Future<List<AssetConfig>> assetsLoader(Ref ref) async {
   return await ref.read(modelConfigProvider.notifier).fetchType<AssetConfig>();
-}
-
-@riverpod
-Future<List<PortfolioConfig>> portfolioLoader(Ref ref) async {
-  return await ref.read(modelConfigProvider.notifier).fetchType<PortfolioConfig>();
 }
