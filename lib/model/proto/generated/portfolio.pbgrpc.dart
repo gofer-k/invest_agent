@@ -34,11 +34,11 @@ class AnalyticsServiceClient extends $grpc.Client {
   AnalyticsServiceClient(super.channel, {super.options, super.interceptors});
 
   /// Evaluates a specific portfolio strategy based on historical parameters
-  $grpc.ResponseFuture<$0.EvaluatePortfolioResponse> evaluatePortofolio(
+  $grpc.ResponseFuture<$0.EvaluatePortfolioResponse> evaluatePortfolio(
     $0.EvaluatePortfolioRequest request, {
     $grpc.CallOptions? options,
   }) {
-    return $createUnaryCall(_$evaluatePortofolio, request, options: options);
+    return $createUnaryCall(_$evaluatePortfolio, request, options: options);
   }
 
   /// Streams real-time or step-by-step historical backtest metrics to the desktop client
@@ -53,9 +53,9 @@ class AnalyticsServiceClient extends $grpc.Client {
 
   // method descriptors
 
-  static final _$evaluatePortofolio = $grpc.ClientMethod<
+  static final _$evaluatePortfolio = $grpc.ClientMethod<
           $0.EvaluatePortfolioRequest, $0.EvaluatePortfolioResponse>(
-      '/trading.portfolio.analytics.AnalyticsService/EvaluatePortofolio',
+      '/trading.portfolio.analytics.AnalyticsService/EvaluatePortfolio',
       ($0.EvaluatePortfolioRequest value) => value.writeToBuffer(),
       $0.EvaluatePortfolioResponse.fromBuffer);
   static final _$streamBacktestMetrics =
@@ -72,8 +72,8 @@ abstract class AnalyticsServiceBase extends $grpc.Service {
   AnalyticsServiceBase() {
     $addMethod($grpc.ServiceMethod<$0.EvaluatePortfolioRequest,
             $0.EvaluatePortfolioResponse>(
-        'EvaluatePortofolio',
-        evaluatePortofolio_Pre,
+        'EvaluatePortfolio',
+        evaluatePortfolio_Pre,
         false,
         false,
         ($core.List<$core.int> value) =>
@@ -90,13 +90,13 @@ abstract class AnalyticsServiceBase extends $grpc.Service {
         ($0.StreamBacktestResponse value) => value.writeToBuffer()));
   }
 
-  $async.Future<$0.EvaluatePortfolioResponse> evaluatePortofolio_Pre(
+  $async.Future<$0.EvaluatePortfolioResponse> evaluatePortfolio_Pre(
       $grpc.ServiceCall $call,
       $async.Future<$0.EvaluatePortfolioRequest> $request) async {
-    return evaluatePortofolio($call, await $request);
+    return evaluatePortfolio($call, await $request);
   }
 
-  $async.Future<$0.EvaluatePortfolioResponse> evaluatePortofolio(
+  $async.Future<$0.EvaluatePortfolioResponse> evaluatePortfolio(
       $grpc.ServiceCall call, $0.EvaluatePortfolioRequest request);
 
   $async.Stream<$0.StreamBacktestResponse> streamBacktestMetrics_Pre(

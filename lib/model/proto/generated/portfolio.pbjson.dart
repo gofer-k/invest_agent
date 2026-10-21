@@ -63,33 +63,26 @@ const Portfolio$json = {
     {'1': 'id', '3': 1, '4': 1, '5': 9, '10': 'id'},
     {'1': 'name', '3': 2, '4': 1, '5': 9, '10': 'name'},
     {'1': 'description', '3': 3, '4': 1, '5': 9, '10': 'description'},
-    {
-      '1': 'created_at',
-      '3': 4,
-      '4': 1,
-      '5': 11,
-      '6': '.google.protobuf.Timestamp',
-      '10': 'createdAt'
-    },
+    {'1': 'initial_capital', '3': 4, '4': 1, '5': 1, '10': 'initialCapital'},
+    {'1': 'risk_free_rate', '3': 5, '4': 1, '5': 1, '10': 'riskFreeRate'},
     {
       '1': 'allocations',
-      '3': 5,
+      '3': 6,
       '4': 3,
       '5': 11,
       '6': '.trading.portfolio.analytics.AssetAllocation',
       '10': 'allocations'
     },
-    {'1': 'risk_free_rate', '3': 6, '4': 1, '5': 1, '10': 'riskFreeRate'},
   ],
 };
 
 /// Descriptor for `Portfolio`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List portfolioDescriptor = $convert.base64Decode(
     'CglQb3J0Zm9saW8SDgoCaWQYASABKAlSAmlkEhIKBG5hbWUYAiABKAlSBG5hbWUSIAoLZGVzY3'
-    'JpcHRpb24YAyABKAlSC2Rlc2NyaXB0aW9uEjkKCmNyZWF0ZWRfYXQYBCABKAsyGi5nb29nbGUu'
-    'cHJvdG9idWYuVGltZXN0YW1wUgljcmVhdGVkQXQSTgoLYWxsb2NhdGlvbnMYBSADKAsyLC50cm'
-    'FkaW5nLnBvcnRmb2xpby5hbmFseXRpY3MuQXNzZXRBbGxvY2F0aW9uUgthbGxvY2F0aW9ucxIk'
-    'Cg5yaXNrX2ZyZWVfcmF0ZRgGIAEoAVIMcmlza0ZyZWVSYXRl');
+    'JpcHRpb24YAyABKAlSC2Rlc2NyaXB0aW9uEicKD2luaXRpYWxfY2FwaXRhbBgEIAEoAVIOaW5p'
+    'dGlhbENhcGl0YWwSJAoOcmlza19mcmVlX3JhdGUYBSABKAFSDHJpc2tGcmVlUmF0ZRJOCgthbG'
+    'xvY2F0aW9ucxgGIAMoCzIsLnRyYWRpbmcucG9ydGZvbGlvLmFuYWx5dGljcy5Bc3NldEFsbG9j'
+    'YXRpb25SC2FsbG9jYXRpb25z');
 
 @$core.Deprecated('Use assetAllocationDescriptor instead')
 const AssetAllocation$json = {
@@ -272,7 +265,6 @@ const EvaluatePortfolioRequest$json = {
       '6': '.trading.portfolio.analytics.StrategyConfig',
       '10': 'strategyConfig'
     },
-    {'1': 'initial_capital', '3': 6, '4': 1, '5': 1, '10': 'initialCapital'},
   ],
 };
 
@@ -284,8 +276,7 @@ final $typed_data.Uint8List evaluatePortfolioRequestDescriptor = $convert.base64
     'UYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgdlbmREYXRlEk4KC2FsbG9jYXRp'
     'b25zGAQgAygLMiwudHJhZGluZy5wb3J0Zm9saW8uYW5hbHl0aWNzLkFzc2V0QWxsb2NhdGlvbl'
     'ILYWxsb2NhdGlvbnMSVAoPc3RyYXRlZ3lfY29uZmlnGAUgASgLMisudHJhZGluZy5wb3J0Zm9s'
-    'aW8uYW5hbHl0aWNzLlN0cmF0ZWd5Q29uZmlnUg5zdHJhdGVneUNvbmZpZxInCg9pbml0aWFsX2'
-    'NhcGl0YWwYBiABKAFSDmluaXRpYWxDYXBpdGFs');
+    'aW8uYW5hbHl0aWNzLlN0cmF0ZWd5Q29uZmlnUg5zdHJhdGVneUNvbmZpZw==');
 
 @$core.Deprecated('Use evaluatePortfolioResponseDescriptor instead')
 const EvaluatePortfolioResponse$json = {

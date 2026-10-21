@@ -13,12 +13,12 @@
 import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
-import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $3;
+import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $2;
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
-    as $1;
+    as $3;
 
 import 'portfolio.pbenum.dart';
-import 'price.pb.dart' as $2;
+import 'price.pb.dart' as $1;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
@@ -29,17 +29,17 @@ class Portfolio extends $pb.GeneratedMessage {
     $core.String? id,
     $core.String? name,
     $core.String? description,
-    $1.Timestamp? createdAt,
-    $core.Iterable<AssetAllocation>? allocations,
+    $core.double? initialCapital,
     $core.double? riskFreeRate,
+    $core.Iterable<AssetAllocation>? allocations,
   }) {
     final result = create();
     if (id != null) result.id = id;
     if (name != null) result.name = name;
     if (description != null) result.description = description;
-    if (createdAt != null) result.createdAt = createdAt;
-    if (allocations != null) result.allocations.addAll(allocations);
+    if (initialCapital != null) result.initialCapital = initialCapital;
     if (riskFreeRate != null) result.riskFreeRate = riskFreeRate;
+    if (allocations != null) result.allocations.addAll(allocations);
     return result;
   }
 
@@ -60,11 +60,10 @@ class Portfolio extends $pb.GeneratedMessage {
     ..aOS(1, _omitFieldNames ? '' : 'id')
     ..aOS(2, _omitFieldNames ? '' : 'name')
     ..aOS(3, _omitFieldNames ? '' : 'description')
-    ..aOM<$1.Timestamp>(4, _omitFieldNames ? '' : 'createdAt',
-        subBuilder: $1.Timestamp.create)
-    ..pPM<AssetAllocation>(5, _omitFieldNames ? '' : 'allocations',
+    ..aD(4, _omitFieldNames ? '' : 'initialCapital')
+    ..aD(5, _omitFieldNames ? '' : 'riskFreeRate')
+    ..pPM<AssetAllocation>(6, _omitFieldNames ? '' : 'allocations',
         subBuilder: AssetAllocation.create)
-    ..aD(6, _omitFieldNames ? '' : 'riskFreeRate')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -113,27 +112,25 @@ class Portfolio extends $pb.GeneratedMessage {
   void clearDescription() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $1.Timestamp get createdAt => $_getN(3);
+  $core.double get initialCapital => $_getN(3);
   @$pb.TagNumber(4)
-  set createdAt($1.Timestamp value) => $_setField(4, value);
+  set initialCapital($core.double value) => $_setDouble(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasCreatedAt() => $_has(3);
+  $core.bool hasInitialCapital() => $_has(3);
   @$pb.TagNumber(4)
-  void clearCreatedAt() => $_clearField(4);
-  @$pb.TagNumber(4)
-  $1.Timestamp ensureCreatedAt() => $_ensure(3);
+  void clearInitialCapital() => $_clearField(4);
 
   @$pb.TagNumber(5)
-  $pb.PbList<AssetAllocation> get allocations => $_getList(4);
+  $core.double get riskFreeRate => $_getN(4);
+  @$pb.TagNumber(5)
+  set riskFreeRate($core.double value) => $_setDouble(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRiskFreeRate() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRiskFreeRate() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.double get riskFreeRate => $_getN(5);
-  @$pb.TagNumber(6)
-  set riskFreeRate($core.double value) => $_setDouble(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasRiskFreeRate() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearRiskFreeRate() => $_clearField(6);
+  $pb.PbList<AssetAllocation> get allocations => $_getList(5);
 }
 
 /// Defines an individual ETF asset weight within a portfolio
@@ -142,7 +139,7 @@ class AssetAllocation extends $pb.GeneratedMessage {
     $core.int? assetId,
     $core.double? targetWeight,
     $core.int? assetSharesCount,
-    $core.Iterable<$2.IndexPriceItem>? price,
+    $core.Iterable<$1.IndexPriceItem>? price,
   }) {
     final result = create();
     if (assetId != null) result.assetId = assetId;
@@ -169,8 +166,8 @@ class AssetAllocation extends $pb.GeneratedMessage {
     ..aI(1, _omitFieldNames ? '' : 'assetId')
     ..aD(2, _omitFieldNames ? '' : 'targetWeight')
     ..aI(3, _omitFieldNames ? '' : 'assetSharesCount')
-    ..pPM<$2.IndexPriceItem>(4, _omitFieldNames ? '' : 'price',
-        subBuilder: $2.IndexPriceItem.create)
+    ..pPM<$1.IndexPriceItem>(4, _omitFieldNames ? '' : 'price',
+        subBuilder: $1.IndexPriceItem.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -220,7 +217,7 @@ class AssetAllocation extends $pb.GeneratedMessage {
   void clearAssetSharesCount() => $_clearField(3);
 
   @$pb.TagNumber(4)
-  $pb.PbList<$2.IndexPriceItem> get price => $_getList(3);
+  $pb.PbList<$1.IndexPriceItem> get price => $_getList(3);
 }
 
 /// Configuration parameters for the algorithmic execution
@@ -228,7 +225,7 @@ class StrategyConfig extends $pb.GeneratedMessage {
   factory StrategyConfig({
     StrategyType? strategyType,
     RebalanceFrequency? rebalanceFrequency,
-    $3.Struct? customParameters,
+    $2.Struct? customParameters,
   }) {
     final result = create();
     if (strategyType != null) result.strategyType = strategyType;
@@ -256,8 +253,8 @@ class StrategyConfig extends $pb.GeneratedMessage {
         enumValues: StrategyType.values)
     ..aE<RebalanceFrequency>(2, _omitFieldNames ? '' : 'rebalanceFrequency',
         enumValues: RebalanceFrequency.values)
-    ..aOM<$3.Struct>(3, _omitFieldNames ? '' : 'customParameters',
-        subBuilder: $3.Struct.create)
+    ..aOM<$2.Struct>(3, _omitFieldNames ? '' : 'customParameters',
+        subBuilder: $2.Struct.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -298,15 +295,15 @@ class StrategyConfig extends $pb.GeneratedMessage {
   void clearRebalanceFrequency() => $_clearField(2);
 
   @$pb.TagNumber(3)
-  $3.Struct get customParameters => $_getN(2);
+  $2.Struct get customParameters => $_getN(2);
   @$pb.TagNumber(3)
-  set customParameters($3.Struct value) => $_setField(3, value);
+  set customParameters($2.Struct value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasCustomParameters() => $_has(2);
   @$pb.TagNumber(3)
   void clearCustomParameters() => $_clearField(3);
   @$pb.TagNumber(3)
-  $3.Struct ensureCustomParameters() => $_ensure(2);
+  $2.Struct ensureCustomParameters() => $_ensure(2);
 }
 
 /// Calculated risk and performance indicators
@@ -567,7 +564,7 @@ class PerformanceMetrics extends $pb.GeneratedMessage {
 /// Equity curve data point over time
 class EquityCurvePoint extends $pb.GeneratedMessage {
   factory EquityCurvePoint({
-    $1.Timestamp? timestamp,
+    $3.Timestamp? timestamp,
     $core.double? portfolioValue,
     $core.double? drawdown,
   }) {
@@ -592,8 +589,8 @@ class EquityCurvePoint extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'trading.portfolio.analytics'),
       createEmptyInstance: create)
-    ..aOM<$1.Timestamp>(1, _omitFieldNames ? '' : 'timestamp',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$3.Timestamp>(1, _omitFieldNames ? '' : 'timestamp',
+        subBuilder: $3.Timestamp.create)
     ..aD(2, _omitFieldNames ? '' : 'portfolioValue')
     ..aD(3, _omitFieldNames ? '' : 'drawdown')
     ..hasRequiredFields = false;
@@ -618,15 +615,15 @@ class EquityCurvePoint extends $pb.GeneratedMessage {
   static EquityCurvePoint? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $1.Timestamp get timestamp => $_getN(0);
+  $3.Timestamp get timestamp => $_getN(0);
   @$pb.TagNumber(1)
-  set timestamp($1.Timestamp value) => $_setField(1, value);
+  set timestamp($3.Timestamp value) => $_setField(1, value);
   @$pb.TagNumber(1)
   $core.bool hasTimestamp() => $_has(0);
   @$pb.TagNumber(1)
   void clearTimestamp() => $_clearField(1);
   @$pb.TagNumber(1)
-  $1.Timestamp ensureTimestamp() => $_ensure(0);
+  $3.Timestamp ensureTimestamp() => $_ensure(0);
 
   @$pb.TagNumber(2)
   $core.double get portfolioValue => $_getN(1);
@@ -651,11 +648,10 @@ class EquityCurvePoint extends $pb.GeneratedMessage {
 class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
   factory EvaluatePortfolioRequest({
     Portfolio? portfolio,
-    $1.Timestamp? startDate,
-    $1.Timestamp? endDate,
+    $3.Timestamp? startDate,
+    $3.Timestamp? endDate,
     $core.Iterable<AssetAllocation>? allocations,
     StrategyConfig? strategyConfig,
-    $core.double? initialCapital,
   }) {
     final result = create();
     if (portfolio != null) result.portfolio = portfolio;
@@ -663,7 +659,6 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
     if (endDate != null) result.endDate = endDate;
     if (allocations != null) result.allocations.addAll(allocations);
     if (strategyConfig != null) result.strategyConfig = strategyConfig;
-    if (initialCapital != null) result.initialCapital = initialCapital;
     return result;
   }
 
@@ -683,15 +678,14 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<Portfolio>(1, _omitFieldNames ? '' : 'portfolio',
         subBuilder: Portfolio.create)
-    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'startDate',
-        subBuilder: $1.Timestamp.create)
-    ..aOM<$1.Timestamp>(3, _omitFieldNames ? '' : 'endDate',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$3.Timestamp>(2, _omitFieldNames ? '' : 'startDate',
+        subBuilder: $3.Timestamp.create)
+    ..aOM<$3.Timestamp>(3, _omitFieldNames ? '' : 'endDate',
+        subBuilder: $3.Timestamp.create)
     ..pPM<AssetAllocation>(4, _omitFieldNames ? '' : 'allocations',
         subBuilder: AssetAllocation.create)
     ..aOM<StrategyConfig>(5, _omitFieldNames ? '' : 'strategyConfig',
         subBuilder: StrategyConfig.create)
-    ..aD(6, _omitFieldNames ? '' : 'initialCapital')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -726,26 +720,26 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
   Portfolio ensurePortfolio() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $1.Timestamp get startDate => $_getN(1);
+  $3.Timestamp get startDate => $_getN(1);
   @$pb.TagNumber(2)
-  set startDate($1.Timestamp value) => $_setField(2, value);
+  set startDate($3.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasStartDate() => $_has(1);
   @$pb.TagNumber(2)
   void clearStartDate() => $_clearField(2);
   @$pb.TagNumber(2)
-  $1.Timestamp ensureStartDate() => $_ensure(1);
+  $3.Timestamp ensureStartDate() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $1.Timestamp get endDate => $_getN(2);
+  $3.Timestamp get endDate => $_getN(2);
   @$pb.TagNumber(3)
-  set endDate($1.Timestamp value) => $_setField(3, value);
+  set endDate($3.Timestamp value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasEndDate() => $_has(2);
   @$pb.TagNumber(3)
   void clearEndDate() => $_clearField(3);
   @$pb.TagNumber(3)
-  $1.Timestamp ensureEndDate() => $_ensure(2);
+  $3.Timestamp ensureEndDate() => $_ensure(2);
 
   @$pb.TagNumber(4)
   $pb.PbList<AssetAllocation> get allocations => $_getList(3);
@@ -760,15 +754,6 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
   void clearStrategyConfig() => $_clearField(5);
   @$pb.TagNumber(5)
   StrategyConfig ensureStrategyConfig() => $_ensure(4);
-
-  @$pb.TagNumber(6)
-  $core.double get initialCapital => $_getN(5);
-  @$pb.TagNumber(6)
-  set initialCapital($core.double value) => $_setDouble(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasInitialCapital() => $_has(5);
-  @$pb.TagNumber(6)
-  void clearInitialCapital() => $_clearField(6);
 }
 
 /// Response payload containing completed analytics compilation
@@ -777,7 +762,7 @@ class EvaluatePortfolioResponse extends $pb.GeneratedMessage {
     $core.String? portfolioId,
     PerformanceMetrics? summaryMetrics,
     $core.Iterable<EquityCurvePoint>? equityCurve,
-    $1.Timestamp? calculatedAt,
+    $3.Timestamp? calculatedAt,
   }) {
     final result = create();
     if (portfolioId != null) result.portfolioId = portfolioId;
@@ -806,8 +791,8 @@ class EvaluatePortfolioResponse extends $pb.GeneratedMessage {
         subBuilder: PerformanceMetrics.create)
     ..pPM<EquityCurvePoint>(3, _omitFieldNames ? '' : 'equityCurve',
         subBuilder: EquityCurvePoint.create)
-    ..aOM<$1.Timestamp>(4, _omitFieldNames ? '' : 'calculatedAt',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$3.Timestamp>(4, _omitFieldNames ? '' : 'calculatedAt',
+        subBuilder: $3.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -854,23 +839,23 @@ class EvaluatePortfolioResponse extends $pb.GeneratedMessage {
   $pb.PbList<EquityCurvePoint> get equityCurve => $_getList(2);
 
   @$pb.TagNumber(4)
-  $1.Timestamp get calculatedAt => $_getN(3);
+  $3.Timestamp get calculatedAt => $_getN(3);
   @$pb.TagNumber(4)
-  set calculatedAt($1.Timestamp value) => $_setField(4, value);
+  set calculatedAt($3.Timestamp value) => $_setField(4, value);
   @$pb.TagNumber(4)
   $core.bool hasCalculatedAt() => $_has(3);
   @$pb.TagNumber(4)
   void clearCalculatedAt() => $_clearField(4);
   @$pb.TagNumber(4)
-  $1.Timestamp ensureCalculatedAt() => $_ensure(3);
+  $3.Timestamp ensureCalculatedAt() => $_ensure(3);
 }
 
 /// Request payload for progressive streaming backtest execution
 class StreamBacktestRequest extends $pb.GeneratedMessage {
   factory StreamBacktestRequest({
     Portfolio? portfolio,
-    $1.Timestamp? startDate,
-    $1.Timestamp? endDate,
+    $3.Timestamp? startDate,
+    $3.Timestamp? endDate,
     $core.Iterable<AssetAllocation>? allocations,
     StrategyConfig? strategyConfig,
     $core.double? initialCapital,
@@ -901,10 +886,10 @@ class StreamBacktestRequest extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..aOM<Portfolio>(1, _omitFieldNames ? '' : 'portfolio',
         subBuilder: Portfolio.create)
-    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'startDate',
-        subBuilder: $1.Timestamp.create)
-    ..aOM<$1.Timestamp>(3, _omitFieldNames ? '' : 'endDate',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$3.Timestamp>(2, _omitFieldNames ? '' : 'startDate',
+        subBuilder: $3.Timestamp.create)
+    ..aOM<$3.Timestamp>(3, _omitFieldNames ? '' : 'endDate',
+        subBuilder: $3.Timestamp.create)
     ..pPM<AssetAllocation>(4, _omitFieldNames ? '' : 'allocations',
         subBuilder: AssetAllocation.create)
     ..aOM<StrategyConfig>(5, _omitFieldNames ? '' : 'strategyConfig',
@@ -944,26 +929,26 @@ class StreamBacktestRequest extends $pb.GeneratedMessage {
   Portfolio ensurePortfolio() => $_ensure(0);
 
   @$pb.TagNumber(2)
-  $1.Timestamp get startDate => $_getN(1);
+  $3.Timestamp get startDate => $_getN(1);
   @$pb.TagNumber(2)
-  set startDate($1.Timestamp value) => $_setField(2, value);
+  set startDate($3.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasStartDate() => $_has(1);
   @$pb.TagNumber(2)
   void clearStartDate() => $_clearField(2);
   @$pb.TagNumber(2)
-  $1.Timestamp ensureStartDate() => $_ensure(1);
+  $3.Timestamp ensureStartDate() => $_ensure(1);
 
   @$pb.TagNumber(3)
-  $1.Timestamp get endDate => $_getN(2);
+  $3.Timestamp get endDate => $_getN(2);
   @$pb.TagNumber(3)
-  set endDate($1.Timestamp value) => $_setField(3, value);
+  set endDate($3.Timestamp value) => $_setField(3, value);
   @$pb.TagNumber(3)
   $core.bool hasEndDate() => $_has(2);
   @$pb.TagNumber(3)
   void clearEndDate() => $_clearField(3);
   @$pb.TagNumber(3)
-  $1.Timestamp ensureEndDate() => $_ensure(2);
+  $3.Timestamp ensureEndDate() => $_ensure(2);
 
   @$pb.TagNumber(4)
   $pb.PbList<AssetAllocation> get allocations => $_getList(3);
@@ -993,7 +978,7 @@ class StreamBacktestRequest extends $pb.GeneratedMessage {
 class StreamBacktestResponse extends $pb.GeneratedMessage {
   factory StreamBacktestResponse({
     $core.String? portfolioId,
-    $1.Timestamp? currentSimulatedDate,
+    $3.Timestamp? currentSimulatedDate,
     $core.double? currentPortfolioValue,
     PerformanceMetrics? runningMetrics,
     $core.bool? isCompleted,
@@ -1024,8 +1009,8 @@ class StreamBacktestResponse extends $pb.GeneratedMessage {
           _omitMessageNames ? '' : 'trading.portfolio.analytics'),
       createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'portfolioId')
-    ..aOM<$1.Timestamp>(2, _omitFieldNames ? '' : 'currentSimulatedDate',
-        subBuilder: $1.Timestamp.create)
+    ..aOM<$3.Timestamp>(2, _omitFieldNames ? '' : 'currentSimulatedDate',
+        subBuilder: $3.Timestamp.create)
     ..aD(3, _omitFieldNames ? '' : 'currentPortfolioValue')
     ..aOM<PerformanceMetrics>(4, _omitFieldNames ? '' : 'runningMetrics',
         subBuilder: PerformanceMetrics.create)
@@ -1062,15 +1047,15 @@ class StreamBacktestResponse extends $pb.GeneratedMessage {
   void clearPortfolioId() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $1.Timestamp get currentSimulatedDate => $_getN(1);
+  $3.Timestamp get currentSimulatedDate => $_getN(1);
   @$pb.TagNumber(2)
-  set currentSimulatedDate($1.Timestamp value) => $_setField(2, value);
+  set currentSimulatedDate($3.Timestamp value) => $_setField(2, value);
   @$pb.TagNumber(2)
   $core.bool hasCurrentSimulatedDate() => $_has(1);
   @$pb.TagNumber(2)
   void clearCurrentSimulatedDate() => $_clearField(2);
   @$pb.TagNumber(2)
-  $1.Timestamp ensureCurrentSimulatedDate() => $_ensure(1);
+  $3.Timestamp ensureCurrentSimulatedDate() => $_ensure(1);
 
   @$pb.TagNumber(3)
   $core.double get currentPortfolioValue => $_getN(2);

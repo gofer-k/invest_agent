@@ -32,7 +32,9 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   late final TextEditingController controllerName;
   late final TextEditingController controllerDesc;
   late final TextEditingController controllerRiskFreeRate;
-  final bool _isDateRange = false;
+  late final TextEditingController controllerCapital;
+
+  bool _isDateRange = false;
 
   @override
   void initState() {
@@ -40,6 +42,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
     controllerDesc = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
     controllerRiskFreeRate = TextEditingController(text: widget.portfolioConfig?.riskFreeRatePerYear.toString() ?? '');
+    controllerCapital = TextEditingController(text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
   }
 
   @override
@@ -47,6 +50,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     controllerName.dispose();
     controllerDesc.dispose();
     controllerRiskFreeRate.dispose();
+    controllerCapital.dispose();
     super.dispose();
   }
 
@@ -94,59 +98,79 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           decoration: const InputDecoration(labelText: 'Risk free rate'),
         ),
         const SizedBox(height: 8),
-        _selectPeriod(currentPortfolio, notifier),
+        _analysisPeriod(currentPortfolio, notifier),
       ]
     );
   }
 
-  Widget _selectPeriod(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+  Widget _selectPeriodType() {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        OutlinedButton(
-          onPressed: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: notifier.startDateTime,
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-            );
-            if (date != null) {
-              notifier.updateField((portfolio) => portfolio.copyWith(newStartDateTime: date));
-            }
-          },
-          child: Text("Start: ${notifier.startDateTime?.toIso8601String().split('T')[0]}"),
-        ),
-        const SizedBox(width: 6),
-        if (_isDateRange)
-          OutlinedButton(
-            onPressed: () async {
-              final date = await showDatePicker(
-                context: context,
-                initialDate: notifier.endDateTime ?? DateTime.now(),
-                firstDate: notifier.startDateTime ?? DateTime(2000),
-                lastDate: DateTime(2100),
-              );
-              if (date != null) {
-                notifier.updateField((portfolio) => portfolio.copyWith(newEndDateTime: date));
-              }
-            },
-            child: Text("End: ${notifier.endDateTime?.toIso8601String().split('T')[0]}"),
-          ),
-        if (!_isDateRange)
-          Expanded(flex: 1,
-            child: DropdownButtonFormField<PeriodType>(
-                decoration: const InputDecoration(labelText: "Period analysis"),
-                initialValue: notifier.analysisPeriod,
-                items: PeriodType.values.map((c) =>
-                    DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
-                ).toList(),
-                onChanged: (val) {
-                  if (val == null) return;
-                  notifier.updateField((portfolio) => portfolio.copyWith(newAnalysisPeriod: val));
+        Text("Period", style: Theme.of(context).textTheme.labelLarge),
+        Switch(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            value: _isDateRange,
+            onChanged: (bool value) => setState(() => _isDateRange = value)),
+        Text("Date range", style: Theme.of(context).textTheme.labelLarge),
+      ]
+    );
+  }
+
+  Widget _analysisPeriod(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+    final firstDate= DateTime(2000);
+    final lastDate = DateTime(2100);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _selectPeriodType(),
+        const SizedBox(height: 8),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            OutlinedButton(
+              onPressed: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: notifier.startDateTime,
+                  firstDate: firstDate,
+                  lastDate: lastDate);
+                if (date != null) {
+                  notifier.updateField((portfolio) => portfolio.copyWith(newStartDateTime: date));
                 }
+              },
+              child: Text("Start: ${notifier.startDateTime?.toIso8601String().split('T')[0]}"),
             ),
-          ),
-      ],
+            const SizedBox(width: 6),
+            if (_isDateRange)
+              OutlinedButton(
+                onPressed: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: notifier.endDateTime ?? DateTime.now(),
+                    firstDate: notifier.startDateTime ?? firstDate,
+                    lastDate: lastDate);
+                  if (date != null) {
+                    notifier.updateField((portfolio) => portfolio.copyWith(newEndDateTime: date));
+                  }
+                },
+                child: Text("End: ${notifier.endDateTime?.toIso8601String().split('T')[0]}"),
+              ),
+            if (!_isDateRange)
+              Expanded(flex: 1,
+                child: DropdownButtonFormField<PeriodType>(
+                  decoration: const InputDecoration(labelText: "Period analysis"),
+                  initialValue: notifier.analysisPeriod,
+                  items: PeriodType.values.map((c) =>
+                    DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
+                  ).toList(),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    notifier.updateField((portfolio) => portfolio.copyWith(newAnalysisPeriod: val));
+                  }
+                ),
+              ),
+          ])
+        ]
     );
   }
 

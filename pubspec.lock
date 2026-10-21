@@ -289,6 +289,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.15"
+  decimal:
+    dependency: transitive
+    description:
+      name: decimal
+      sha256: "2c3c8b74f2948066d3f42585477aec9cfc48fefd7a723a4d4274a6c71a5c0df7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.6"
   equatable:
     dependency: "direct main"
     description:
@@ -369,6 +377,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
+  fixed:
+    dependency: transitive
+    description:
+      name: fixed
+      sha256: d1acef34c8ef195b50228e3b7ec80c24f843ab1bfb1636041b922a62e10123aa
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.2.0"
   fixnum:
     dependency: transitive
     description:
@@ -760,6 +776,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.6.4"
+  money2:
+    dependency: "direct main"
+    description:
+      name: money2
+      sha256: "695f317508beae72c392d0d62fd4c1f9ac1127e25117aaf2e75e20953139ffce"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.0"
   nested:
     dependency: transitive
     description:
@@ -928,6 +952,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.0"
+  rational:
+    dependency: transitive
+    description:
+      name: rational
+      sha256: cb808fb6f1a839e6fc5f7d8cb3b0a10e1db48b3be102de73938c627f0b636336
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.3"
   record_use:
     dependency: transitive
     description:
@@ -937,7 +969,7 @@ packages:
     source: hosted
     version: "0.6.0"
   riverpod:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: riverpod
       sha256: "16ff608d21e8ea64364f2b7c049c94a02ab81668f78845862b6e88b71dd4935a"

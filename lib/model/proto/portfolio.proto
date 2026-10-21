@@ -19,10 +19,10 @@ service AnalyticsService {
 message Portfolio {
   string id = 1;
   string name = 2;
-  string description = 3;  
-  google.protobuf.Timestamp created_at = 4;
-  repeated AssetAllocation allocations = 5;
-  double risk_free_rate = 6;
+  string description = 3;
+  double initial_capital = 4;
+  double risk_free_rate = 5; 
+  repeated AssetAllocation allocations = 6;   
 }
 
 enum StrategyType {
@@ -96,9 +96,8 @@ message EvaluatePortfolioRequest {
   Portfolio portfolio = 1;
   google.protobuf.Timestamp start_date = 2;
   google.protobuf.Timestamp end_date = 3;
-//  repeated AssetAllocation allocations = 4;
-  StrategyConfig strategy_config = 5;
-  double initial_capital = 6;
+  repeated AssetAllocation allocations = 4;
+  StrategyConfig strategy_config = 5;  
   //google.type.Money capital_params = 7;
 }
 

@@ -5,9 +5,11 @@ import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/app_launcher.dart';
 
 import 'panels/invest_dashboard.dart';
+import 'package:money2/money2.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Currencies().registerList(CommonCurrencies().asList());
   runApp(
     ProviderScope(
       observers: [

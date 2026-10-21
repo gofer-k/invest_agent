@@ -36,7 +36,6 @@ void main() {
         portfolioName: "New portfolio",
         assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
-        createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
         endDateTime: DateTime(2025, 1, 1),
       );
@@ -48,7 +47,6 @@ void main() {
       expect(fetchingResult?.assetAllocations, isNotEmpty);
       expect(fetchingResult?.assetAllocations, equals([1]));
       expect(fetchingResult?.riskFreeRatePerYear, equals(0.1));
-      expect(fetchingResult?.createdDateTime, isNotNull);
     });
 
     test('fetchAll() generates SQL that actually finds all the records', () async {
@@ -57,7 +55,6 @@ void main() {
           portfolioName: "Portfolio 1",
           assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
           riskFreeRatePerYear: 0.1,
-          createdDateTime: DateTime(2023, 1, 1),
           startDateTime: DateTime(2023, 1, 1),
           endDateTime: DateTime(2025, 1, 1),
         ),
@@ -65,7 +62,6 @@ void main() {
           portfolioName: "Portfolio 2",
           assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)},
           riskFreeRatePerYear: 0.1,
-          createdDateTime: DateTime(2023, 1, 1),
           startDateTime: DateTime(2023, 1, 1),
           endDateTime: DateTime(2025, 1, 1),
         )
@@ -82,7 +78,6 @@ void main() {
         expect(resItem.assetAllocations, equals(resultConfig.assetAllocations));
         expect(resItem.riskFreeRatePerYear,
             closeTo(resultConfig.riskFreeRatePerYear, 0.0001));
-        expect(resItem.createdDateTime, equals(resultConfig.createdDateTime));
       }
     });
 
@@ -91,7 +86,6 @@ void main() {
         portfolioName: "Portfolio 1",
         assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
-        createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
         endDateTime: DateTime(2025, 1, 1),
       );
@@ -106,7 +100,6 @@ void main() {
         portfolioName: "Portfolio 1",
         assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 1), targetWeight: 0.5, assetSharesCount: 10)},
         riskFreeRatePerYear: 0.1,
-        createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
         endDateTime: DateTime(2025, 1, 1),
       );
@@ -114,7 +107,6 @@ void main() {
         portfolioName: "Portfolio 1",
         assetAllocations: {AssetAllocation(asset: AssetConfig.of(id: 2), targetWeight: 0.3, assetSharesCount: 100)},
         riskFreeRatePerYear: 0.2,
-        createdDateTime: DateTime(2023, 1, 1),
         startDateTime: DateTime(2023, 1, 1),
         endDateTime: DateTime(2025, 1, 1),
       );
@@ -125,7 +117,6 @@ void main() {
       expect(result?.id, equals(1));
       expect(result?.portfolioName, equals("Portfolio 1"));
       expect(result?.riskFreeRatePerYear, closeTo(0.2, 0.0001));
-      expect(result?.createdDateTime, equals(DateTime(2023, 1, 1)));
       expect(result?.assetAllocations, equals([AssetConfig.of(id: 2)]));
     });
   });

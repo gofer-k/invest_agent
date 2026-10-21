@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
+import 'package:money2/money2.dart';
 
 import 'asset_config.dart';
 
@@ -20,13 +21,14 @@ class PortfolioConfigSchema implements CacheSchema {
       id INTEGER PRIMARY KEY DEFAULT nextval('$tableSequenceName'),
       portfolio_name TEXT NOT NULL,
       portfolio_desc TEXT DEFAULT '',
-      created_at TIMESTAMP,
       beginDate TIMESTAMP,
       endDate TIMESTAMP,
       analysisPeriod TEXT,
       allocations TEXT NOT NULL,
       strategy_id INTEGER REFERENCES strategy(id),
-      risk_free_rate FLOAT NOT NULL
+      risk_free_rate FLOAT NOT NULL,
+      initial_capital FLOAT,
+      currency TEXT
     );
     ''';
 
@@ -46,7 +48,7 @@ class PortfolioConfigSchema implements CacheSchema {
   String get readAll => ''' SELECT * FROM $tableName  ORDER BY portfolio_name; ''';
 
   @override
-  String readOne(Cache cache) => ''' "SELECT * FROM $tableName WHERE id = ${(cache as PortfolioConfig).id}; ''';
+  String readOne(Cache cache) => ''' SELECT * FROM $tableName WHERE id = ${(cache as PortfolioConfig).id}; ''';
 
   @override
   String saveOne(Cache cache) {
@@ -54,18 +56,19 @@ class PortfolioConfigSchema implements CacheSchema {
     final allocations = jsonEncode(portfolioConfig.assetAllocations.map((e) => e.toMap()).toList());
 
     return '''
-     INSERT INTO $tableName
-      VALUES ('
+     INSERT INTO $tableName (id, portfolio_name, portfolio_desc, beginDate, endDate, analysisPeriod, allocations, strategy_id, risk_free_rate, initial_capital, currency)
+      VALUES (
       nextval('$tableSequenceName'),
       '${portfolioConfig.portfolioName}',
       '${portfolioConfig.portfolioDesc}',
-      '${portfolioConfig.createdDateTime.toIso8601String()}',
       '${portfolioConfig.startDateTime.toIso8601String()}',
       '${portfolioConfig.endDateTime.toIso8601String()}',
       '${portfolioConfig.analysisPeriod?.name}',
-      $allocations,
+      '$allocations',
       ${portfolioConfig.strategy?.id},
       ${portfolioConfig.riskFreeRatePerYear},
+      ${portfolioConfig.initialCapital.amount.toDecimal().toDouble()},
+      '${portfolioConfig.initialCapital.currency.symbol}'
       );
      ''';
   }
@@ -74,21 +77,20 @@ class PortfolioConfigSchema implements CacheSchema {
   String updateOne(Cache cache) {
     final portfolioConfig = cache as PortfolioConfig;
     final id = portfolioConfig.id;
-    final portfolioName = portfolioConfig.portfolioName;
-    final portfolioDesc = portfolioConfig.portfolioDesc;
     final allocations = jsonEncode(portfolioConfig.assetAllocations.map((e) => e.toMap()).toList());
 
     return '''
       UPDATE $tableName
-      SET portfolio_name = '$portfolioName',
-          portfolio_desc = '$portfolioDesc',
-          created_at = '${portfolioConfig.createdDateTime.toIso8601String()}',
+      SET portfolio_name = '${portfolioConfig.portfolioName}',
+          portfolio_desc = '${portfolioConfig.portfolioDesc}',
           beginDate = '${portfolioConfig.startDateTime.toIso8601String()}',
           endDate = '${portfolioConfig.endDateTime.toIso8601String()}',
           analysisPeriod = '${portfolioConfig.analysisPeriod?.name}',
-          allocations = $allocations,
+          allocations = '$allocations',
           strategy_id = ${portfolioConfig.strategy?.id},
-          risk_free_rate = ${portfolioConfig.riskFreeRatePerYear}          
+          risk_free_rate = ${portfolioConfig.riskFreeRatePerYear},
+          initial_capital = ${portfolioConfig.initialCapital.amount.toDecimal().toDouble()},
+          currency = '${portfolioConfig.initialCapital.currency.symbol}'
       WHERE id = $id;
       ''';
   }
@@ -115,8 +117,8 @@ class AssetAllocation extends Equatable {
     int assetId = map['asset_id'] as int? ?? AssetConfig.defaultAssetId;
     return AssetAllocation(
       asset: AssetConfig.of(id: assetId),
-      targetWeight: map['target_weight'],
-      assetSharesCount: map['asset_shares_count'],
+      targetWeight: (map['target_weight'] as num).toDouble(),
+      assetSharesCount: map['asset_shares_count'] as int,
     );
   }
 
@@ -155,31 +157,33 @@ class AssetAllocation extends Equatable {
   List<Object?> get props => [asset, targetWeight, assetSharesCount];
 }
 
-class PortfolioConfig implements Cache{
+class PortfolioConfig implements Cache {
   final int? id;
   final String portfolioName;
   final String portfolioDesc;
   final double riskFreeRatePerYear;
+  final Money initialCapital;
   final Set<AssetAllocation> assetAllocations;
-  final DateTime createdDateTime;
   final DateTime startDateTime;
   final DateTime endDateTime;
   final Strategy? strategy;
   final PeriodType? analysisPeriod;
-
   static const double defaultRiskFreeRate = 0.05;
+  static final Money defaultCapital = Money.fromNum(10000, isoCode: 'PLN');
 
   PortfolioConfig({
     this.id,
     this.portfolioName = "",
     this.portfolioDesc = "",
     this.riskFreeRatePerYear = defaultRiskFreeRate,
-    required this.createdDateTime,
     this.assetAllocations = const {},
     required this.startDateTime,
     required this.endDateTime,
     this.strategy,
-    this.analysisPeriod = PeriodType.fiveYears,});
+    this.analysisPeriod = PeriodType.fiveYears,
+    Money? initialCapital}
+  ): initialCapital = initialCapital ?? defaultCapital;
+
 
   factory PortfolioConfig.emptyPortfolio() {
     final firstAllowedDate = DateTime(2000);
@@ -187,10 +191,12 @@ class PortfolioConfig implements Cache{
       portfolioName: "",
       portfolioDesc: "",
       riskFreeRatePerYear: defaultRiskFreeRate,
-      createdDateTime: DateTime.now(),
       startDateTime: firstAllowedDate,
       endDateTime: firstAllowedDate,
       assetAllocations: {},
+      strategy: Strategy.emptyStrategy(),
+      analysisPeriod: PeriodType.fiveYears,
+      initialCapital: defaultCapital,
     );
   }
 
@@ -198,9 +204,9 @@ class PortfolioConfig implements Cache{
     int? newId,
     String? newName,
     String? newDesc,
+    Money? newInitialCapital,
     double? newRiskFreeRatePerYear,
     Set<AssetAllocation>? newAssetAllocations,
-    DateTime? newCreatedDataTime,
     DateTime? newStartDateTime,
     DateTime? newEndDateTime,
     PeriodType? newAnalysisPeriod,
@@ -210,7 +216,7 @@ class PortfolioConfig implements Cache{
       portfolioName: newName ?? portfolioName,
       portfolioDesc: newDesc ?? portfolioDesc,
       assetAllocations: newAssetAllocations ?? assetAllocations,
-      createdDateTime: newCreatedDataTime ?? createdDateTime,
+      initialCapital: newInitialCapital ?? initialCapital,
       riskFreeRatePerYear: newRiskFreeRatePerYear ?? riskFreeRatePerYear,
       startDateTime: newStartDateTime ?? startDateTime,
       endDateTime: newEndDateTime ?? endDateTime,
@@ -232,32 +238,42 @@ class PortfolioConfig implements Cache{
 
   @override
   factory PortfolioConfig.fromMap(List<Object?> item) {
-    if (item.isEmpty && item.length < 10) {
-      throw Exception("Invalidate input data");
+    if (item.isEmpty || item.length < 11) {
+      throw Exception("Invalid input data");
     }
 
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-    final createdDateTime = DateTime.tryParse(item[3] as String) ?? DateTime.now();
-    final beginDate = DateTime.tryParse(item[4] as String) ?? epoch;
-    final endDate = DateTime.tryParse(item[5] as String) ?? epoch;
-    final jsonAllocations = jsonDecode(item[7] as String) as List<dynamic>;
+    final beginDate = DateTime.tryParse(item[3] as String) ?? epoch;
+    final endDate = DateTime.tryParse(item[4] as String) ?? epoch;
+    final jsonAllocations = jsonDecode(item[6] as String) as List<dynamic>;
     final allocations = jsonAllocations.map((e) => AssetAllocation.fromMap(e as Map<String, dynamic>)).toSet();
+    
+    // HEAL: If the DB contains "FiatCurrencyEnum.pln", extract just "PLN"
+    String currencyCode = (item[10] as String? ?? 'PLN');
+    if (currencyCode.contains('.')) {
+      currencyCode = currencyCode.split('.').last.toUpperCase();
+    } else {
+      currencyCode = currencyCode.toUpperCase();
+    }
+
+    final capital = Money.fromNum(item[9] as double? ?? 10000.0, isoCode: currencyCode);
+
     return PortfolioConfig(
       id: item[0] as int?,
       portfolioName: item[1] as String,
-      portfolioDesc: item[2] as String,
-      createdDateTime: createdDateTime,
+      portfolioDesc: item[2] as String? ?? "",
       startDateTime: beginDate,
       endDateTime: endDate,
-      analysisPeriod: PeriodType.values.firstWhere((e) => e.name == item[6] as String),
+      analysisPeriod: PeriodType.values.firstWhereOrNull((e) => e.name == item[5] as String),
       assetAllocations: allocations,
-      strategy: Strategy.of(id: item[8] as int? ?? Strategy.defaultId),
-      riskFreeRatePerYear: item[9] as double? ?? defaultRiskFreeRate,
+      strategy: Strategy.of(id: item[7] as int? ?? Strategy.defaultId),
+      riskFreeRatePerYear: (item[8] as num? ?? defaultRiskFreeRate).toDouble(),
+      initialCapital: capital,
     );
   }
 
   AssetAllocation? getAssetAllocation(AssetConfig asset) {
-    return assetAllocations.firstWhere((allocation) => allocation.asset == asset);
+    return assetAllocations.firstWhereOrNull((allocation) => allocation.asset == asset);
   }
 
   @override
@@ -267,13 +283,14 @@ class PortfolioConfig implements Cache{
       'id': id,
       'portfolio_name': portfolioName,
       'portfolio_desc': portfolioDesc,
-      'created_at': createdDateTime.toIso8601String(),
       "beginDate": startDateTime.toIso8601String(),
       "endDate": endDateTime.toIso8601String(),
       "analysisPeriod": analysisPeriod?.name,
       'allocations': allocations,
       'strategy_id': strategy?.id,
-      'risk_Free_rate': riskFreeRatePerYear,
+      'risk_free_rate': riskFreeRatePerYear,
+      'initial_capital': initialCapital.amount.toDecimal().toDouble(),
+      'currency': initialCapital.currency.symbol,
     };
   }
 
@@ -290,11 +307,11 @@ class PortfolioConfig implements Cache{
           portfolioDesc == other.portfolioDesc &&
           riskFreeRatePerYear == other.riskFreeRatePerYear &&
           const SetEquality().equals(assetAllocations, other.assetAllocations) &&
-          createdDateTime == other.createdDateTime &&
           startDateTime == other.startDateTime &&
           endDateTime == other.endDateTime &&
           strategy == other.strategy &&
-          analysisPeriod == other.analysisPeriod;
+          analysisPeriod == other.analysisPeriod &&
+          initialCapital == other.initialCapital;
 
   @override
   int get hashCode => Object.hash(
@@ -303,19 +320,19 @@ class PortfolioConfig implements Cache{
       portfolioDesc,
       riskFreeRatePerYear,
       const SetEquality().hash(assetAllocations),
-      createdDateTime,
       startDateTime,
       endDateTime,
       strategy,
-      analysisPeriod);
+      analysisPeriod,
+      initialCapital);
 
   @override
   List<Object?> get props => [id, portfolioName, portfolioDesc,
-    riskFreeRatePerYear, assetAllocations, createdDateTime,
-    startDateTime, endDateTime, strategy, analysisPeriod];
+    riskFreeRatePerYear, assetAllocations, startDateTime, endDateTime,
+    strategy, analysisPeriod, initialCapital];
+
+  bool isEmpty() => id == null && portfolioName.isEmpty;
 
   @override
   bool? get stringify => true;
-
-  bool isEmpty() => id == null && portfolioName.isEmpty;
 }
