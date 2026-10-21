@@ -1,3 +1,4 @@
+import 'package:money2/money2.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/period_type.dart';
 import '../model/portfolio_schema.dart';
@@ -20,6 +21,8 @@ class PortfolioSession extends _$PortfolioSession {
   DateTime? get endDateTime => state.endDateTime;
   Strategy? get strategy => state.strategy;
   PeriodType? get analysisPeriod => state.analysisPeriod;
+  Money get initialCapital => state.initialCapital;
+
 
   void save(PortfolioConfig updatedPortfolio) => state = updatedPortfolio;
 

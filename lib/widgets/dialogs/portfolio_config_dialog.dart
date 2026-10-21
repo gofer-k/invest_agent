@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/providers/portfolio_session.dart';
+import 'package:money2/money2.dart';
 
 import '../../model/asset_config.dart';
 import '../../model/period_type.dart';
 import '../../providers/model_config.dart';
 import '../utils/dropdownlist.dart';
+
+extension CurrencyExtension on Currency {
+  /// Returns a custom string for UI display, e.g., "PLN (zł)"
+  String get display => isoCode;
+}
 
 void showPortfolio(
   BuildContext context, PortfolioConfig? portfolio,
@@ -42,7 +48,8 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
     controllerDesc = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
     controllerRiskFreeRate = TextEditingController(text: widget.portfolioConfig?.riskFreeRatePerYear.toString() ?? '');
-    controllerCapital = TextEditingController(text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
+    controllerCapital = TextEditingController(
+      text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
   }
 
   @override
@@ -75,6 +82,27 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
             )
           ),
         ),
+        actions: [
+          BackButton(onPressed: () => Navigator.of(context).pop()),
+          ElevatedButton(
+            onPressed: () {
+              final name = controllerName.text.trim();
+              final capital = double.tryParse(controllerCapital.text) ?? PortfolioConfig.defaultCapital.amount.toDecimal().toDouble();
+              final capitalCurrency = controllerCapital.text.split('.').last.toUpperCase();
+
+              if (name.isEmpty || capital < 0.0) return;
+
+              notifier.updateField((s) => s.copyWith(
+                  newName: name, newDesc: controllerDesc.text,
+                  newInitialCapital: Money.fromNum(capital, isoCode: capitalCurrency
+                  )));
+
+              final finalizedPortfolio = ref.read(portfolioSessionProvider(widget.portfolioConfig));
+              Navigator.of(context).pop(finalizedPortfolio);
+            },
+            child: const Text("Save"),
+          )
+        ]
     );
   }
 
@@ -92,13 +120,42 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           decoration: const InputDecoration(labelText: 'Portfolio Description'),
         ),
         const SizedBox(height: 8),
+        _capitalContents(currentPortfolio, notifier),
+        const SizedBox(height: 8),
         TextField(
           controller: controllerRiskFreeRate,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
           decoration: const InputDecoration(labelText: 'Risk free rate'),
         ),
         const SizedBox(height: 8),
         _analysisPeriod(currentPortfolio, notifier),
+      ]
+    );
+  }
+
+  Widget _capitalContents(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+    final currencies = CommonCurrencies().asList();
+    return Row(
+      children: [
+        Expanded(flex: 2,
+          child: TextField(
+            controller: controllerCapital,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(labelText: 'Initial Capital'),
+          ),
+        ),
+        const SizedBox(width: 8),
+        DropdownList<Currency>(
+          onSelected: (Currency c) => notifier.updateField(
+            (portfolio) => portfolio.copyWith(
+                newInitialCapital: Money.fromNum(
+                  currentPortfolio.initialCapital.amount.toDecimal().toDouble(),
+                  isoCode: c.isoCode))),
+          choiceType: currentPortfolio.initialCapital.currency,
+          choices: currencies,
+          iconBuilder: (Currency c) => Text(c.display),
+          backgroundColor: Colors.transparent,
+        )
       ]
     );
   }

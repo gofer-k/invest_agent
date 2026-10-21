@@ -68,7 +68,7 @@ class PortfolioConfigSchema implements CacheSchema {
       ${portfolioConfig.strategy?.id},
       ${portfolioConfig.riskFreeRatePerYear},
       ${portfolioConfig.initialCapital.amount.toDecimal().toDouble()},
-      '${portfolioConfig.initialCapital.currency.symbol}'
+      '${portfolioConfig.initialCapital.currency.isoCode}'
       );
      ''';
   }
@@ -90,7 +90,7 @@ class PortfolioConfigSchema implements CacheSchema {
           strategy_id = ${portfolioConfig.strategy?.id},
           risk_free_rate = ${portfolioConfig.riskFreeRatePerYear},
           initial_capital = ${portfolioConfig.initialCapital.amount.toDecimal().toDouble()},
-          currency = '${portfolioConfig.initialCapital.currency.symbol}'
+          currency = '${portfolioConfig.initialCapital.currency.isoCode}'
       WHERE id = $id;
       ''';
   }
@@ -290,7 +290,7 @@ class PortfolioConfig implements Cache {
       'strategy_id': strategy?.id,
       'risk_free_rate': riskFreeRatePerYear,
       'initial_capital': initialCapital.amount.toDecimal().toDouble(),
-      'currency': initialCapital.currency.symbol,
+      'currency': initialCapital.currency.isoCode,
     };
   }
 
