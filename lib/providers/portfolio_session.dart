@@ -16,7 +16,6 @@ class PortfolioSession extends _$PortfolioSession {
   String get name => state.portfolioName;
   String get description => state.portfolioDesc;
   double get riskFreeRate => state.riskFreeRatePerYear;
-  Set<AssetAllocation> get assetAllocations => state.assetAllocations;
   DateTime? get startDateTime => state.startDateTime;
   DateTime? get endDateTime => state.endDateTime;
   Strategy? get strategy => state.strategy;

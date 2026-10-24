@@ -1,13 +1,14 @@
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/portfolio_schema.dart';
+import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:invest_agent/providers/portfolio_session.dart';
+import 'package:invest_agent/providers/strategy_provider.dart';
+import 'package:invest_agent/widgets/dialogs/strategy_dialog.dart';
 import 'package:money2/money2.dart';
 
-import '../../model/asset_config.dart';
 import '../../model/period_type.dart';
-import '../../providers/model_config.dart';
+import '../../providers/load_database_provider.dart';
 import '../utils/dropdownlist.dart';
 
 extension CurrencyExtension on Currency {
@@ -74,8 +75,6 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildMainContents(currentPortfolio, notifier),
-                const SizedBox(height: 8),
-                _selectAssetAllocations(currentPortfolio, notifier),
                 const SizedBox(height: 8),
                 _selectStrategy(currentPortfolio, notifier),
               ],
@@ -231,71 +230,41 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     );
   }
 
-  Widget _selectAssetAllocations(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+  Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+    final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
+    final strategies = strategiesAsync.value?.getItems() ?? [];
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: notifier.assetAllocations.length,
-      itemBuilder: (context, index) {
-        final allocation = notifier.assetAllocations.elementAt(index);
-        return _buildAssetAllocation(allocation, notifier);
-      },
+      itemCount: strategies.length,
+      itemBuilder: (BuildContext context, int index) {
+        final strategy = strategies[index];
+        return Card(child: ListTile(
+          title: Text(strategy.name),
+          subtitle: Text(strategy.type.name, style: const TextStyle(fontSize: 11)),
+          trailing: _buildTrailingStrategyActions(context, notifier, strategy)
+        ));
+      }
     );
   }
 
-  Widget _buildAssetAllocation(AssetAllocation allocation, PortfolioSession notifier) {
-    final assets = ref.watch(sortedAssetsProvider);
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ListTile(
-      dense: true,
-      leading: DropdownList<AssetConfig>(
-        onSelected: (AssetConfig asset) {
-          final currentAllocation = notifier.assetAllocations.firstWhereOrNull(
-             (allocation) => allocation.asset == asset);
-          if (currentAllocation == null) {
-            notifier.assetAllocations.add(AssetAllocation.of(asset: asset));
-          }
-        },
-        choiceType: allocation.asset,
-        choices: assets,
-        backgroundColor: Colors.transparent),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: TextEditingController(text: allocation.targetWeight.toString()),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Target weight'),
-            onChanged: (value) {
-              if (value.isEmpty) return;
-              final currentAllocation = allocation.copyWith(newTargetWeight: double.tryParse(value));
-              notifier.assetAllocations.remove(allocation);
-              notifier.assetAllocations.add(currentAllocation);
-           }),
-          const SizedBox(width: 8),
-          TextField(
-            controller: TextEditingController(text: allocation.assetSharesCount.toString()),
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Shares count'),
-            onChanged: (value) {
-              if (value.isEmpty) return;
-              final currentAllocation = allocation.copyWith(newAssetSharesCount: int.tryParse(value));
-              notifier.assetAllocations.remove(allocation);
-              notifier.assetAllocations.add(currentAllocation);
-          }),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: Icon(Icons.delete, color: colorScheme.error, size: 18),
-            tooltip: 'Delete asset allocation',
-            onPressed: () => notifier.assetAllocations.remove(allocation)
-          ),
-        ]
-      )
+  Widget? _buildTrailingStrategyActions(BuildContext context,
+      PortfolioSession notifier, Strategy strategy) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () => showStrategy(context, strategy, (updatedStrategy) {
+            if (updatedStrategy != null) {
+              ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
+                 .addEntry(updatedStrategy);
+              notifier.updateField((portfolio) => portfolio.copyWith(
+                  newStrategy: updatedStrategy));
+            }
+          })
+        )
+      ]
     );
-  }
-
-  Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
-    return Container();
   }
 }
