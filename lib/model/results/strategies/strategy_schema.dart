@@ -2,11 +2,8 @@ import 'dart:convert';
 
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
-import 'package:sealed_currencies/sealed_currencies.dart';
 
-import '../../../widgets/dialogs/asset_dialog.dart';
 import '../../asset_config.dart';
-import '../../period_type.dart';
 import 'mean_reversion.dart';
 
 class StrategySchema implements CacheSchema {
@@ -95,70 +92,32 @@ class Strategy extends Cache {
   final int id;
   final StrategyType type;
   final String name;
-  final double cash;
-  final FiatCurrencyEnum currency;
-  final PeriodType analysisPeriod;
-  final DateTime beginDate;
-  final DateTime endDate;
 
   static const int defaultId = -1;
-  static const double defaultBudget = 10000.0;
-  static const FiatCurrencyEnum defaultCurrency = FiatCurrencyEnum.pln;
-  static const PeriodType defaultPeriod = PeriodType.year;
 
-  Strategy({
-    required this.id,
-    required this.type,
-    required this.name,
-    this.cash = Strategy.defaultBudget,
-    this.currency = defaultCurrency,
-    this.analysisPeriod = defaultPeriod,
-    required this.beginDate,
-    required this.endDate}) : super.from([]);
+  Strategy({required this.id, required this.type, required this.name}) : super.from([]);
 
-  Strategy fillAssets(List<AssetConfig> assets) {
-    return this;
-  }
+  Strategy fillAssets(List<AssetConfig> assets) => this;
 
   factory Strategy.emptyStrategy() {
-    final firstAllowedDate = DateTime(2000);
-    return Strategy(
-      id: defaultId,
-      type: StrategyType.asset,
-      name: '',
-      beginDate: firstAllowedDate,
-      endDate: firstAllowedDate,
-    );
+    return Strategy(id: defaultId, type: StrategyType.asset, name: '');
   }
 
   Strategy copyWith({
     int? newId,
     String? newName,
-    StrategyType? newType,
-    double? newCash,
-    FiatCurrencyEnum? newCurrency,
-    PeriodType? newAnalysisPeriod,
-    DateTime? newBeginDate,
-    DateTime? newEndDate}) {
+    StrategyType? newType}) {
     return Strategy(
       id: newId ?? id,
       name: newName ?? name,
-      type: newType ?? type,
-      cash: newCash ?? cash,
-      currency: newCurrency ?? currency,
-      analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
-      beginDate: newBeginDate ?? beginDate,
-      endDate: newEndDate ?? endDate);
+      type: newType ?? type);
   }
 
   factory Strategy.of({int id = defaultId}) {
     return Strategy(
       id: id,
       type: StrategyType.empty,
-      name: '',
-      beginDate: DateTime.now(),
-      endDate: DateTime.now(),
-    );
+      name: '');
   }
 
   @override
@@ -175,27 +134,15 @@ class Strategy extends Cache {
       final jsonParamsString = item[3] as String;
       final jsonParams = jsonDecode(jsonParamsString) as Map<String, dynamic>;
 
-      // General strategy params
-      final cash = jsonParams['cash'] as double? ?? 10000.0;
-      final jsonCurrency = jsonParams['currency'] as String? ?? 'pln';
-      final currency = FiatCurrencyEnum.fromCurrency(FiatCurrency.maybeFromCode(jsonCurrency.toUpperCase()));
-      if (currency == null) {
-        throw Exception("Invalidate input currency: $jsonCurrency. It must tbe compatible to ISO 4217 code");
-      }
-      final analysisPeriod = PeriodType.values.firstWhere((e) => e.name == jsonParams['analysisPeriod'] as String);
-      final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-      final beginDate = DateTime.tryParse(jsonParams['beginDate'] as String) ?? epoch;
-      final endDate = DateTime.tryParse(jsonParams['endDate'] as String) ?? epoch;
-
       return switch(jsonType) {
         StrategyType.arbitrary =>
         throw UnimplementedError(),
         StrategyType.asset =>
         throw UnimplementedError(),
         StrategyType.gem =>
-          GemStrategyConfig.fromMap(strategyId, nameString, cash, currency, analysisPeriod, beginDate, endDate, jsonParams),
+          GemStrategyConfig.fromMap(strategyId, nameString, jsonParams),
         StrategyType.meanReversion =>
-          MeanReversionConfig.fromMap(strategyId, nameString, cash, currency, analysisPeriod, beginDate, endDate, jsonParams),
+          MeanReversionConfig.fromMap(strategyId, nameString, jsonParams),
         StrategyType.indexFundRebalancing =>
         throw UnimplementedError(),
         StrategyType.trendFollowing =>
@@ -209,18 +156,15 @@ class Strategy extends Cache {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "cash": cash,
-      "currency": currency.data.code,
-      "analysisPeriod": analysisPeriod.name,
-      "beginDate": beginDate.toIso8601String(),
-      "endDate": endDate.toIso8601String(),
+      "type": type.name,
+      "name": name
     };
   }
 
   bool isEmpty() => id == defaultId && type == StrategyType.empty;
 
   @override
-  List<Object?> get props => [id, type, name, cash, currency, analysisPeriod, beginDate, endDate];
+  List<Object?> get props => [id, type, name];
 
   @override
   bool operator ==(Object other) =>
@@ -229,24 +173,11 @@ class Strategy extends Cache {
     runtimeType == other.runtimeType &&
     id == other.id &&
     type == other.type &&
-    name == other.name &&
-    cash == other.cash &&
-    currency == other.currency &&
-    analysisPeriod == other.analysisPeriod &&
-    beginDate.isAtSameMomentAs(other.beginDate) &&
-    endDate.isAtSameMomentAs(other.endDate));
+    name == other.name);
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    type,
-    cash,
-    currency,
-    analysisPeriod,
-    beginDate,
-    endDate);
+  int get hashCode => Object.hash(id, name, type);
 
   @override
-  String toString() => "${type.name} $name ($id) - ${cash.toStringAsFixed(2)} ${currency.data.code} - ${beginDate.toIso8601String()} - ${endDate.toIso8601String()} - ${analysisPeriod.name}";
+  String toString() => "${type.name} $name ($id)";
 }

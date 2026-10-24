@@ -83,13 +83,7 @@ void main() {
         type: strategyType,
         name: strategyName,
         mainAsset: riskAsset,
-        momentumAsset: safeAsset,
-        cash: Strategy.defaultBudget,
-        currency: Strategy.defaultCurrency,
-        analysisPeriod: Strategy.defaultPeriod,
-        beginDate: DateTime.now(),
-        endDate: DateTime.now(),
-      );
+        momentumAsset: safeAsset);
 
       // Assert
       expect(strategy.id, strategyId);
@@ -117,11 +111,6 @@ void main() {
       const id = 101;
       const name = "My GEM Strategy";
       final params = {
-        "cash": 10000.0,
-        "currency": "pln",
-        "analysisPeriod": "year",
-        "beginDate": "2023-01-01",
-        "endDate": "2023-12-31",
         "main-asset": {
           "asset-type": "equity",
           "main-asset-id": 20,
@@ -134,13 +123,7 @@ void main() {
         }
       };
 
-      final strategy = GemStrategyConfig.fromMap(id, name,
-          Strategy.defaultBudget,
-          Strategy.defaultCurrency,
-          Strategy.defaultPeriod,
-          DateTime.parse("2023-01-01"),
-          DateTime.parse("2023-12-31"),
-          params);
+      final strategy = GemStrategyConfig.fromMap(id, name, params);
 
       expect(strategy.id, id);
       expect(strategy.name, name);

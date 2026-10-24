@@ -4,10 +4,8 @@ import 'package:invest_agent/providers/strategy_session.dart';
 import 'package:invest_agent/widgets/dialogs/strategy_config_gem.dart';
 import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart';
 
-import '../../model/period_type.dart';
 import '../../model/results/strategies/strategy_schema.dart';
 import '../utils/dropdown.dart';
-import 'asset_dialog.dart';
 
 Future<void> showStrategy(BuildContext context, Strategy? strategy,
     Function(Strategy? strategy) onSave) async {
@@ -28,21 +26,17 @@ class StrategyDialog extends ConsumerStatefulWidget {
 }
 class StrategyDialogState extends ConsumerState<StrategyDialog> {
   late final TextEditingController controllerName;
-  late final TextEditingController controllerBudget;
   bool addingParameter = false;
-  bool _isDateRange = false;
 
   @override
   void initState() {
     super.initState();
     controllerName = TextEditingController(text:  widget.strategy?.name ?? '');
-    controllerBudget = TextEditingController(text:  widget.strategy?.cash.toStringAsFixed(2) ?? Strategy.defaultBudget.toStringAsFixed(2));
   }
 
   @override
   void dispose() {
     controllerName.dispose();
-    controllerBudget.dispose();
     super.dispose();
   }
 
@@ -78,11 +72,9 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
         ElevatedButton(
           onPressed: () {
             final name = controllerName.text.trim();
-            final cash = double.tryParse(controllerBudget.text) ?? Strategy.defaultBudget;
-
             if (name.isEmpty || currentStrategy.type == StrategyType.empty) return;
 
-            notifier.updateField((s) => s.copyWith(newName: name, newCash: cash));
+            notifier.updateField((s) => s.copyWith(newName: name));
 
             final finalizedStrategy = ref.read(strategySessionProvider(widget.strategy));
             Navigator.of(context).pop(finalizedStrategy);
@@ -101,93 +93,7 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
           controller: controllerName,
           decoration: const InputDecoration(labelText: 'Strategy Name'),
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(flex: 2,
-              child: TextField(
-                controller: controllerBudget,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Budget'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(flex: 1,
-              child: Dropdown<FiatCurrencyEnum>(
-                onSelected: (FiatCurrencyEnum c) => notifier.updateField(
-                  (strategy) => strategy.copyWith(newCurrency: c)),
-                choiceType: currentStrategy.currency,
-                choices: FiatCurrencyEnum.values,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _selectAnalysisPeriod(),
-        const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-              OutlinedButton(
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: notifier.beginDate,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(2100),
-                  );
-                  if (date != null) {
-                    notifier.updateField((strategy) => strategy.copyWith(newBeginDate: date));
-                  }
-                },
-                child: Text("Start: ${notifier.beginDate.toIso8601String().split('T')[0]}"),
-              ),
-             const SizedBox(width: 6),
-             if (_isDateRange)
-               OutlinedButton(
-                  onPressed: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: notifier.endDate,
-                      firstDate: notifier.beginDate,
-                      lastDate: DateTime(2100),
-                    );
-                    if (date != null) {
-                      notifier.updateField((strategy) => strategy.copyWith(newEndDate: date));
-                    }
-                  },
-                  child: Text("End: ${notifier.endDate.toIso8601String().split('T')[0]}"),
-                ),
-            if (!_isDateRange)
-              Expanded(flex: 1,
-                child: DropdownButtonFormField<PeriodType>(
-                  decoration: const InputDecoration(labelText: "Period analysis"),
-                  initialValue: notifier.analysisPeriod,
-                  items: PeriodType.values.map((c) =>
-                  DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
-                  ).toList(),
-                  onChanged: (val) {
-                    if (val == null) return;
-                    notifier.updateField((strategy) => strategy.copyWith(newAnalysisPeriod: val));
-                  }
-                ),
-              ),
-          ],
-        ),
       ]
-    );
-  }
-
-  Widget _selectAnalysisPeriod() {
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text("Period", style: Theme.of(context).textTheme.labelLarge),
-          Switch(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              value: _isDateRange,
-              onChanged: (bool value) => setState(() => _isDateRange = value)),
-          Text("Date range", style: Theme.of(context).textTheme.labelLarge),
-        ]
     );
   }
 

@@ -1,10 +1,8 @@
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
-import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
 
 import '../../cache_schema.dart';
-import '../../period_type.dart';
 
 class MeanReversionConfig extends Strategy {
   final AssetConfig asset;
@@ -14,11 +12,6 @@ class MeanReversionConfig extends Strategy {
     super.type = StrategyType.meanReversion,
     required super.id,
     required super.name,
-    required super.cash,
-    required super.currency,
-    required super.analysisPeriod,
-    required super.beginDate,
-    required super.endDate,
     required this.asset,
     required this.indicator});
 
@@ -27,18 +20,12 @@ class MeanReversionConfig extends Strategy {
   }
 
   factory MeanReversionConfig.emptyStrategy() {
-    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
     return MeanReversionConfig(
       id: Strategy.defaultId,
       asset: AssetConfig.defaultAsset(),
       type: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
-      name: '',
-      cash: Strategy.defaultBudget,
-      currency: Strategy.defaultCurrency,
-      analysisPeriod: Strategy.defaultPeriod,
-      beginDate: epoch,
-      endDate: epoch);
+      name: '');
   }
 
   @override
@@ -51,11 +38,6 @@ class MeanReversionConfig extends Strategy {
   /*
   {
     "asset": 20,
-    "cash"; 10000.0
-    "currency|; "pln",
-    "analysisPeriod"; "year",
-    "beginDate"; "2023-01-01",
-    "endDate|; "2023-12-31",
     "indicator": [
       {
         "sma": {
@@ -89,11 +71,8 @@ class MeanReversionConfig extends Strategy {
   }
    */
   @override
-  factory MeanReversionConfig.fromMap(int id, String name,
-      double cash,
-      FiatCurrencyEnum currency,
-      PeriodType analysisPeriod,
-      DateTime beginDate, DateTime endDate,
+  factory MeanReversionConfig.fromMap(
+      int id, String name,
       Map<String, dynamic> params) {
 
     final assetId = params['asset'] as int? ?? 0;
@@ -130,11 +109,6 @@ class MeanReversionConfig extends Strategy {
     return MeanReversionConfig(
       id: id,
       name: name,
-      cash: cash,
-      currency: currency,
-      analysisPeriod: analysisPeriod,
-      beginDate: beginDate,
-      endDate: endDate,
       asset: AssetConfig.of(id: assetId),
       indicator: indicator,
     );
@@ -144,11 +118,6 @@ class MeanReversionConfig extends Strategy {
     return MeanReversionConfig(
       id: strategy.id,
       name: strategy.name,
-      cash: strategy.cash,
-      currency: strategy.currency,
-      analysisPeriod: strategy.analysisPeriod,
-      beginDate: strategy.beginDate,
-      endDate: strategy.endDate,
       type: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
       asset: AssetConfig.defaultAsset(),
@@ -161,23 +130,13 @@ class MeanReversionConfig extends Strategy {
     String? newName,
     StrategyType? newType,
     AssetConfig? newAsset,
-    double? newCash,
-    FiatCurrencyEnum? newCurrency,
-    PeriodType? newAnalysisPeriod,
-    DateTime? newBeginDate,
-    DateTime? newEndDate,
     Indicator? newIndicator}) {
     return MeanReversionConfig(
         id: newId ?? id,
         asset: newAsset ?? asset,
         type: StrategyType.meanReversion,
         indicator: newIndicator ?? indicator,
-        name: newName ?? name,
-        cash: newCash ?? cash,
-        currency: newCurrency ?? currency,
-        analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
-        beginDate: newBeginDate ?? beginDate,
-        endDate: newEndDate ?? endDate);
+        name: newName ?? name);
   }
 
   @override

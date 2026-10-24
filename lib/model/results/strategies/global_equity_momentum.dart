@@ -1,19 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
-import 'package:invest_agent/widgets/dialogs/asset_dialog.dart';
 
 import '../../cache_schema.dart';
-import '../../period_type.dart';
 
 /*
 Note: The assets' prices are use to compute this strategy.
   {
-    "cash"; 10000.0
-    "currency|; "pln",
-    "analysisPeriod"; "year",
-    "beginDate"; "2023-01-01",
-    "endDate|; "2023-12-31",
     "main-asset": {
       "asset-type": "equity",
       "main-asset-id": 20,
@@ -109,11 +102,6 @@ class GemStrategyConfig extends Strategy {
     required super.id,
     required super.type,
     required super.name,
-    required super.cash,
-    required super.currency,
-    required super.analysisPeriod,
-    required super.beginDate,
-    required super.endDate,
     required this.mainAsset,
     required this.momentumAsset,
     this.inflation = defaultInflation,
@@ -145,16 +133,9 @@ class GemStrategyConfig extends Strategy {
   }
 
   factory GemStrategyConfig.emptyStrategy() {
-    final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-
     return GemStrategyConfig(
       id: Strategy.defaultId,
       type: StrategyType.gem,
-      cash: Strategy.defaultBudget,
-      currency: Strategy.defaultCurrency,
-      beginDate: epoch,
-      endDate: epoch,
-      analysisPeriod: Strategy.defaultPeriod,
       name: '',
       inflation: defaultInflation,
       absoluteMomentumInterval: defaultIntervalInMonth,
@@ -171,11 +152,6 @@ class GemStrategyConfig extends Strategy {
   @override
   Strategy copyWith({int? newId, String? newName,
     StrategyType? newType,
-    double? newCash,
-    FiatCurrencyEnum? newCurrency,
-    PeriodType? newAnalysisPeriod,
-    DateTime? newBeginDate,
-    DateTime? newEndDate,
     GemAsset? newMainAsset,
     GemAsset? newMomentumAsset,
     double? newInflation,
@@ -187,11 +163,6 @@ class GemStrategyConfig extends Strategy {
       id: newId ?? id,
       name: newName ?? name,
       type: newType ?? type,
-      cash: newCash ?? cash,
-      currency: newCurrency ?? currency,
-      analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
-      beginDate: newBeginDate ?? beginDate,
-      endDate: newEndDate ?? endDate,
       mainAsset: newMainAsset ?? mainAsset,
       momentumAsset: newMomentumAsset ?? momentumAsset,
       inflation: newInflation ?? inflation,
@@ -202,11 +173,7 @@ class GemStrategyConfig extends Strategy {
 
   @override
   factory GemStrategyConfig.fromMap(int id, String name,
-      double cash,
-      FiatCurrencyEnum currency,
-      PeriodType analysisPeriod,
-      DateTime beginDate, DateTime endDate,
-      Map<String, dynamic> params) {
+    Map<String, dynamic> params) {
 
     final jsonMainAsset = params['main-asset'] as Map<String, dynamic>;
     final jsonMomentumAsset = params['momentum-assets'] as Map<String, dynamic>;
@@ -215,8 +182,6 @@ class GemStrategyConfig extends Strategy {
     final jsonRelativeRebalanceIntervalInMonth = params['relative-momentum'] as int;
 
     return GemStrategyConfig(id: id, type: StrategyType.gem, name: name,
-      cash: cash, currency: currency, analysisPeriod: analysisPeriod,
-      beginDate: beginDate, endDate: endDate,
       mainAsset: GemAsset.fromMap(jsonMainAsset),
       momentumAsset: GemAsset.fromMap(jsonMomentumAsset),
       inflation: jsonInflation,
@@ -229,11 +194,6 @@ class GemStrategyConfig extends Strategy {
     return GemStrategyConfig(
       id: strategy.id,
       name: strategy.name,
-      cash: strategy.cash,
-      currency: strategy.currency,
-      analysisPeriod: strategy.analysisPeriod,
-      beginDate: strategy.beginDate,
-      endDate: strategy.endDate,
       type: StrategyType.gem,
       mainAsset: GemAsset(
         type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
