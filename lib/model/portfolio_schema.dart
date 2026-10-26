@@ -52,7 +52,7 @@ class PortfolioConfigSchema implements CacheSchema {
     final portfolioConfig = cache as PortfolioConfig;
 
     return '''
-     INSERT INTO $tableName (id, portfolio_name, portfolio_desc, beginDate, endDate, analysisPeriod, allocations, strategy, risk_free_rate, initial_capital, currency)
+     INSERT INTO $tableName (id, portfolio_name, portfolio_desc, beginDate, endDate, analysisPeriod, risk_free_rate, initial_capital, currency, strategy)
       VALUES (
       nextval('$tableSequenceName'),
       '${portfolioConfig.portfolioName}',

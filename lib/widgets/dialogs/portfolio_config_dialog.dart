@@ -87,13 +87,12 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
             onPressed: () {
               final name = controllerName.text.trim();
               final capital = double.tryParse(controllerCapital.text) ?? PortfolioConfig.defaultCapital.amount.toDecimal().toDouble();
-              final capitalCurrency = controllerCapital.text.split('.').last.toUpperCase();
 
               if (name.isEmpty || capital < 0.0) return;
 
               notifier.updateField((s) => s.copyWith(
                   newName: name, newDesc: controllerDesc.text,
-                  newInitialCapital: Money.fromNum(capital, isoCode: capitalCurrency
+                  newInitialCapital: Money.fromNum(capital, isoCode: currentPortfolio.initialCapital.currency.isoCode,
                   )));
 
               final finalizedPortfolio = ref.read(portfolioSessionProvider(widget.portfolioConfig));
@@ -105,6 +104,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     );
   }
 
+  // -- General contents
   Widget _buildMainContents(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -229,24 +229,55 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         ]
     );
   }
+  // -- General contents - END
 
   Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
-    final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
-    final strategies = strategiesAsync.value?.getItems() ?? [];
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: strategies.length,
-      itemBuilder: (BuildContext context, int index) {
-        final strategy = strategies[index];
-        return Card(child: ListTile(
-          title: Text(strategy.name),
-          subtitle: Text(strategy.type.name, style: const TextStyle(fontSize: 11)),
-          trailing: _buildTrailingStrategyActions(context, notifier, strategy)
-        ));
-      }
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (notifier.strategy == null)
+          ElevatedButton.icon(
+            onPressed: () => _openStrategyDialog(context, notifier),
+            icon: const Icon(Icons.add),
+            label: const Text('Add strategy'),
+          ),
+        if (notifier.strategy != null)
+          Card(child: ListTile(
+            title: Text(notifier.strategy!.name),
+            subtitle: Text(notifier.strategy!.type.name, style: const TextStyle(fontSize: 11)),
+            trailing: _buildTrailingStrategyActions(context, notifier, notifier.strategy!),
+          ))
+      ],
     );
   }
+
+  Future<void> _openStrategyDialog(BuildContext context, PortfolioSession notifier) async {
+    final result = await showDialog<Strategy>(
+      context: context,
+      builder: (context) => StrategyDialog(strategy: notifier.strategy),
+    );
+
+    if (result != null) {
+      notifier.updateField((portfolio) => portfolio.copyWith(newStrategy: result));
+    }
+  }
+
+  // Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+  //   final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
+  //   final strategies = strategiesAsync.value?.getItems() ?? [];
+  //   return ListView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     itemCount: strategies.length,
+  //     itemBuilder: (BuildContext context, int index) {
+  //       final strategy = strategies[index];
+  //       return Card(child: ListTile(
+  //         title: Text(strategy.name),
+  //         subtitle: Text(strategy.type.name, style: const TextStyle(fontSize: 11)),
+  //         trailing: _buildTrailingStrategyActions(context, notifier, strategy)
+  //       ));
+  //     }
+  //   );
+  // }
 
   Widget? _buildTrailingStrategyActions(BuildContext context,
       PortfolioSession notifier, Strategy strategy) {
