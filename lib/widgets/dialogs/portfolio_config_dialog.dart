@@ -243,7 +243,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         if (notifier.strategy != null)
           Card(child: ListTile(
             title: Text(notifier.strategy!.name),
-            subtitle: Text(notifier.strategy!.type.name, style: const TextStyle(fontSize: 11)),
+            subtitle: _viewStrategyContents(context, notifier.strategy!),
             trailing: _buildTrailingStrategyActions(context, notifier, notifier.strategy!),
           ))
       ],
@@ -260,24 +260,6 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
       notifier.updateField((portfolio) => portfolio.copyWith(newStrategy: result));
     }
   }
-
-  // Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
-  //   final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
-  //   final strategies = strategiesAsync.value?.getItems() ?? [];
-  //   return ListView.builder(
-  //     shrinkWrap: true,
-  //     physics: const NeverScrollableScrollPhysics(),
-  //     itemCount: strategies.length,
-  //     itemBuilder: (BuildContext context, int index) {
-  //       final strategy = strategies[index];
-  //       return Card(child: ListTile(
-  //         title: Text(strategy.name),
-  //         subtitle: Text(strategy.type.name, style: const TextStyle(fontSize: 11)),
-  //         trailing: _buildTrailingStrategyActions(context, notifier, strategy)
-  //       ));
-  //     }
-  //   );
-  // }
 
   Widget? _buildTrailingStrategyActions(BuildContext context,
       PortfolioSession notifier, Strategy strategy) {
@@ -296,6 +278,29 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           })
         )
       ]
+    );
+  }
+
+  Widget _viewStrategyContents(BuildContext context, Strategy strategy) {
+    final assets = strategy.getAssetAllocations();
+
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(strategy.type.name, style: Theme.of(context).textTheme.labelLarge),
+          const Divider(),
+          ...assets.map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Row(
+              children: [
+                Expanded(child: Text(item.asset.symbol, style: const TextStyle(fontWeight: FontWeight.bold))),
+                Text("${item.targetWeight}%"),
+                const SizedBox(width: 16),
+                Text("Shares: ${item.assetSharesCount}"),
+              ],
+            ),
+          )),
+        ]
     );
   }
 }

@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:invest_agent/model/cache_schema.dart';
+import 'package:invest_agent/model/results/asset_allocation.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
+import 'package:invest_agent/model/results/strategies/mean_reversion.dart';
 
 import '../../asset_config.dart';
-import 'mean_reversion.dart';
 
 class StrategySchema implements CacheSchema {
   const StrategySchema();
@@ -95,7 +96,8 @@ class Strategy extends Cache {
 
   static const int defaultId = -1;
 
-  Strategy({required this.id, required this.type, required this.name}) : super.from([]);
+  Strategy({required this.id, required this.type, required this.name})
+      : super.from([]);
 
   Strategy fillAssets(List<AssetConfig> assets) => this;
 
@@ -108,16 +110,16 @@ class Strategy extends Cache {
     String? newName,
     StrategyType? newType}) {
     return Strategy(
-      id: newId ?? id,
-      name: newName ?? name,
-      type: newType ?? type);
+        id: newId ?? id,
+        name: newName ?? name,
+        type: newType ?? type);
   }
 
   factory Strategy.of({int id = defaultId}) {
     return Strategy(
-      id: id,
-      type: StrategyType.empty,
-      name: '');
+        id: id,
+        type: StrategyType.empty,
+        name: '');
   }
 
   @override
@@ -140,9 +142,9 @@ class Strategy extends Cache {
         StrategyType.asset =>
         throw UnimplementedError(),
         StrategyType.gem =>
-          GemStrategyConfig.fromMap(strategyId, nameString, jsonParams),
+            GemStrategyConfig.fromMap(strategyId, nameString, jsonParams),
         StrategyType.meanReversion =>
-          MeanReversionConfig.fromMap(strategyId, nameString, jsonParams),
+            MeanReversionConfig.fromMap(strategyId, nameString, jsonParams),
         StrategyType.indexFundRebalancing =>
         throw UnimplementedError(),
         StrategyType.trendFollowing =>
@@ -168,16 +170,18 @@ class Strategy extends Cache {
 
   @override
   bool operator ==(Object other) =>
-    (identical(this, other)) ||
-    (other is Strategy &&
-    runtimeType == other.runtimeType &&
-    id == other.id &&
-    type == other.type &&
-    name == other.name);
+      (identical(this, other)) ||
+          (other is Strategy &&
+              runtimeType == other.runtimeType &&
+              id == other.id &&
+              type == other.type &&
+              name == other.name);
 
   @override
   int get hashCode => Object.hash(id, name, type);
 
   @override
   String toString() => "${type.name} $name ($id)";
+
+  List<AssetAllocation> getAssetAllocations() => [];
 }

@@ -3,6 +3,7 @@ import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 
 import '../../cache_schema.dart';
+import '../asset_allocation.dart';
 
 class MeanReversionConfig extends Strategy {
   final AssetConfig asset;
@@ -147,6 +148,15 @@ class MeanReversionConfig extends Strategy {
       ? [{indicator.type.shortName.toLowerCase(): indicator.parameters}]
       : []
   };
+
+  @override
+  List<AssetAllocation> getAssetAllocations() {
+    return [
+      AssetAllocation(
+        asset: asset, targetWeight: 100, assetSharesCount: 0,
+        indicators: {indicator}
+      )];
+  }
 
   @override
   bool operator ==(Object other) =>
