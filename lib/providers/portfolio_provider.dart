@@ -27,12 +27,20 @@ class PortfolioNotifier extends _$PortfolioNotifier
     final assets = await ref.watch(assetsLoaderProvider.future);
 
     mixinDbPath = dbPathResult;
-// Watch the underlying cache provider to react to database changes automatically
+    // Watch the underlying cache provider to react to database changes automatically
     final items = await ref.watch(cacheProvider<PortfolioConfig,
         PortfolioConfigSchema>(mixinSchema, mixinDbPath).future);
 
     // Fill strategy objects with asset metadata
     final filledItems = items.map((s) => s.fillAssets(assets)).toList();
     return AnalysisState(cachedConfig: filledItems);
+  }
+
+  @override
+  Future<List<PortfolioConfig>> fetchAll() async {
+    final items = await super.fetchAll();
+    if(!ref.mounted)  return items;
+    final assets = ref.read(assetsLoaderProvider).value ?? const [];
+    return items.map((s) => s.fillAssets(assets)).toList();
   }
 }

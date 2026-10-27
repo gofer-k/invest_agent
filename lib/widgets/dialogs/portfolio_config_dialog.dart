@@ -87,13 +87,14 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
             onPressed: () {
               final name = controllerName.text.trim();
               final capital = double.tryParse(controllerCapital.text) ?? PortfolioConfig.defaultCapital.amount.toDecimal().toDouble();
+              final riskFreeRate = double.tryParse(controllerRiskFreeRate.text) ?? PortfolioConfig.defaultRiskFreeRate;
 
               if (name.isEmpty || capital < 0.0) return;
 
               notifier.updateField((s) => s.copyWith(
-                  newName: name, newDesc: controllerDesc.text,
-                  newInitialCapital: Money.fromNum(capital, isoCode: currentPortfolio.initialCapital.currency.isoCode,
-                  )));
+                newName: name, newDesc: controllerDesc.text,
+                newInitialCapital: Money.fromNum(capital, isoCode: currentPortfolio.initialCapital.currency.isoCode),
+                newRiskFreeRatePerYear: riskFreeRate));
 
               final finalizedPortfolio = ref.read(portfolioSessionProvider(widget.portfolioConfig));
               Navigator.of(context).pop(finalizedPortfolio);

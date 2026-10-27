@@ -18,18 +18,10 @@ class PortfolioPanel extends ConsumerStatefulWidget {
 class _PortfolioState extends ConsumerState<PortfolioPanel> {
   PortfolioConfig? selectedPortfolio;
 
-  final portfolioDetailsProvider = Provider.family<String, PortfolioConfig>((ref, portfolio) {
-    // Use watch so this updates if the model manager or assets change
-    // final allAssets = ref.watch(sortedAssetsProvider);
-    // TODO: implement this
-    return "";
-  });
-
-
   @override
   Widget build(BuildContext context) {
     final portfolioAsync = ref.watch(portfolioProvider(CacheKeyType.analysisCache));
-    final portfolios = portfolioAsync.whenData((portfolios) => portfolios).value?.cachedConfig ?? [];
+    final portfolios = portfolioAsync.value?.getItems() ?? [];
 
     return Shrinkable(
       title: "Portfolios",

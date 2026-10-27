@@ -159,11 +159,11 @@ class PortfolioConfig implements Cache {
     }
 
     final epoch = DateTime.fromMillisecondsSinceEpoch(0);
-    final beginDate = DateTime.tryParse(item[3] as String) ?? epoch;
-    final endDate = DateTime.tryParse(item[4] as String) ?? epoch;
+    final beginDate = DateTime.tryParse(item[3].toString()) ?? epoch;
+    final endDate = DateTime.tryParse(item[4].toString()) ?? epoch;
 
     // HEAL: If the DB contains "FiatCurrencyEnum.pln", extract just "PLN"
-    String currencyCode = (item[9] as String? ?? 'PLN');
+    String currencyCode = (item[8] as String? ?? 'PLN');
     if (currencyCode.contains('.')) {
       currencyCode = currencyCode.split('.').last.toUpperCase();
     } else {
@@ -172,7 +172,7 @@ class PortfolioConfig implements Cache {
 
     final capital = Money.fromNum(item[7] as double? ?? 10000.0, isoCode: currencyCode);
 
-    final jsonStrategy = jsonDecode(item[10] as String) as Map<String, dynamic>;
+    final jsonStrategy = jsonDecode(item[9] as String) as Map<String, dynamic>;
 
     return PortfolioConfig(
       id: item[0] as int?,
@@ -183,7 +183,7 @@ class PortfolioConfig implements Cache {
       analysisPeriod: PeriodType.values.firstWhereOrNull((e) => e.name == item[5] as String),
       riskFreeRatePerYear: (item[6] as num? ?? defaultRiskFreeRate).toDouble(),
       initialCapital: capital,
-      strategy: Strategy.from(jsonStrategy.entries.toList())
+      strategy: Strategy.from([jsonStrategy])
     );
   }
 

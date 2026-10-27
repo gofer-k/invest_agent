@@ -3,6 +3,7 @@ import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 
 import '../../cache_schema.dart';
+import '../asset_allocation.dart';
 
 /*
 Note: The assets' prices are use to compute this strategy.
@@ -216,6 +217,15 @@ class GemStrategyConfig extends Strategy {
     "main-asset": mainAsset.toMap(),
     "momentum-assets": momentumAsset.toMap()
   };
+
+  @override
+  List<AssetAllocation> getAssetAllocations() {
+    return [
+      AssetAllocation(asset: mainAsset.asset, targetWeight: 1, assetSharesCount: 0),
+      AssetAllocation(asset: momentumAsset.asset, targetWeight: 0, assetSharesCount: 0),
+      // TODO: Add support for supporting assets
+    ];
+  }
 
   @override
   bool operator ==(Object other) =>

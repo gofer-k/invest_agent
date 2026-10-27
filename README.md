@@ -48,7 +48,7 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ### TODO:
 ## - support user strategies
-- display portfolio strategies:
+- display portfolio strategies (proceed on):
   - shrinkable strategy config
   - add/edit/remove strategy
   - asset's indicators (multi chart configs)

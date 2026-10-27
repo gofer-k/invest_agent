@@ -12,15 +12,16 @@ final class LoggerRiverpod extends ProviderObserver{
     // 'indicatorResultProvider',
     // 'multiChartProvider',
     // 'multiChartsByProvider',
+    // 'portfolioProvider'
   ];
   @override
   void didAddProvider(ProviderObserverContext context, Object? value) {
     if (kDebugMode && _loggingProviders.contains(context.provider.name)) {
       log('''
     {
-    "added": "${context.provider.name}",
+    "added": "${context.provider.name}",    
     "argument:": "${context.provider.argument}",
-    "value": "$value",
+    "value": "$value",    
     }
     ''');
     }
