@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
@@ -48,7 +49,10 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     super.initState();
     controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
     controllerDesc = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
-    controllerRiskFreeRate = TextEditingController(text: widget.portfolioConfig?.riskFreeRatePerYear.toString() ?? '');
+
+    final riskFreeRate = widget.portfolioConfig?.riskFreeRatePerYear ?? PortfolioConfig.defaultRiskFreeRate;
+    controllerRiskFreeRate = TextEditingController(text: riskFreeRate.toStringAsFixed(2));
+
     controllerCapital = TextEditingController(
       text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
   }
@@ -126,6 +130,9 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           controller: controllerRiskFreeRate,
           keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
           decoration: const InputDecoration(labelText: 'Risk free rate'),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d{0,2}')),
+          ],
         ),
         const SizedBox(height: 8),
         _analysisPeriod(currentPortfolio, notifier),
@@ -142,6 +149,9 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
             controller: controllerCapital,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(labelText: 'Initial Capital'),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
           ),
         ),
         const SizedBox(width: 8),
