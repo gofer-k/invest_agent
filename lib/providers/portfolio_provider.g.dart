@@ -54,7 +54,7 @@ final class PortfolioNotifierProvider
   }
 }
 
-String _$portfolioNotifierHash() => r'5e489441d28457a7edb67acc72775576b277c95e';
+String _$portfolioNotifierHash() => r'd7cd797636002e67d2548f019fc9de6f04208278';
 
 final class PortfolioNotifierFamily extends $Family
     with

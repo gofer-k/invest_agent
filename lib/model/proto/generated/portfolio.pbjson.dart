@@ -250,14 +250,6 @@ const EvaluatePortfolioRequest$json = {
       '10': 'endDate'
     },
     {
-      '1': 'allocations',
-      '3': 4,
-      '4': 3,
-      '5': 11,
-      '6': '.trading.portfolio.analytics.AssetAllocation',
-      '10': 'allocations'
-    },
-    {
       '1': 'strategy_config',
       '3': 5,
       '4': 1,
@@ -273,10 +265,9 @@ final $typed_data.Uint8List evaluatePortfolioRequestDescriptor = $convert.base64
     'ChhFdmFsdWF0ZVBvcnRmb2xpb1JlcXVlc3QSRAoJcG9ydGZvbGlvGAEgASgLMiYudHJhZGluZy'
     '5wb3J0Zm9saW8uYW5hbHl0aWNzLlBvcnRmb2xpb1IJcG9ydGZvbGlvEjkKCnN0YXJ0X2RhdGUY'
     'AiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUglzdGFydERhdGUSNQoIZW5kX2RhdG'
-    'UYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgdlbmREYXRlEk4KC2FsbG9jYXRp'
-    'b25zGAQgAygLMiwudHJhZGluZy5wb3J0Zm9saW8uYW5hbHl0aWNzLkFzc2V0QWxsb2NhdGlvbl'
-    'ILYWxsb2NhdGlvbnMSVAoPc3RyYXRlZ3lfY29uZmlnGAUgASgLMisudHJhZGluZy5wb3J0Zm9s'
-    'aW8uYW5hbHl0aWNzLlN0cmF0ZWd5Q29uZmlnUg5zdHJhdGVneUNvbmZpZw==');
+    'UYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wUgdlbmREYXRlElQKD3N0cmF0ZWd5'
+    'X2NvbmZpZxgFIAEoCzIrLnRyYWRpbmcucG9ydGZvbGlvLmFuYWx5dGljcy5TdHJhdGVneUNvbm'
+    'ZpZ1IOc3RyYXRlZ3lDb25maWc=');
 
 @$core.Deprecated('Use evaluatePortfolioResponseDescriptor instead')
 const EvaluatePortfolioResponse$json = {

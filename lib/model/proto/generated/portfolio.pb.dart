@@ -650,14 +650,12 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
     Portfolio? portfolio,
     $3.Timestamp? startDate,
     $3.Timestamp? endDate,
-    $core.Iterable<AssetAllocation>? allocations,
     StrategyConfig? strategyConfig,
   }) {
     final result = create();
     if (portfolio != null) result.portfolio = portfolio;
     if (startDate != null) result.startDate = startDate;
     if (endDate != null) result.endDate = endDate;
-    if (allocations != null) result.allocations.addAll(allocations);
     if (strategyConfig != null) result.strategyConfig = strategyConfig;
     return result;
   }
@@ -682,8 +680,6 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
         subBuilder: $3.Timestamp.create)
     ..aOM<$3.Timestamp>(3, _omitFieldNames ? '' : 'endDate',
         subBuilder: $3.Timestamp.create)
-    ..pPM<AssetAllocation>(4, _omitFieldNames ? '' : 'allocations',
-        subBuilder: AssetAllocation.create)
     ..aOM<StrategyConfig>(5, _omitFieldNames ? '' : 'strategyConfig',
         subBuilder: StrategyConfig.create)
     ..hasRequiredFields = false;
@@ -741,19 +737,16 @@ class EvaluatePortfolioRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   $3.Timestamp ensureEndDate() => $_ensure(2);
 
-  @$pb.TagNumber(4)
-  $pb.PbList<AssetAllocation> get allocations => $_getList(3);
-
   @$pb.TagNumber(5)
-  StrategyConfig get strategyConfig => $_getN(4);
+  StrategyConfig get strategyConfig => $_getN(3);
   @$pb.TagNumber(5)
   set strategyConfig(StrategyConfig value) => $_setField(5, value);
   @$pb.TagNumber(5)
-  $core.bool hasStrategyConfig() => $_has(4);
+  $core.bool hasStrategyConfig() => $_has(3);
   @$pb.TagNumber(5)
   void clearStrategyConfig() => $_clearField(5);
   @$pb.TagNumber(5)
-  StrategyConfig ensureStrategyConfig() => $_ensure(4);
+  StrategyConfig ensureStrategyConfig() => $_ensure(3);
 }
 
 /// Response payload containing completed analytics compilation

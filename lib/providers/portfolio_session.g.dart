@@ -58,7 +58,7 @@ final class PortfolioSessionProvider
   }
 }
 
-String _$portfolioSessionHash() => r'515b051e377a14b1070c20074dbae2c2460c57db';
+String _$portfolioSessionHash() => r'47d848f2d96c1964a74733b17f2e0d8b346eb542';
 
 final class PortfolioSessionFamily extends $Family
     with

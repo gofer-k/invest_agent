@@ -48,16 +48,18 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ### TODO:
 ## - support user strategies
-- display portfolio strategies (proceed on):
-  - shrinkable strategy config
-  - add/edit/remove strategy
+- display portfolio strategies (proceed on): 
+  - improve portfolio grpc api
+  - pass portfolio data to the backend service (Python)
+  - refactor the backend's portfolio evaluation's computation to the improved grpc api
+  - handle portfolio's results in the frontend
+  - display a portfolio's results in the frontend
   - asset's indicators (multi chart configs)
 
 - display vertical multi chart's bar
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
-- crud strategy UI operations
 - extend assets config for assets type type (equity, bonds, regions: usa, acits, emi, pol) 
 - support customizable interval for chart ?
 - display candles signals

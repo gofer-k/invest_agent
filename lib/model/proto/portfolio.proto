@@ -52,7 +52,7 @@ message AssetAllocation {
   int32 asset_id = 1;
   double target_weight = 2; // Represented as a decimal (e.g., 0.40 for 40%)
   int32 asset_shares_count = 3; // Opt-in/out number of holding asset's share units
-  repeated trading.price.IndexPriceItem price = 4;
+  repeated trading.price.IndexPriceItem price = 4;  // Historical price data for the asset (IndexPriceItem.close price)
 }
 
 // Configuration parameters for the algorithmic execution
@@ -96,9 +96,7 @@ message EvaluatePortfolioRequest {
   Portfolio portfolio = 1;
   google.protobuf.Timestamp start_date = 2;
   google.protobuf.Timestamp end_date = 3;
-  repeated AssetAllocation allocations = 4;
-  StrategyConfig strategy_config = 5;  
-  //google.type.Money capital_params = 7;
+  StrategyConfig strategy_config = 5;
 }
 
 // Response payload containing completed analytics compilation

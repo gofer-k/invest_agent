@@ -9,6 +9,7 @@ import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
 
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
+import '../model/proto/logging_interceptor.dart';
 import '../model/results/indicator/bollinger_bands_result.dart';
 import '../model/results/indicator/ema_result.dart';
 import '../model/results/indicator/kst_result.dart';
@@ -38,26 +39,6 @@ final String host = String.fromEnvironment(
   'GRPC_HOST', 
   defaultValue: Platform.isAndroid ? '10.0.2.2' : 'localhost'
 );
-
-/// Interceptor to log raw gRPC traffic for verification
-class GrpcLoggingInterceptor implements ClientInterceptor {
-  @override
-  ResponseStream<R> interceptStreaming<Q, R>(
-      ClientMethod<Q, R> method, Stream<Q> requests, CallOptions options, ClientStreamingInvoker<Q, R> invoker) {
-    log("gRPC STREAM CALL: ${method.path}");
-    return invoker(method, requests.map((q) {
-      // log("gRPC SENDING MESSAGE: $q");log("gRPC SENDING MESSAGE: $q");
-      log("gRPC SENDING MESSAGE");
-      return q;
-    }), options);
-  }
-
-  @override
-  ResponseFuture<R> interceptUnary<Q, R>(ClientMethod<Q, R> method, Q request, CallOptions options, ClientUnaryInvoker<Q, R> invoker) {
-    log("gRPC UNARY CALL: ${method.path} | REQ: $request");
-    return invoker(method, request, options);
-  }
-}
 
 @riverpod
 TradingServiceClient tradingClient(Ref ref) {
