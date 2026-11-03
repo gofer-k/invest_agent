@@ -6,15 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grpc/grpc.dart';
 import 'package:invest_agent/providers/price_controller.dart';
+import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $pb_struct;
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../model/period_type.dart';
 import '../model/proto/generated/portfolio.pb.dart' as $pb;
 import '../model/proto/generated/portfolio.pbgrpc.dart';
 import '../model/proto/logging_interceptor.dart';
 import '../model/proto/generated/price.pb.dart' as $pb_price;
 import '../model/results/indicator/price_result.dart' as model_price;
-import '../model/results/portfolio_result.dart';
+import '../model/results/portfolio_result.dart' as model_result;
 import '../model/portfolio_schema.dart';
 import '../model/results/strategies/strategy_schema.dart' as model_strategy;
 import '../model/results/asset_allocation.dart'  as model_allocations;
@@ -59,7 +61,7 @@ TradingAnalyticsServiceClient tradingAnalyticsClient(
 @immutable
 class TradingAnalyticsServiceState {
   final String? error;
-  final PortfolioResultMap cache;
+  final model_result.PortfolioResultMap cache;
 
   const TradingAnalyticsServiceState({this.cache = const {}, this.error});
 }
@@ -91,13 +93,40 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       
       _incomingSubscription = responseStream.listen((response) {
           // Map and update state
-          final id = int.tryParse(response.portfolioId) ?? 0;
+          final resId = int.tryParse(response.portfolioId) ?? PortfolioConfig.defaultId;
+          final equityCurvePoints = response.equityCurve.map((e) {
+            return model_result.EquityCurvePoint(
+              timestamp: e.timestamp.toDateTime(),
+              portfolioValue: e.portfolioValue,
+              drawdown: e.drawdown);
+          }).toList();
+
           state = TradingAnalyticsServiceState(
-              cache: {
-            ...state.cache,
-            id: PortfolioResult(
-              //TODO: fill result's data
-            ),
+            cache: {
+              ...state.cache,
+              resId: model_result.PortfolioResult(
+              portfolioConfig: PortfolioConfig.of(resId),
+              performanceMetrics: model_result.PerformanceMetrics(
+                totalReturn: response.summaryMetrics.totalReturn,
+                annualizedReturn: response.summaryMetrics.annualizedReturn,
+                volatility: response.summaryMetrics.volatility,
+                sharpeRatio: response.summaryMetrics.sharpeRatio,
+                sortinoRatio: response.summaryMetrics.sortinoRatio,
+                maxDrawdown: response.summaryMetrics.maxDrawdown,
+                alpha: response.summaryMetrics.alpha,
+                beta: response.summaryMetrics.beta,
+                cagr: response.summaryMetrics.cagr,
+                calmar: response.summaryMetrics.calmar,
+                correlation: response.summaryMetrics.correlation,
+                trackingError: response.summaryMetrics.trackingError,
+                trackingDiff: response.summaryMetrics.trackingDiff,
+                expenseRatio: response.summaryMetrics.expenseRatio,
+                bidAskSpread: response.summaryMetrics.bidAskSpread,
+                concentration: response.summaryMetrics.concentration,
+                dividendYield: response.summaryMetrics.dividendYield,
+              ),
+              equityCurve: equityCurvePoints,
+              calculatedAt: response.calculatedAt.toDateTime()),
           });
         },
         onError: (error) {
@@ -133,7 +162,8 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       endDate: $pb_ts.Timestamp.fromDateTime(portfolio.endDateTime),
       strategyConfig: $pb.StrategyConfig(
         strategyType: _toProtoStrategyType(portfolio.strategy!.type),
-        //TODO: fill strategy config
+        rebalanceFrequency: _toRebalanceFrequency(portfolio.getRebalanceFrequency()),
+        customParameters: _toProtoStruct(portfolio.strategy?.toMap() ?? {}),
       )
     );
     _outgoingController?.add(request);
@@ -171,6 +201,51 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       model_strategy.StrategyType.indexFundRebalancing => $pb.StrategyType.INDEXFUNDREBALANCING,
       model_strategy.StrategyType.trendFollowing => $pb.StrategyType.TRENDfOLLOWING,
     };
+  }
+
+  $pb.RebalanceFrequency _toRebalanceFrequency(PeriodType type) {
+    return switch (type) {
+      PeriodType.week => $pb.RebalanceFrequency.WEEKLY,
+      PeriodType.month => $pb.RebalanceFrequency.MONTHLY,
+      PeriodType.quaterYear => $pb.RebalanceFrequency.QUARTERLY,
+      PeriodType.halfYear => $pb.RebalanceFrequency.YEARLY,
+      PeriodType.year => $pb.RebalanceFrequency.YEARLY,
+      PeriodType.twoYears => $pb.RebalanceFrequency.TWO_YEARS,
+      PeriodType.threeYears => $pb.RebalanceFrequency.YEARLY,
+      PeriodType.fiveYears => $pb.RebalanceFrequency.YEARLY,
+      PeriodType.max => $pb.RebalanceFrequency.SPECIFIC_PERIOD,
+      PeriodType.yTd => $pb.RebalanceFrequency.SPECIFIC_PERIOD,
+    };
+  }
+
+  $pb_struct.Struct _toProtoStruct(Map<dynamic, dynamic> map) {
+    final struct = $pb_struct.Struct();
+    for (final entry in map.entries) {
+      struct.fields[entry.key.toString()] = _toProtoValue(entry.value);
+    }
+    return struct;
+  }
+
+  $pb_struct.Value _toProtoValue(dynamic value) {
+    final result = $pb_struct.Value();
+    if (value == null) {
+      result.nullValue = $pb_struct.NullValue.NULL_VALUE;
+    } else if (value is bool) {
+      result.boolValue = value;
+    } else if (value is num) {
+      result.numberValue = value.toDouble();
+    } else if (value is String) {
+      result.stringValue = value;
+    } else if (value is Map) {
+      result.structValue = _toProtoStruct(value);
+    } else if (value is Iterable) {
+      result.listValue = $pb_struct.ListValue(
+        values: value.map((e) => _toProtoValue(e)).toList(),
+      );
+    } else {
+      result.stringValue = value.toString();
+    }
+    return result;
   }
   
   model_strategy.StrategyType _fromProtoStrategyType($pb.StrategyType type) {
@@ -229,7 +304,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
 
 /// Provider to watch the result of a specific portfolio evaluation
 @riverpod
-AsyncValue<PortfolioResult?> portfolioResult(Ref ref, {required String portfolioId}) {
+AsyncValue<model_result.PortfolioResult?> portfolioResult(Ref ref, {required String portfolioId}) {
   final id = int.tryParse(portfolioId) ?? 0;
   final (error, result) = ref.watch(tradingAnalyticsServiceProvider.select(
     (s) => (s.error, s.cache[id])

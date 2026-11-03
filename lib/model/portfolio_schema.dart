@@ -102,6 +102,8 @@ class PortfolioConfig implements Cache {
   static final Money defaultCapital = Money.fromNum(10000, isoCode: 'PLN');
   final Strategy? strategy;
 
+  static const int defaultId = -1;
+
   PortfolioConfig({
     this.id,
     this.portfolioName = "",
@@ -113,21 +115,6 @@ class PortfolioConfig implements Cache {
     Money? initialCapital,
     this.strategy}
   ): initialCapital = initialCapital ?? defaultCapital;
-
-
-  factory PortfolioConfig.emptyPortfolio() {
-    final firstAllowedDate = DateTime(2000);
-    return PortfolioConfig(
-      portfolioName: "",
-      portfolioDesc: "",
-      riskFreeRatePerYear: defaultRiskFreeRate,
-      startDateTime: firstAllowedDate,
-      endDateTime: firstAllowedDate,
-      analysisPeriod: PeriodType.fiveYears,
-      initialCapital: defaultCapital,
-      strategy: Strategy.emptyStrategy()
-    );
-  }
 
   PortfolioConfig copyWith({
     int? newId,
@@ -150,6 +137,28 @@ class PortfolioConfig implements Cache {
       analysisPeriod: newAnalysisPeriod ?? analysisPeriod,
       strategy: newStrategy ?? strategy,
     );
+  }
+
+  factory PortfolioConfig.emptyPortfolio() {
+    final firstAllowedDate = DateTime(2000);
+    return PortfolioConfig(
+      portfolioName: "",
+      portfolioDesc: "",
+      riskFreeRatePerYear: defaultRiskFreeRate,
+      startDateTime: firstAllowedDate,
+      endDateTime: firstAllowedDate,
+      analysisPeriod: PeriodType.fiveYears,
+      initialCapital: defaultCapital,
+      strategy: Strategy.emptyStrategy()
+    );
+  }
+
+  factory PortfolioConfig.of(int id) {
+    final firstAllowedDate = DateTime(2000);
+    final firstAllowedEndDate = DateTime(2026);
+
+    return PortfolioConfig(
+      id: id, startDateTime: firstAllowedDate, endDateTime: firstAllowedEndDate);
   }
 
   @override
@@ -246,5 +255,22 @@ class PortfolioConfig implements Cache {
   PortfolioConfig fillAssets(List<AssetConfig> assets) {
     if (assets.isEmpty) return this;
     return strategy != null ? copyWith(newStrategy: strategy?.fillAssets(assets)) : this;
+  }
+
+  PeriodType getRebalanceFrequency() {
+    if (analysisPeriod != null) {
+      return analysisPeriod ?? PeriodType.max;
+    }
+    final specificPeriod = endDateTime.difference(startDateTime).inDays;
+    if (specificPeriod.clamp(0, weekDays) <= weekDays) {
+      return PeriodType.week;
+    } else if (specificPeriod.clamp(0, monthDays) <= monthDays) {
+      return PeriodType.month;
+    } else if (specificPeriod.clamp(0, quarterMonthDays) <= quarterMonthDays) {
+      return PeriodType.quaterYear;
+    } else if (specificPeriod.clamp(0, yearDays) <= yearDays) {
+      return PeriodType.year;
+    }
+    return PeriodType.max;
   }
 }

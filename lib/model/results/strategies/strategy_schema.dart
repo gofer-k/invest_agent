@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:invest_agent/model/cache_schema.dart';
+import 'package:invest_agent/model/period_type.dart';
 import 'package:invest_agent/model/results/asset_allocation.dart';
 import 'package:invest_agent/model/results/strategies/global_equity_momentum.dart';
 import 'package:invest_agent/model/results/strategies/mean_reversion.dart';
@@ -182,6 +183,8 @@ class Strategy extends Cache {
 
   @override
   String toString() => "${type.name} $name ($id)";
+
+  PeriodType getRebalanceFrequency() => PeriodType.year;
 
   List<AssetAllocation> getAssetAllocations() => [];
 }

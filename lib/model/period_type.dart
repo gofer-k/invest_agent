@@ -2,7 +2,7 @@ enum PeriodType {
   yTd('YTD', -1),
   week('1w', 1),
   month('1m', monthDays ),
-  quaterYear('3m', 3 * monthDays),
+  quaterYear('3m', quarterMonthDays),
   halfYear('6m', 6 * monthDays),
   year('1y', yearDays),
   twoYears('2y', twiceYearDays),
@@ -24,3 +24,4 @@ const int weekDays = 7;
 const int twiceYearDays = yearDays * 2;
 const int twiceMonthDays = monthDays * 2;
 const int twiceWeekDays = weekDays * 2;
+const int quarterMonthDays = 90;
