@@ -3,10 +3,12 @@ import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 
 import '../../cache_schema.dart';
+import '../../period_type.dart';
 import '../asset_allocation.dart';
 
 class MeanReversionConfig extends Strategy {
   final AssetConfig asset;
+  final int lookbackPeriod;
   final Indicator indicator;
 
   MeanReversionConfig({
@@ -14,10 +16,11 @@ class MeanReversionConfig extends Strategy {
     required super.id,
     required super.name,
     required this.asset,
-    required this.indicator});
+    required this.indicator,
+    this.lookbackPeriod = yearDays});
 
   CacheUniqueKey get uniqueKey {
-    return "$name-$type--${asset.toDetailString()} ${indicator.uniqueKey}".hashCode;
+    return "$name-$type--${asset.toDetailString()} $lookbackPeriod ${indicator.uniqueKey}".hashCode;
   }
 
   factory MeanReversionConfig.emptyStrategy() {
@@ -26,6 +29,7 @@ class MeanReversionConfig extends Strategy {
       asset: AssetConfig.defaultAsset(),
       type: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
+      lookbackPeriod: yearDays,
       name: '');
   }
 
@@ -39,6 +43,8 @@ class MeanReversionConfig extends Strategy {
   /*
   {
     "asset": 20,
+    "type": "mean_reversion",
+    "lookback_window": 252,
     "indicator": [
       {
         "sma": {
@@ -77,6 +83,7 @@ class MeanReversionConfig extends Strategy {
       Map<String, dynamic> params) {
 
     final assetId = params['asset'] as int? ?? 0;
+    final lookBackPeriod = params['lookback_window'] as int? ?? yearDays;
     final List<dynamic> indicatorList = params['indicator'] ?? [];
 
     Indicator indicator;
@@ -111,6 +118,8 @@ class MeanReversionConfig extends Strategy {
       id: id,
       name: name,
       asset: AssetConfig.of(id: assetId),
+      type: StrategyType.meanReversion,
+      lookbackPeriod: lookBackPeriod,
       indicator: indicator,
     );
   }
@@ -120,6 +129,7 @@ class MeanReversionConfig extends Strategy {
       id: strategy.id,
       name: strategy.name,
       type: StrategyType.meanReversion,
+      lookbackPeriod: yearDays,
       indicator: Indicator.emptyIndicator(),
       asset: AssetConfig.defaultAsset(),
     );
@@ -130,12 +140,14 @@ class MeanReversionConfig extends Strategy {
     int? newId,
     String? newName,
     StrategyType? newType,
+    int? newPeriod,
     AssetConfig? newAsset,
     Indicator? newIndicator}) {
     return MeanReversionConfig(
         id: newId ?? id,
         asset: newAsset ?? asset,
         type: StrategyType.meanReversion,
+        lookbackPeriod: newPeriod ?? lookbackPeriod,
         indicator: newIndicator ?? indicator,
         name: newName ?? name);
   }
@@ -144,6 +156,7 @@ class MeanReversionConfig extends Strategy {
   Map<String, dynamic> toMap() => {
     ...super.toMap(),
     "asset": asset.id,
+    "lookback_window": lookbackPeriod,
     "indicator": indicator.parameters.isNotEmpty
       ? [{indicator.type.shortName.toLowerCase(): indicator.parameters}]
       : []
@@ -165,14 +178,16 @@ class MeanReversionConfig extends Strategy {
       runtimeType == other.runtimeType &&
       asset == other.asset &&
       indicator == other.indicator &&
+      lookbackPeriod == other.lookbackPeriod &&
       super == other);
 
   @override
   int get hashCode => Object.hash(
     super.hashCode,
     asset,
+    lookbackPeriod,
     indicator);
 
   @override
-  List<Object?> get props => [...super.props, asset, indicator];
+  List<Object?> get props => [...super.props, lookbackPeriod, asset, indicator];
 }

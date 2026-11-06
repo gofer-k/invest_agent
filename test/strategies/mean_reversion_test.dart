@@ -18,11 +18,6 @@ void main() {
     test('should correctly instantiate fromMap', () {
       final params = {
         "asset": 20,
-        "cash": 10000.0,
-        "currency": "pln",
-        "analysisPeriod": "year",
-        "beginDate": "2023-01-01",
-        "endDate": "2023-12-31",
         "indicator": [
           {
             "sma": {

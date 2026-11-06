@@ -25,6 +25,8 @@ protoc --dart_out=grpc:lib/model/proto/generated -I proto ./*.proto
 Generate riverpod API:
 dart run build_runner build --delete-conflicting-outputs
 
+flutter pub run build_runner build --delete-conflicting-outputs
+
 #Chart config schema:
 [!JSON schema:]
 ```
@@ -49,8 +51,9 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 ### TODO:
 ## - support user strategies
 - display portfolio strategies (proceed on): 
-  - improve portfolio grpc api
-  - pass portfolio data to the backend service (Python)
+  - improve portfolio grpc api - to refactor the backend's portfolio evaluation's computation to the improved grpc api
+  - pass portfolio data to the backend service (Python) - to be continued!!
+  
   - refactor the backend's portfolio evaluation's computation to the improved grpc api
   - handle portfolio's results in the frontend
   - display a portfolio's results in the frontend
