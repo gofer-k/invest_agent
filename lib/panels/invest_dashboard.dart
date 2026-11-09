@@ -4,6 +4,7 @@ import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
 import 'package:invest_agent/model/results/analysis_respond.dart';
+import 'package:invest_agent/panels/risk_management_panel.dart';
 import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/widgets/app_logo.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
@@ -13,7 +14,6 @@ import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import 'package:invest_agent/model/results/indicator/price_result.dart';
 import '../model/chart_style.dart';
 import '../providers/model_config.dart';
-import 'analysis_settings_panel.dart';
 import 'main_settings_panel.dart';
 import '../widgets/app_task_bar.dart';
 
@@ -268,7 +268,10 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   }
 
   Widget _buildAnalysisResults() {
-    return const AnalysisSettingsPanel();
+    if (activeRightPaneIndex == RightPaneIndex.analysisResults) {
+      return const RiskManagementPanel();
+    }
+    return const SizedBox.shrink();
   }
   
   Widget _displayAssetsList() {
