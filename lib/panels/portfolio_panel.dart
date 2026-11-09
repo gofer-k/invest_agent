@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/portfolio_provider.dart';
 import '../model/portfolio_schema.dart';
 import '../providers/load_database_provider.dart';
+import '../providers/trading_analytics_service.dart';
 import '../widgets/dialogs/portfolio_config_dialog.dart';
 import '../widgets/utils/shrinkable.dart';
 
@@ -63,10 +64,19 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
     }
   }
 
+  Future<void> _evaluatePortfolio(BuildContext context, PortfolioConfig portfolio) async {
+    //
+    ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
+    await ref.read(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio);
+  }
+
   Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        IconButton(
+          icon: Icon(Icons.play_arrow, color: Colors.green),
+          onPressed: () => _evaluatePortfolio(context, portfolio)),
         IconButton(
           icon: Icon(Icons.edit),
           onPressed: () => _openPortfolioDialog(context, portfolio: portfolio),

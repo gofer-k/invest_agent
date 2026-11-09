@@ -58,6 +58,14 @@ TradingAnalyticsServiceClient tradingAnalyticsClient(
   );
 }
 
+@riverpod
+class ActiveRiskPortfolioId extends _$ActiveRiskPortfolioId {
+  @override
+  int? build() => null;
+
+  void select(int id) => state = id;
+}
+
 @immutable
 class TradingAnalyticsServiceState {
   final String? error;
@@ -304,10 +312,9 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
 
 /// Provider to watch the result of a specific portfolio evaluation
 @riverpod
-AsyncValue<model_result.PortfolioResult?> portfolioResult(Ref ref, {required String portfolioId}) {
-  final id = int.tryParse(portfolioId) ?? 0;
+AsyncValue<model_result.PortfolioResult?> portfolioResult(Ref ref, {required int portfolioId}) {
   final (error, result) = ref.watch(tradingAnalyticsServiceProvider.select(
-    (s) => (s.error, s.cache[id])
+    (s) => (s.error, s.cache[portfolioId])
   ));
 
   if (error != null) return AsyncValue.error(error, StackTrace.current);
