@@ -223,6 +223,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       PeriodType.fiveYears => $pb.RebalanceFrequency.YEARLY,
       PeriodType.max => $pb.RebalanceFrequency.SPECIFIC_PERIOD,
       PeriodType.yTd => $pb.RebalanceFrequency.SPECIFIC_PERIOD,
+      PeriodType.empty => $pb.RebalanceFrequency.UNSPECIFIED,
     };
   }
 

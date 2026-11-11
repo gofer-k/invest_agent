@@ -65,7 +65,8 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
   }
 
   Future<void> _evaluatePortfolio(BuildContext context, PortfolioConfig portfolio) async {
-    //
+    if (portfolio.isEmpty()) return;
+
     ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
     await ref.read(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio);
   }

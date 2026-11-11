@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/results/portfolio_result.dart';
 
+import '../providers/trading_analytics_service.dart';
 import '../widgets/utils/display_expression.dart';
 import '../widgets/utils/popup_widget.dart';
 
@@ -15,7 +16,16 @@ class RiskManagementPanel extends ConsumerStatefulWidget {
 class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
   @override
   Widget build(BuildContext context) {
-    return _buildRiskMetrics(null);
+    final activePortFolioId = ref.watch(activeRiskPortfolioIdProvider);
+    if (activePortFolioId == null) {
+      return const Center(child: Text("No portfolio selected"));
+    }
+    final analysisAsync = ref.watch(portfolioResultProvider(portfolioId: activePortFolioId));
+    return analysisAsync.when(
+      data: (result) => _buildRiskMetrics(result),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+    );
   }
 
   Widget _buildRiskMetrics(PortfolioResult? result) {

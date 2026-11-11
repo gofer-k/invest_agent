@@ -192,7 +192,7 @@ class PortfolioConfig implements Cache {
       analysisPeriod: PeriodType.values.firstWhereOrNull((e) => e.name == item[5] as String),
       riskFreeRatePerYear: (item[6] as num? ?? defaultRiskFreeRate).toDouble(),
       initialCapital: capital,
-      strategy: Strategy.from([jsonStrategy])
+      strategy: Strategy.fromMap(jsonStrategy)
     );
   }
 
@@ -247,7 +247,7 @@ class PortfolioConfig implements Cache {
     riskFreeRatePerYear, startDateTime, endDateTime,
     strategy, analysisPeriod, initialCapital];
 
-  bool isEmpty() => id == null && portfolioName.isEmpty;
+  bool isEmpty() => id == null && id != defaultId  && portfolioName.isEmpty;
 
   @override
   bool? get stringify => true;
