@@ -73,6 +73,7 @@ DateTime? startDatetime(PeriodType period, DateTime endDate) {
     PeriodType.fiveYears =>
         endDate.subtract(const Duration(days: yearDays) * 5),
     PeriodType.max => null,
+    PeriodType.empty => null,
   };
 }
 
@@ -89,6 +90,7 @@ Duration? periodSpan(PeriodType period) {
     PeriodType.threeYears => const Duration(days: yearDays * 3),
     PeriodType.fiveYears => const Duration(days: yearDays * 5),
     PeriodType.max => null,
+    PeriodType.empty => null,
   };
 }
 

@@ -8,7 +8,8 @@ enum PeriodType {
   twoYears('2y', twiceYearDays),
   threeYears('3y', 3 * yearDays),
   fiveYears('5y', 5 * yearDays),
-  max('max', -2);
+  max('max', -2),
+  empty('-', 0);
 
   const PeriodType(this.value, this.days);
   final String value;

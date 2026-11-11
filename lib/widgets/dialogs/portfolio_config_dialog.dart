@@ -55,6 +55,11 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
     controllerCapital = TextEditingController(
       text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
+
+    _isDateRange = switch (widget.portfolioConfig?.analysisPeriod) {
+      null || PeriodType.empty || PeriodType.max => false,
+      _ => true,
+    };
   }
 
   @override
@@ -186,7 +191,7 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   Widget _analysisPeriod(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
     final firstDate= DateTime(2000);
     final lastDate = DateTime(2100);
-
+    final currentDate = DateTime.now();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -213,8 +218,8 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
                 onPressed: () async {
                   final date = await showDatePicker(
                     context: context,
-                    initialDate: notifier.endDateTime ?? DateTime.now(),
-                    firstDate: notifier.startDateTime ?? firstDate,
+                    initialDate: notifier.endDateTime ?? currentDate,
+                    firstDate: notifier.endDateTime ?? currentDate,
                     lastDate: lastDate);
                   if (date != null) {
                     notifier.updateField((portfolio) => portfolio.copyWith(newEndDateTime: date));
