@@ -111,6 +111,7 @@ void main() {
       const id = 101;
       const name = "My GEM Strategy";
       final params = {
+        "name": name,
         "main-asset": {
           "asset-type": "equity",
           "main-asset-id": 20,
@@ -123,7 +124,7 @@ void main() {
         }
       };
 
-      final strategy = GemStrategyConfig.fromMap(id, name, params);
+      final strategy = GemStrategyConfig.fromMap(id, params);
 
       expect(strategy.id, id);
       expect(strategy.name, name);

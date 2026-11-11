@@ -17,6 +17,7 @@ void main() {
 
     test('should correctly instantiate fromMap', () {
       final params = {
+        "name": "Test Strategy",
         "asset": 20,
         "indicator": [
           {
@@ -27,10 +28,10 @@ void main() {
         ]
       };
 
-      final strategy = MeanReversionConfig.fromMap(1, "Test Strategy", params);
+      final strategy = MeanReversionConfig.fromMap(1, params);
 
       expect(strategy.id, 1);
-      expect(strategy.name, "Test Strategy");
+      expect(strategy.name, params["name"]);
       expect(strategy.asset.id, 20);
       expect(strategy.indicator.type, IndicatorType.sma);
       expect(strategy.indicator.parameters['window']['value'], "50");

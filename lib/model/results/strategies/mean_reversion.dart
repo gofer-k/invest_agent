@@ -79,10 +79,10 @@ class MeanReversionConfig extends Strategy {
    */
   @override
   factory MeanReversionConfig.fromMap(
-      int id, String name,
-      Map<String, dynamic> params) {
+      int id, Map<String, dynamic> params) {
 
     final assetId = params['asset'] as int? ?? 0;
+    final name = params["name"] as String? ?? "";
     final lookBackPeriod = params['lookback_window'] as int? ?? yearDays;
     final List<dynamic> indicatorList = params['indicator'] ?? [];
 

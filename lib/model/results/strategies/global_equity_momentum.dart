@@ -173,9 +173,8 @@ class GemStrategyConfig extends Strategy {
   }
 
   @override
-  factory GemStrategyConfig.fromMap(int id, String name,
-    Map<String, dynamic> params) {
-
+  factory GemStrategyConfig.fromMap(int id, Map<String, dynamic> params) {
+    final name = params["name"] as String? ?? "";
     final jsonMainAsset = params['main-asset'] as Map<String, dynamic>;
     final jsonMomentumAsset = params['momentum-assets'] as Map<String, dynamic>;
     final jsonInflation = params['inflation'] as double;

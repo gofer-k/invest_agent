@@ -127,38 +127,49 @@ class Strategy extends Cache {
   factory Strategy.from(List<Object?> item) {
     if (item.length >= 3) {
       final strategyId = item[0] as int;
-      final typeString = (item[1] as String).toLowerCase();
-      // Resilience: check enum type
-      final jsonType = StrategyType.values.firstWhere(
-              (e) => e.name.toLowerCase() == typeString,
-          orElse: () => StrategyType.empty
-      );
-      final nameString = item[2] as String;
+      // final typeString = (item[1] as String).toLowerCase();
+      // // Resilience: check enum type
+      // final jsonType = StrategyType.values.firstWhere(
+      //         (e) => e.name.toLowerCase() == typeString,
+      //     orElse: () => StrategyType.empty
+      // );
       final jsonParamsString = item[3] as String;
       final jsonParams = jsonDecode(jsonParamsString) as Map<String, dynamic>;
-
-      return switch(jsonType) {
-        StrategyType.arbitrary =>
-        throw UnimplementedError(),
-        StrategyType.asset =>
-        throw UnimplementedError(),
-        StrategyType.gem =>
-            GemStrategyConfig.fromMap(strategyId, nameString, jsonParams),
-        StrategyType.meanReversion =>
-            MeanReversionConfig.fromMap(strategyId, nameString, jsonParams),
-        StrategyType.indexFundRebalancing =>
-        throw UnimplementedError(),
-        StrategyType.trendFollowing =>
-        throw UnimplementedError(),
-        StrategyType.empty => Strategy.emptyStrategy()
-      };
+      return Strategy.fromMap(jsonParams, strategyId);
     }
     return Strategy.emptyStrategy();
+  }
+
+  // Overload self-contained strategy's schema instead of db schema
+  factory Strategy.fromMap(Map<String, dynamic> item, [int? id]) {
+    final strategyId = id ?? item['id'] as int;
+    final typeString = (item['type'] as String).toLowerCase();
+    // Resilience: check enum type
+    final jsonType = StrategyType.values.firstWhere(
+        (e) => e.name.toLowerCase() == typeString,
+        orElse: () => StrategyType.empty
+    );
+    return switch(jsonType) {
+      StrategyType.arbitrary =>
+      throw UnimplementedError(),
+      StrategyType.asset =>
+      throw UnimplementedError(),
+      StrategyType.gem =>
+          GemStrategyConfig.fromMap(strategyId, item),
+      StrategyType.meanReversion =>
+          MeanReversionConfig.fromMap(strategyId, item),
+      StrategyType.indexFundRebalancing =>
+      throw UnimplementedError(),
+      StrategyType.trendFollowing =>
+      throw UnimplementedError(),
+      StrategyType.empty => Strategy.emptyStrategy()
+    };
   }
 
   @override
   Map<String, dynamic> toMap() {
     return {
+      "id": id,
       "type": type.name,
       "name": name
     };
