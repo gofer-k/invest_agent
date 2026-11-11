@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/results/portfolio_result.dart';
 
-import '../providers/trading_analytics_service.dart';
 import '../widgets/utils/display_expression.dart';
 import '../widgets/utils/popup_widget.dart';
 
@@ -16,32 +15,30 @@ class RiskManagementPanel extends ConsumerStatefulWidget {
 class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
   @override
   Widget build(BuildContext context) {
-    final activePortfolioId = ref.watch(activeRiskPortfolioIdProvider)  ;
-    if (activePortfolioId == null) {
-      return const Center(child: Text("No active portfolio selected"));
-    }
-    final analysisAsync = ref.watch(
-        portfolioResultProvider(portfolioId: activePortfolioId));
-
-    return analysisAsync.when(
-      data: (result) => _buildRiskMetrics(result),
-      error: (err, stackTrace) => Center(child: Text('Risk evaluation error: $err')), 
-      loading: () => const Center(child: CircularProgressIndicator()));
+    return _buildRiskMetrics(null);
   }
 
   Widget _buildRiskMetrics(PortfolioResult? result) {
-    return Column(
+    return ListView(padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
       children: [
-        Text("Risk metrics for portfolio ${result?.portfolioConfig.portfolioName}"),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Text(
+          "Risk metrics for portfolio: ${result?.portfolioConfig.portfolioName ?? 'N/A'}",
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const Divider(height: 12,),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Text("Begin data: ${result?.portfolioConfig.startDateTime}"),
             Text("End data: ${result?.portfolioConfig.endDateTime}"),
           ],
         ),
-        ListView(
-          children: [
+        const Divider(height: 24,),
+        DataTable(columnSpacing: 8, headingRowHeight: 0.0,
+          columns: const [
+            DataColumn(label: Text('')),
+            DataColumn(label: Text(''), numeric: true),
+          ],
+          rows: [
             _showMetricResult(metric: PerformanceMetricsType.totalReturn, metricValue: result?.performanceMetrics.totalReturn ?? 0.0),
             _showMetricResult(metric: PerformanceMetricsType.annualizedReturn, metricValue: result?.performanceMetrics.annualizedReturn ?? 0.0),
             _showMetricResult(metric: PerformanceMetricsType.cagr, metricValue: result?.performanceMetrics.cagr ?? 0.0),
@@ -58,28 +55,49 @@ class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
             _showMetricResult(metric: PerformanceMetricsType.expenseRatio, metricValue: result?.performanceMetrics.expenseRatio ?? 0.0),
             _showMetricResult(metric: PerformanceMetricsType.concentration, metricValue: result?.performanceMetrics.concentration ?? 0.0),
             _showMetricResult(metric: PerformanceMetricsType.dividendYield, metricValue: result?.performanceMetrics.dividendYield ?? 0.0),
-          ]
-        )
+          ],
+        ),
       ]
     );
   }
 
-  Widget _showMetricResult({
+  DataRow _showMetricResult({
     required PerformanceMetricsType metric,
     required double metricValue,
-    double horizontalPaddingItem = 4.0,
-    double verticalPaddingItem = 4.0,
-    double rightColScale = 2.0}) {
+    double rightColScale = 1.2}) {
 
-    return PopupWidget(
-        horizontalPadding: horizontalPaddingItem,
-        verticalPadding: verticalPaddingItem,
-        content: Text("T$metric: $metricValue"),
-        popupDialog:
-        DisplayExpression(
-            context: context,
-            expression: metric.description,
-            scale: rightColScale)
+    return DataRow(
+      cells: [
+        DataCell(
+          PopupWidget(
+            barrierColor: Colors.black54,
+            content: Text("$metric"),
+            popupDialog:
+            DisplayExpression(context: context,
+              expression: metric.description,
+              scale: rightColScale,
+              decoration: BoxDecoration(
+                color: Theme.of(context).canvasColor.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            )
+          )
+        ),
+        DataCell(
+          Text(
+            (metricValue).toStringAsFixed(4),
+            style: const TextStyle(fontFamily: 'monospace'),
+          ),
+        )
+      ]
     );
   }
 }
