@@ -19,6 +19,8 @@ class PortfolioPanel extends ConsumerStatefulWidget {
 class _PortfolioState extends ConsumerState<PortfolioPanel> {
   PortfolioConfig? selectedPortfolio;
 
+  late bool _toEvaluate = true;
+
   @override
   Widget build(BuildContext context) {
     final portfolioAsync = ref.watch(portfolioProvider(CacheKeyType.analysisCache));
@@ -68,16 +70,31 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
     if (portfolio.isEmpty()) return;
 
     ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
-    await ref.read(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio);
+    ref.watch(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio)
+        .timeout(const Duration(seconds: 30))
+        .then(
+          (value) => _toEvaluate = false,
+          onError: (error) => _toEvaluate = true);
+    // final result = await ref.read(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio);
   }
 
   Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {
+    final evaluateIcon = Icon(Icons.play_arrow, color: Colors.green);
+    final ongoingEvaluationIcon = Icon(Icons.refresh, color: Colors.grey);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: Icon(Icons.play_arrow, color: Colors.green),
-          onPressed: () => _evaluatePortfolio(context, portfolio)),
+        Stack(alignment: Alignment.center,
+          children: [
+            if (!_toEvaluate)
+              const SizedBox(width: 18, height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2)),
+            IconButton(icon: _toEvaluate ? evaluateIcon : ongoingEvaluationIcon,
+              tooltip: _toEvaluate ? 'Evaluate Portfolio' : 'Refresh',
+              onPressed: () => _evaluatePortfolio(context, portfolio),
+            ),
+          ]
+        ),
         IconButton(
           icon: Icon(Icons.edit),
           onPressed: () => _openPortfolioDialog(context, portfolio: portfolio),

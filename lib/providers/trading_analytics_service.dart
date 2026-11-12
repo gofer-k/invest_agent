@@ -25,10 +25,10 @@ part 'trading_analytics_service.g.dart';
 
 typedef TradingAnalyticsServiceClient = AnalyticsServiceClient;
 
-// Use 'localhost' as it handles IPv4/IPv6 better on some Linux setups than 127.0.0.1
+// Use '10.0.2.2' for Android emulator to reach host's localhost, and '127.0.0.1' for other platforms.
 final String defaultHost = String.fromEnvironment(
     'GRPC_HOST',
-    defaultValue: Platform.isAndroid ? '10.0.2.3' : 'localhost'
+    defaultValue: Platform.isAndroid ? '10.0.2.2' : '127.0.0.1'
 );
 
 final int defaultPort = 50052;
@@ -47,11 +47,10 @@ TradingAnalyticsServiceClient tradingAnalyticsClient(
     ),
   );
   ref.onDispose(() {
-    log("Shutting down gRPC channel");
+    log("Trading analysis gRPC channel shutting down");
     channel.shutdown();
   });
 
-  // Interceptors are passed to the Client constructor, not ChannelOptions
   return TradingAnalyticsServiceClient(
     channel,
     interceptors: [GrpcLoggingInterceptor()],
@@ -72,6 +71,7 @@ class TradingAnalyticsServiceState {
   final model_result.PortfolioResultMap cache;
 
   const TradingAnalyticsServiceState({this.cache = const {}, this.error});
+
 }
 
 @riverpod
@@ -85,21 +85,36 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
     _client = ref.watch(tradingAnalyticsClientProvider());
     ref.onDispose(() {
       _incomingSubscription?.cancel();
+      _incomingSubscription = null;
       _outgoingController?.close();
+      _outgoingController = null;
     });
     return const TradingAnalyticsServiceState(cache: {});
   }
   
   void _initStream() {
-    if (_incomingSubscription != null) return;
+    if (!ref.mounted) return;
+
+    // Reset existing stream and subscription
+    _incomingSubscription?.cancel();
+    _incomingSubscription = null;
+    
+    if (_outgoingController != null && !_outgoingController!.isClosed) {
+      _outgoingController!.close();
+    }
+    
     _outgoingController = StreamController<$pb.EvaluatePortfolioRequest>();
+    final controller = _outgoingController!;
     
     try {
-      final responseStream = _outgoingController!.stream.asyncMap(
+      final responseStream = controller.stream.asyncMap(
         (request) => _client.evaluatePortfolio(request)
       );
       
-      _incomingSubscription = responseStream.listen((response) {
+      _incomingSubscription = responseStream.listen(
+        (response) {
+          if (!ref.mounted) return;
+
           // Map and update state
           final resId = int.tryParse(response.portfolioId) ?? PortfolioConfig.defaultId;
           final equityCurvePoints = response.equityCurve.map((e) {
@@ -109,77 +124,115 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
               drawdown: e.drawdown);
           }).toList();
 
+          final currentCache = state.cache;
           state = TradingAnalyticsServiceState(
             cache: {
-              ...state.cache,
+              ...currentCache,
               resId: model_result.PortfolioResult(
-              portfolioConfig: PortfolioConfig.of(resId),
-              performanceMetrics: model_result.PerformanceMetrics(
-                totalReturn: response.summaryMetrics.totalReturn,
-                annualizedReturn: response.summaryMetrics.annualizedReturn,
-                volatility: response.summaryMetrics.volatility,
-                sharpeRatio: response.summaryMetrics.sharpeRatio,
-                sortinoRatio: response.summaryMetrics.sortinoRatio,
-                maxDrawdown: response.summaryMetrics.maxDrawdown,
-                alpha: response.summaryMetrics.alpha,
-                beta: response.summaryMetrics.beta,
-                cagr: response.summaryMetrics.cagr,
-                calmar: response.summaryMetrics.calmar,
-                correlation: response.summaryMetrics.correlation,
-                trackingError: response.summaryMetrics.trackingError,
-                trackingDiff: response.summaryMetrics.trackingDiff,
-                expenseRatio: response.summaryMetrics.expenseRatio,
-                bidAskSpread: response.summaryMetrics.bidAskSpread,
-                concentration: response.summaryMetrics.concentration,
-                dividendYield: response.summaryMetrics.dividendYield,
+                portfolioConfig: PortfolioConfig.of(resId),
+                performanceMetrics: model_result.PerformanceMetrics(
+                  totalReturn: response.summaryMetrics.totalReturn,
+                  annualizedReturn: response.summaryMetrics.annualizedReturn,
+                  volatility: response.summaryMetrics.volatility,
+                  sharpeRatio: response.summaryMetrics.sharpeRatio,
+                  sortinoRatio: response.summaryMetrics.sortinoRatio,
+                  maxDrawdown: response.summaryMetrics.maxDrawdown,
+                  alpha: response.summaryMetrics.alpha,
+                  beta: response.summaryMetrics.beta,
+                  cagr: response.summaryMetrics.cagr,
+                  calmar: response.summaryMetrics.calmar,
+                  correlation: response.summaryMetrics.correlation,
+                  trackingError: response.summaryMetrics.trackingError,
+                  trackingDiff: response.summaryMetrics.trackingDiff,
+                  expenseRatio: response.summaryMetrics.expenseRatio,
+                  bidAskSpread: response.summaryMetrics.bidAskSpread,
+                  concentration: response.summaryMetrics.concentration,
+                  dividendYield: response.summaryMetrics.dividendYield,
+                ),
+                equityCurve: equityCurvePoints,
+                calculatedAt: response.calculatedAt.toDateTime(),
               ),
-              equityCurve: equityCurvePoints,
-              calculatedAt: response.calculatedAt.toDateTime()),
-          });
+            },
+          );
         },
         onError: (error) {
+          if (!ref.mounted) return;
+          
+          String errorMsg = error.toString();
+          if (error is GrpcError) {
+            errorMsg = _connectionMessage(error);
+          }
+          
+          log("Trading analysis service error: $errorMsg");
+          
+          final currentCache = state.cache;
+          state = TradingAnalyticsServiceState(error: errorMsg, cache: currentCache);
+          
+          // Close the current subscription/controller on error to allow re-initialization
           _incomingSubscription?.cancel();
           _incomingSubscription = null;
-          if (error is GrpcError) {
-            final errorMsg = _connectionMessage(error);
-            log(errorMsg);
-            state = TradingAnalyticsServiceState(error: errorMsg, cache: state.cache);
+          if (!controller.isClosed) {
+            controller.close();
           }
         },
         onDone: () {
-          log("gRPC Stream closed");
+          if (!ref.mounted) return;
+          log("Trading analysis service: gRPC Stream closed");
           _incomingSubscription = null;
+          if (!controller.isClosed) {
+            controller.close();
+          }
         }
       );
     } catch (e) {
-      log("Error initializing stream: $e");
+      log("Trading analysis service: Error initializing stream: $e");
     }
   }
 
   /// Evaluates a specific portfolio strategy based on historical parameters
   Future<void> evaluate(PortfolioConfig portfolio) async {
-    if (_outgoingController == null || _outgoingController!.isClosed) {
-      _initStream();
+    try {
+      if (!ref.mounted) return;
+
+      final protoPortfolio = await _toProtoPortfolio(portfolio);
+      if (!ref.mounted || protoPortfolio == null) return;
+
+      final request = $pb.EvaluatePortfolioRequest(
+        portfolio: protoPortfolio, 
+        startDate: $pb_ts.Timestamp.fromDateTime(portfolio.startDateTime),
+        endDate: $pb_ts.Timestamp.fromDateTime(portfolio.endDateTime),
+        strategyConfig: $pb.StrategyConfig(
+          strategyType: _toProtoStrategyType(portfolio.strategy!.type),
+          rebalanceFrequency: _toRebalanceFrequency(portfolio.getRebalanceFrequency()),
+          customParameters: _toProtoStruct(portfolio.strategy?.toMap() ?? {}),
+        )
+      );
+
+      if (_outgoingController == null || 
+          _outgoingController!.isClosed || 
+          _incomingSubscription == null) {
+        _initStream();
+      }
+
+      final controller = _outgoingController;
+      if (ref.mounted && controller != null && !controller.isClosed) {
+        controller.add(request);
+      } else {
+        log("Trading analysis service: Cannot add request (controller closed or disposed)");
+      }
+    } catch (e) {
+      log("Trading analysis service: Evaluation error: $e");
+      if (ref.mounted) {
+        state = TradingAnalyticsServiceState(error: e.toString(), cache: state.cache);
+      }
     }
 
-    final protoPortfolio = await _toProtoPortfolio(portfolio);
 
-    final request = $pb.EvaluatePortfolioRequest(
-      portfolio: protoPortfolio, 
-      startDate: $pb_ts.Timestamp.fromDateTime(portfolio.startDateTime),
-      endDate: $pb_ts.Timestamp.fromDateTime(portfolio.endDateTime),
-      strategyConfig: $pb.StrategyConfig(
-        strategyType: _toProtoStrategyType(portfolio.strategy!.type),
-        rebalanceFrequency: _toRebalanceFrequency(portfolio.getRebalanceFrequency()),
-        customParameters: _toProtoStruct(portfolio.strategy?.toMap() ?? {}),
-      )
-    );
-    _outgoingController?.add(request);
   }
 
   String _connectionMessage(GrpcError grpcError) {
     return switch (grpcError.code) {
-      StatusCode.unavailable => "Server is down or unreachable.",
+      StatusCode.unavailable => "Server is down or unreachable (check host: $defaultHost).",
       StatusCode.deadlineExceeded => "Request timed out.",
       StatusCode.aborted => "Request aborted.",
       StatusCode.cancelled => "Request cancelled.",
@@ -195,7 +248,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       StatusCode.outOfRange => "Request out of range.",
       StatusCode.unimplemented => "Method not implemented.",
       StatusCode.dataLoss => "Data loss.",
-      _ => "Unknown connection error: ${grpcError.code}"
+      _ => "Connection error: ${grpcError.code}"
     };
   }
 
@@ -257,26 +310,12 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
     return result;
   }
   
-  model_strategy.StrategyType _fromProtoStrategyType($pb.StrategyType type) {
-    return switch (type) {
-      $pb.StrategyType.EMPTY => model_strategy.StrategyType.empty,
-      $pb.StrategyType.ARBITRARY => model_strategy.StrategyType.arbitrary,
-      $pb.StrategyType.ASSETALLOCATION => model_strategy.StrategyType.asset,
-      $pb.StrategyType.GEM => model_strategy.StrategyType.gem,
-      $pb.StrategyType.MEANREVERSION => model_strategy.StrategyType.meanReversion,
-      $pb.StrategyType.INDEXFUNDREBALANCING => model_strategy.StrategyType.indexFundRebalancing,
-      $pb.StrategyType.TRENDfOLLOWING => model_strategy.StrategyType.trendFollowing,
-      _ => model_strategy.StrategyType.empty,     
-    };
-  }
-
   $pb_price.IndexPriceItem _toProtoPrice(model_price.IndexPriceItem item) {
     return $pb_price.IndexPriceItem()
       ..id = item.id
       ..assetId = item.assetId
       ..close = item.closePrice
       ..dateTime = $pb_ts.Timestamp.fromDateTime(item.dateTime);
-    // skip open, high, low, volume
   }
   
   $pb.AssetAllocation _toProtoAssetAllocation(model_allocations.AssetAllocation allocation, List<model_price.IndexPriceItem> price) {
@@ -290,16 +329,32 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
   }
   
   Future<$pb.Portfolio?> _toProtoPortfolio(PortfolioConfig portfolio) async {
+    if (!ref.mounted) return null;
+
     final priceSchema = model_price.IndexPriceSchema();
     final allocations = portfolio.strategy?.getAssetAllocations() ?? [];
 
+    // Access notifier before async gap
+    final priceNotifier = ref.read(priceControllerProvider().notifier);
+
     final protoAllocations = await Future.wait(
       allocations.map((a) async {
-        final prices = await ref.read(priceControllerProvider().notifier).fetchDateRange(
-            priceSchema, a.asset, portfolio.startDateTime, portfolio.endDateTime);
-        return _toProtoAssetAllocation(a, prices);
+        if (!ref.mounted) return null;
+        try {
+          final prices = await priceNotifier.fetchDateRange(
+            priceSchema, a.asset, 
+            portfolio.startDateTime.subtract(const Duration(days: 30)), 
+            portfolio.endDateTime.add(const Duration(days: 30))
+          );
+          return _toProtoAssetAllocation(a, prices);
+        } catch (e) {
+          log("Failed to fetch prices for ${a.asset.id}: $e");
+          return null;
+        }
       }),
     );
+
+    if (!ref.mounted) return null;
 
     return $pb.Portfolio()
       ..id = portfolio.id.toString()
@@ -307,7 +362,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       ..description = portfolio.portfolioDesc
       ..initialCapital = portfolio.initialCapital.amount.toDecimal().toDouble()
       ..riskFreeRate = portfolio.riskFreeRatePerYear
-      ..allocations.addAll(protoAllocations);
+      ..allocations.addAll(protoAllocations.whereType<$pb.AssetAllocation>());
   }
 }
 

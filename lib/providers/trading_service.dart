@@ -51,7 +51,7 @@ TradingServiceClient tradingClient(Ref ref) {
     ),
   );
   ref.onDispose(() {
-    log("Shutting down gRPC channel");
+    log("indicates service: Shutting down gRPC channel");
     channel.shutdown();
   });
   
@@ -126,15 +126,15 @@ class TradingService extends _$TradingService {
 
         if (error is GrpcError) {
           final errorMsg = _connectionMessage(error);
-          log(errorMsg);
+          log("indicates service: $errorMsg");
           state = TradingServiceState(error: errorMsg);
         }
       }, onDone: () {
-        log("gRPC Stream closed by server");
+        log("indicates service: gRPC Stream closed by server");
         _incomingSubscription = null;
       });
     } catch (e) {
-      log("Error initializing stream: $e");
+      log("indicates service: Error initializing stream: $e");
     }
   }
 
