@@ -60,7 +60,7 @@ class IndexPriceSchema implements CacheSchema {
       VALUES (
       nextval('$cacheSequenceName'),
       ${price.assetId},
-     '${price.dateTime.toIso8601String()}',
+     '${price.dateTime.toIso8601String()}'::TIMESTAMP,
      ${price.openPrice},
      ${price.highPrice},
      ${price.lowPrice},
@@ -81,7 +81,7 @@ class IndexPriceSchema implements CacheSchema {
     return '''
       UPDATE $cacheName
       SET meta_id = ${price.assetId},
-          date = '${price.dateTime.toIso8601String()}',
+          date = '${price.dateTime.toIso8601String()}'::TIMESTAMP,
           open = ${price.openPrice},
           high = ${price.highPrice},
           low = ${price.lowPrice},
@@ -100,26 +100,26 @@ class IndexPriceSchema implements CacheSchema {
       return
         '''
         SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
-        AND date BETWEEN '${endDate.toIso8601String()}'
-        AND '${beginDate.toIso8601String()}' ORDER BY date ASC;
+        AND date BETWEEN '${endDate.toIso8601String()}'::TIMESTAMP
+        AND '${beginDate.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
         ''';
     }
     return
       '''
       SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
-      AND date BETWEEN '${beginDate.toIso8601String()}'
-      AND '${endDate.toIso8601String()}' ORDER BY date ASC;
+      AND date BETWEEN '${beginDate.toIso8601String()}'::TIMESTAMP
+      AND '${endDate.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
       ''';
   }
 
   String readUntilDate(AssetConfig asset, DateTime date) =>
       '''
-      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date <= '${date.toIso8601String()}' ORDER BY date DESC;
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date <= '${date.toIso8601String()}'::TIMESTAMP ORDER BY date DESC;
       ''';
 
   String readAfterDate(AssetConfig asset, DateTime date) =>
     '''
-      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > '${date.toIso8601String()}' ORDER BY date ASC;
+      SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > '${date.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
     ''';
 
   String readCount(AssetConfig asset, DateTime beginDate, DateTime endDate) {
@@ -127,15 +127,15 @@ class IndexPriceSchema implements CacheSchema {
       return
       '''
         SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
-        AND date BETWEEN '${endDate.toIso8601String()}'
-        AND '${beginDate.toIso8601String()}';
+        AND date BETWEEN '${endDate.toIso8601String()}'::TIMESTAMP
+        AND '${beginDate.toIso8601String()}'::TIMESTAMP;
       ''';
     }
     return
       '''
       SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
-      AND date BETWEEN '${beginDate.toIso8601String()}'
-      AND '${endDate.toIso8601String()}';
+      AND date BETWEEN '${beginDate.toIso8601String()}'::TIMESTAMP
+      AND '${endDate.toIso8601String()}'::TIMESTAMP;
       ''';
   }
 
