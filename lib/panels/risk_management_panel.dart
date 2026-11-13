@@ -38,8 +38,8 @@ class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
         const Divider(height: 12,),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text("Begin data: ${result?.portfolioConfig.startDateTime}"),
-            Text("End data: ${result?.portfolioConfig.endDateTime}"),
+            Text("Begin data: ${_fromDate(result?.portfolioConfig.startDateTime)}"),
+            Text("End data: ${_fromDate(result?.portfolioConfig.endDateTime)}"),
           ],
         ),
         const Divider(height: 24,),
@@ -75,7 +75,6 @@ class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
     required PerformanceMetricsType metric,
     required double metricValue,
     double rightColScale = 1.2}) {
-
     return DataRow(
       cells: [
         DataCell(
@@ -109,5 +108,9 @@ class _RiskManagementPanelState extends ConsumerState<RiskManagementPanel> {
         )
       ]
     );
+  }
+
+  String _fromDate(DateTime? date) {
+    return date == null ? 'N/A' : '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 }

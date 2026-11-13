@@ -69,13 +69,14 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
   Future<void> _evaluatePortfolio(BuildContext context, PortfolioConfig portfolio) async {
     if (portfolio.isEmpty()) return;
 
-    ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
     ref.watch(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio)
         .timeout(const Duration(seconds: 30))
         .then(
-          (value) => _toEvaluate = false,
+          (value) {
+            ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
+            _toEvaluate = false;
+          },
           onError: (error) => _toEvaluate = true);
-    // final result = await ref.read(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio);
   }
 
   Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {

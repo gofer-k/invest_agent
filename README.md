@@ -50,16 +50,12 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ### TODO:
 ## - support user strategies
-- display portfolio strategies (proceed on): 
-  - improve portfolio grpc api - to refactor the backend's portfolio evaluation's computation to the improved grpc api
-  - pass portfolio data to the backend service (Python) - to be continued!!
-  
-  - refactor the backend's portfolio evaluation's computation to the improved grpc api
-  - handle portfolio's results in the frontend
-  - display a portfolio's results in the frontend
-  - asset's indicators (multi chart configs)
+- How to check out portfolio's metrics results
+- support multi-window chart boards, portfolios results
+- display portfolio strategies (proceed on):  
+- asset's indicators (multi chart configs)
 
-- display vertical multi chart's bar
+- display vertical multi chart's bar!!
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
