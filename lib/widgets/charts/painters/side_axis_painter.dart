@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:invest_agent/utils/chart_utils.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:invest_agent/widgets/charts/controllers/time_controller.dart';

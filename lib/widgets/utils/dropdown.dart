@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class Dropdown<Choice extends Enum> extends StatefulWidget {
   final List<Choice> choices;

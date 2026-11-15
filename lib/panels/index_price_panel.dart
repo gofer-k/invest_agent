@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/multi_chart_provider.dart';
 import 'package:url_launcher/url_launcher.dart';

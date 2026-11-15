@@ -10,10 +10,12 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  plugins:
-    - custom_lint
   errors:
     invalid_annotation_target: ignore
+  exclude:
+    - build/**
+    - web/**
+    - linux/**
 
 linter:
   rules:

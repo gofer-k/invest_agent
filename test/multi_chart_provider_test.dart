@@ -11,7 +11,7 @@ import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/model/multi_chart_schema.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/multi_chart_provider.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'package:invest_agent/utils/database_helper.dart';
 

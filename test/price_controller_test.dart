@@ -11,7 +11,7 @@ import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/providers/price_importer_csv.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUpAll(() {

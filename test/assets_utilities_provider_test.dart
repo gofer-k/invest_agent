@@ -1,7 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/results/indicator/price_result.dart';
@@ -10,7 +10,7 @@ import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/utils/database_helper.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   setUpAll(() {

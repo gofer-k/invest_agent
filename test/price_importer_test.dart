@@ -5,7 +5,7 @@ import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/providers/price_importer_csv.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('PriceImporter Integration Tests', () {

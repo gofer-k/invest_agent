@@ -76,7 +76,7 @@ final class TradingAnalyticsClientProvider
 }
 
 String _$tradingAnalyticsClientHash() =>
-    r'db1999bf0add264c448accbb506e064149350bd7';
+    r'8395663a4bb01fe29ef1c85a90a1d1f634f62cf1';
 
 final class TradingAnalyticsClientFamily extends $Family
     with
@@ -142,7 +142,7 @@ abstract class _$ActiveRiskPortfolioId extends $Notifier<int?> {
   int? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<int?, int?>;
     final element =
         ref.element
@@ -152,7 +152,7 @@ abstract class _$ActiveRiskPortfolioId extends $Notifier<int?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
@@ -193,14 +193,14 @@ final class TradingAnalyticsServiceProvider
 }
 
 String _$tradingAnalyticsServiceHash() =>
-    r'ae3b961125983e8498b9ecfc614630078dcb1c34';
+    r'c2babb0b033eb8d733aa4d8d84b67510b74fa0a4';
 
 abstract class _$TradingAnalyticsService
     extends $Notifier<TradingAnalyticsServiceState> {
   TradingAnalyticsServiceState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<TradingAnalyticsServiceState, TradingAnalyticsServiceState>;
@@ -215,7 +215,7 @@ abstract class _$TradingAnalyticsService
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 
