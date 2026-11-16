@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import '../../model/indicator_schema.dart';
 
 class IndicatorOverlayTaskbar extends StatefulWidget {

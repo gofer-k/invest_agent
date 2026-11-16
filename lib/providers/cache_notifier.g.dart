@@ -134,7 +134,7 @@ abstract class _$CacheNotifier<T extends Cache, TSchema extends CacheSchema>
   FutureOr<List<T>> build(TSchema cacheSchema, String cachePath);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<T>>, List<T>>;
     final element =
         ref.element
@@ -144,6 +144,6 @@ abstract class _$CacheNotifier<T extends Cache, TSchema extends CacheSchema>
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

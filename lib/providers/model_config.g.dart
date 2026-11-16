@@ -52,7 +52,7 @@ abstract class _$ModelConfig extends $Notifier<ModelConfigState> {
   ModelConfigState build();
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<ModelConfigState, ModelConfigState>;
     final element =
         ref.element
@@ -62,7 +62,7 @@ abstract class _$ModelConfig extends $Notifier<ModelConfigState> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, build);
+    element.handleCreate(ref, build);
   }
 }
 

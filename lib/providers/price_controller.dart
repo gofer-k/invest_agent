@@ -290,7 +290,6 @@ class PriceController extends _$PriceController {
       if (ref.mounted) {
         state = state.copyWith(
             remoteRequests: state.remoteRequests
-                // ignore: unrelated_type_equality_checks
                 .where((r) => r != asset)
                 .toList());
       }

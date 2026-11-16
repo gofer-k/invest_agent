@@ -92,7 +92,7 @@ abstract class _$StrategySession extends $Notifier<Strategy> {
   Strategy build(Strategy? strategy);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<Strategy, Strategy>;
     final element =
         ref.element
@@ -102,6 +102,6 @@ abstract class _$StrategySession extends $Notifier<Strategy> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args));
+    element.handleCreate(ref, () => build(_$args));
   }
 }

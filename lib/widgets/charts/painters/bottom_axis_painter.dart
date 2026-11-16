@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:invest_agent/utils/custom_datetime_format.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import '../../../model/axis_label.dart';

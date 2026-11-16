@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:sealed_currencies/sealed_currencies.dart';
 import 'package:invest_agent/model/asset_config.dart';
 

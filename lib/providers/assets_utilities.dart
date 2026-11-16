@@ -1,6 +1,6 @@
 import 'dart:developer' as dev;
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../model/asset_config.dart';
 import '../model/results/indicator/price_result.dart';

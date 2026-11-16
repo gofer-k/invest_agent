@@ -85,7 +85,7 @@ abstract class _$PriceImporter extends $AsyncNotifier<String> {
   FutureOr<String> build(CacheKeyType cacheTYpe, [String? path]);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
         ref.element
@@ -95,6 +95,6 @@ abstract class _$PriceImporter extends $AsyncNotifier<String> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }

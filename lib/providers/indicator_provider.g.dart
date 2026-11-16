@@ -93,7 +93,7 @@ abstract class _$IndicatorNotifier extends $Notifier<IndicatorNotifierState> {
   IndicatorNotifierState build([CacheKeyType? type, bool? keepAlive]);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref =
         this.ref as $Ref<IndicatorNotifierState, IndicatorNotifierState>;
     final element =
@@ -104,7 +104,7 @@ abstract class _$IndicatorNotifier extends $Notifier<IndicatorNotifierState> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
 

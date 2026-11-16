@@ -6,7 +6,7 @@ import 'package:invest_agent/model/indicator_schema.dart';
 import 'package:invest_agent/providers/indicator_provider.dart';
 import 'package:invest_agent/providers/load_database_provider.dart';
 import 'package:invest_agent/utils/database_helper.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 
 void main() {
   setUpAll(() {

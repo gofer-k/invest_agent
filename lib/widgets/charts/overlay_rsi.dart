@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 import 'package:invest_agent/model/results/indicator/rsi_result.dart';
 
 import '../../model/chart_style.dart';

@@ -93,7 +93,7 @@ abstract class _$PriceController extends $Notifier<PriceControllerState> {
   PriceControllerState build([CacheKeyType? type, bool? keepAlive]);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref = this.ref as $Ref<PriceControllerState, PriceControllerState>;
     final element =
         ref.element
@@ -103,7 +103,7 @@ abstract class _$PriceController extends $Notifier<PriceControllerState> {
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
 

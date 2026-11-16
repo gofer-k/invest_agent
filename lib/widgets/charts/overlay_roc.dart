@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
 
 import '../../model/chart_style.dart';
 import '../../model/results/indicator/roc_result.dart';

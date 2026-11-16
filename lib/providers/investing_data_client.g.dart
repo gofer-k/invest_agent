@@ -87,7 +87,7 @@ abstract class _$InvestingDataClient
   FutureOr<InvestingDataClientState> build(RemoteRequest endPoint);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref =
         this.ref
             as $Ref<
@@ -105,6 +105,6 @@ abstract class _$InvestingDataClient
               Object?,
               Object?
             >;
-    return element.handleCreate(ref, () => build(_$args));
+    element.handleCreate(ref, () => build(_$args));
   }
 }

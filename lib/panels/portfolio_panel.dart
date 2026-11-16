@@ -1,6 +1,6 @@
 import 'dart:core';
-import 'dart:developer';
-import 'package:material_ui/material_ui.dart';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/portfolio_provider.dart';
 import '../model/portfolio_schema.dart';
@@ -76,8 +76,7 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
             ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
             _toEvaluate = false;
           },
-          onError: (error) => log("portfolio's panel: _evaluatePortfolio error")
-    );
+          onError: (error) => _toEvaluate = true);
   }
 
   Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {

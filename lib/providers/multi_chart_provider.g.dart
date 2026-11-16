@@ -109,7 +109,7 @@ abstract class _$MultiChartNotifier extends $Notifier<MultiChartNotifierState> {
   ]);
   @$mustCallSuper
   @override
-  WhenComplete runBuild() {
+  void runBuild() {
     final ref =
         this.ref as $Ref<MultiChartNotifierState, MultiChartNotifierState>;
     final element =
@@ -120,7 +120,7 @@ abstract class _$MultiChartNotifier extends $Notifier<MultiChartNotifierState> {
               Object?,
               Object?
             >;
-    return element.handleCreate(
+    element.handleCreate(
       ref,
       () => build(_$args.$1, _$args.$2, _$args.$3, _$args.$4),
     );

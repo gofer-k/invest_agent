@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
