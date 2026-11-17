@@ -92,7 +92,7 @@ abstract class _$PortfolioSession extends $Notifier<PortfolioConfig> {
   PortfolioConfig build(PortfolioConfig? portfolio);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<PortfolioConfig, PortfolioConfig>;
     final element =
         ref.element
@@ -102,6 +102,6 @@ abstract class _$PortfolioSession extends $Notifier<PortfolioConfig> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

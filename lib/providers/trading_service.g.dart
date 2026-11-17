@@ -54,7 +54,7 @@ final class TradingClientProvider
   }
 }
 
-String _$tradingClientHash() => r'41103985809197eb7400470f6bb6b8f4c81f2e80';
+String _$tradingClientHash() => r'529124bb57bcdcb4915d581b717b4475ad2426cd';
 
 @ProviderFor(TradingService)
 final tradingServiceProvider = TradingServiceProvider._();
@@ -88,13 +88,13 @@ final class TradingServiceProvider
   }
 }
 
-String _$tradingServiceHash() => r'5743e31395d299ab2ec2fd1d400f0dcbc8cb9313';
+String _$tradingServiceHash() => r'8ffb5acca3b283d3ae9fdb9436eeb788fe3cd9ca';
 
 abstract class _$TradingService extends $Notifier<TradingServiceState> {
   TradingServiceState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<TradingServiceState, TradingServiceState>;
     final element =
         ref.element
@@ -104,7 +104,7 @@ abstract class _$TradingService extends $Notifier<TradingServiceState> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

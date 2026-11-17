@@ -89,7 +89,7 @@ abstract class _$StrategyNotifier
   ]);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref =
         this.ref
             as $Ref<
@@ -107,6 +107,6 @@ abstract class _$StrategyNotifier
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
+    return element.handleCreate(ref, () => build(_$args.$1, _$args.$2));
   }
 }
