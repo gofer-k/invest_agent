@@ -50,7 +50,6 @@ class _IndexPricePanelState extends ConsumerState<IndexPricePanel> {
                         final importedPrices = await importer.importFromCsv(asset);
                         ref.read(priceControllerProvider().notifier).importAssetPrices(asset, importedPrices);
                       }
-                      // ref.read(refreshAssetPricesProvider(accounts[0], assetsToRefresh).future);
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Updated ${assetsToRefresh.length} assets')),

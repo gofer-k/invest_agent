@@ -4,7 +4,7 @@
 
 // @dart = 3.3
 
-// ignore_for_file: annotate_overrides, camel_case_types, comment_references
+// ignore_for_file: deprecated_member_use, annotate_overrides, camel_case_types, comment_references
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
@@ -106,6 +106,7 @@ class Indicator extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearType() => $_clearField(3);
 
+  // ignore: unintended_html_in_doc_comment
   /// Dynamic parameters (Map<String, dynamic>)
   @$pb.TagNumber(4)
   $0.Struct get parameters => $_getN(3);
@@ -119,6 +120,7 @@ class Indicator extends $pb.GeneratedMessage {
   $0.Struct ensureParameters() => $_ensure(3);
 }
 
+// ignore: unintended_html_in_doc_comment
 /// Represents List<BaseIndicatorResult>
 class IndicatorResultList extends $pb.GeneratedMessage {
   factory IndicatorResultList({

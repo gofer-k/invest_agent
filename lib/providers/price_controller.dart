@@ -287,12 +287,6 @@ class PriceController extends _$PriceController {
       });
       if (ref.mounted) await refreshAllDetails();
     } finally {
-      if (ref.mounted) {
-        state = state.copyWith(
-            remoteRequests: state.remoteRequests
-                .where((r) => r != asset)
-                .toList());
-      }
       link.close();
     }
   }

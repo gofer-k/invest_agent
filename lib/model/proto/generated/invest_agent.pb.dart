@@ -77,6 +77,7 @@ class TradingRequest extends $pb.GeneratedMessage {
 }
 
 /// Constraint 2: Compliable with IndicatorResultMap
+// ignore: unintended_html_in_doc_comment
 /// (Map<IndicatorType, List<BaseIndicatorResult>>)
 class TradingResponse extends $pb.GeneratedMessage {
   factory TradingResponse({
