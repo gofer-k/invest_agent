@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/providers/portfolio_provider.dart';
+
 import '../model/portfolio_schema.dart';
 import '../providers/load_database_provider.dart';
 import '../providers/trading_analytics_service.dart';
@@ -18,13 +19,13 @@ class PortfolioPanel extends ConsumerStatefulWidget {
 }
 
 class _PortfolioState extends ConsumerState<PortfolioPanel> {
-  PortfolioConfig? selectedPortfolio;
-
   late bool _toEvaluate = true;
 
   @override
   Widget build(BuildContext context) {
-    final portfolioAsync = ref.watch(portfolioProvider(CacheKeyType.analysisCache));
+    final portfolioAsync = ref.watch(
+      portfolioProvider(CacheKeyType.analysisCache),
+    );
     final portfolios = portfolioAsync.value?.getItems() ?? [];
 
     return Shrinkable(
@@ -42,23 +43,35 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
             itemCount: portfolios.length,
             itemBuilder: (BuildContext context, int index) {
               final portfolio = portfolios[index];
-              return Card(child: ListTile(
-                title: Text(portfolio.portfolioName),
-                subtitle: Text(portfolio.portfolioDesc, style: const TextStyle(fontSize: 11)),
-                trailing: _buildTrailingActions(context, portfolio)
-                ));
-            }),
-        ]
+              return Card(
+                child: ListTile(
+                  title: Text(portfolio.portfolioName),
+                  subtitle: Text(
+                    portfolio.portfolioDesc,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  trailing: _buildTrailingActions(context, portfolio),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _openPortfolioDialog(BuildContext context, {PortfolioConfig? portfolio}) async {
+  Future<void> _openPortfolioDialog(
+    BuildContext context, {
+    PortfolioConfig? portfolio,
+  }) async {
     final result = await showDialog<PortfolioConfig>(
-        context: context,
-        builder: (context) => PortfolioDialog(portfolioConfig: portfolio));
+      context: context,
+      builder: (context) => PortfolioDialog(portfolioConfig: portfolio),
+    );
     if (result != null) {
-      final notifier = ref.read(portfolioProvider(CacheKeyType.analysisCache).notifier);
+      final notifier = ref.read(
+        portfolioProvider(CacheKeyType.analysisCache).notifier,
+      );
       if (portfolio == null) {
         notifier.addEntry(result);
       } else {
@@ -67,35 +80,48 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
     }
   }
 
-  Future<void> _evaluatePortfolio(BuildContext context, PortfolioConfig portfolio) async {
+  Future<void> _evaluatePortfolio(
+    BuildContext context,
+    PortfolioConfig portfolio,
+  ) async {
     if (portfolio.isEmpty()) return;
 
-    ref.watch(tradingAnalyticsServiceProvider.notifier).evaluate(portfolio)
+    ref
+        .watch(tradingAnalyticsServiceProvider.notifier)
+        .evaluate(portfolio)
         .timeout(const Duration(seconds: 30))
-        .then(
-          (value) {
-            ref.read(activeRiskPortfolioIdProvider.notifier).select(portfolio.id!);
-            _toEvaluate = false;
-          },
-          onError: (error) => log("Portfolio evaluation failed: $error"));
+        .then((value) {
+          ref
+              .read(activeRiskPortfolioIdProvider.notifier)
+              .select(portfolio.id!);
+          _toEvaluate = false;
+        }, onError: (error) => log("Portfolio evaluation failed: $error"));
   }
 
-  Widget? _buildTrailingActions(BuildContext context, PortfolioConfig portfolio) {
+  Widget? _buildTrailingActions(
+    BuildContext context,
+    PortfolioConfig portfolio,
+  ) {
     final evaluateIcon = Icon(Icons.play_arrow, color: Colors.green);
     final ongoingEvaluationIcon = Icon(Icons.refresh, color: Colors.grey);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Stack(alignment: Alignment.center,
+        Stack(
+          alignment: Alignment.center,
           children: [
             if (!_toEvaluate)
-              const SizedBox(width: 18, height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2)),
-            IconButton(icon: _toEvaluate ? evaluateIcon : ongoingEvaluationIcon,
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            IconButton(
+              icon: _toEvaluate ? evaluateIcon : ongoingEvaluationIcon,
               tooltip: _toEvaluate ? 'Evaluate Portfolio' : 'Refresh',
               onPressed: () => _evaluatePortfolio(context, portfolio),
             ),
-          ]
+          ],
         ),
         IconButton(
           icon: Icon(Icons.edit),
@@ -105,13 +131,14 @@ class _PortfolioState extends ConsumerState<PortfolioPanel> {
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
           onPressed: () => _handleDelete(ref, portfolio),
         ),
-      ]
+      ],
     );
   }
 
   void _handleDelete(WidgetRef ref, PortfolioConfig portfolio) {
     if (!portfolio.isEmpty()) {
-      ref.read(portfolioProvider(CacheKeyType.analysisCache).notifier)
+      ref
+          .read(portfolioProvider(CacheKeyType.analysisCache).notifier)
           .deleteEntry(portfolio);
     }
   }

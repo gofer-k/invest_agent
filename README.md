@@ -2,6 +2,11 @@
 
 A new Flutter project.
 
+## Resources
+
+- [DNA rynków](https://dnarynkow.pl/)
+- [Encyklopedia zarządania](https://mfiles.pl/pl/index.php/Strona_g%C5%82%C3%B3wna)
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
@@ -16,7 +21,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 Install:
-sudo apt  install protobuf-compiler
+sudo apt install protobuf-compiler
 dart pub global activate protoc_plugin
 
 Generate rcp API:
@@ -29,6 +34,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 #Chart config schema:
 [!JSON schema:]
+
 ```
 {
     "window": {             <- map element key
@@ -49,17 +55,20 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 ```
 
 ### TODO:
+
 ## - support user strategies
+
 - How to check out portfolio's metrics results
 - support multi-window chart boards, portfolios results
-- display portfolio strategies (proceed on):  
+- display portfolio strategies (in proceed):
 - asset's indicators (multi chart configs)
 
-- display vertical multi chart's bar!!
+- display vertical side multi chart's bar!!
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
-- extend assets config for assets type type (equity, bonds, regions: usa, acits, emi, pol) 
+
+- extend assets config for assets type type (equity, bonds, regions: usa, acits, emi, pol)
 - support customizable interval for chart ?
 - display candles signals
 - filter out the respond data by specific intervals??
@@ -67,6 +76,7 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
 
-### BUGS: 
+### BUGS:
+
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume
