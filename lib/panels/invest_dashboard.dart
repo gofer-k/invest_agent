@@ -1,20 +1,24 @@
+import 'dart:convert';
+
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/charts_configuration.dart';
-import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/model/results/analysis_respond.dart';
-import 'package:invest_agent/model/results/indicator/price_result.dart';
 import 'package:invest_agent/panels/risk_management_panel.dart';
-import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/app_logo.dart';
-import 'package:invest_agent/widgets/charts/multi_chart.dart';
+import 'package:invest_agent/widgets/browser_tabs_view.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
+import 'package:invest_agent/widgets/utils/tabbed_window_type.dart';
 import 'package:invest_agent/widgets/utils/task_bar_icon.dart';
 
-import '../model/chart_style.dart';
+import '../providers/load_database_provider.dart';
 import '../providers/model_config.dart';
+import '../providers/portfolio_provider.dart';
+import '../providers/tab_window_session.dart';
 import '../widgets/app_task_bar.dart';
 import 'main_settings_panel.dart';
 
@@ -55,19 +59,79 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
 
   var activeLeftPaneIndex = LeftPaneIndex.notUsed;
   var activeRightPaneIndex = RightPaneIndex.notUsed;
-  AssetConfig _selectedAsset = AssetConfig.defaultAsset();
+  AssetConfig? _selectedAsset;
+  PortfolioConfig? _selectedPortfolio;
+
+  final List<WindowController> _childWindows = [];
 
   @override
   void initState() {
     super.initState();
+    onWindowsChanged.listen((_) async {
+      final windows = await WindowController.getAll();
+      debugPrint('Active windows count: ${windows.length}');
+    });
+  }
+
+  @override
+  void dispose() {
+    _destroyAllChildren();
+    super.dispose();
+  }
+
+  Future<void> _destroyAllChildren() async {
+    for (var controller in _childWindows) {
+      try {
+        await controller.invokeMethod('window_close');
+      } catch (_) {}
+    }
+    _childWindows.clear();
+  }
+
+  Future<void> _openPanelInNewWindow(
+    String title,
+    TabbedWindowType type,
+  ) async {
+    final controller = await WindowController.create(
+      WindowConfiguration(
+        arguments: jsonEncode({'title': title, 'type': type}),
+        hiddenAtLaunch: false,
+      ),
+    );
+    final notifier = ref.read(tabWindowSessionProvider().notifier);
+    if (notifier.activeTab != null) {
+      await controller.show();
+      _childWindows.add(controller);
+      controller.invokeMethod('update_tab', {
+        'params': notifier.activeTab.toString(),
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final notifier = ref.watch(tabWindowSessionProvider().notifier);
     ref.listen<List<AssetConfig>>(sortedAssetsProvider, (previous, next) {
-      if (_selectedAsset.isDefault() && next.isNotEmpty) {
+      if (notifier.activeTab?.cache != null && next.isNotEmpty) {
         setState(() {
-          _selectedAsset = next.first;
+          notifier.addTab(
+            TabWindow(type: TabbedWindowType.asset, cache: next.first),
+          );
+        });
+      }
+    });
+
+    ref.watch(portfolioProvider(CacheKeyType.analysisCache)).whenData((
+      portfolios,
+    ) {
+      if (portfolios.getItems().isNotEmpty) {
+        setState(() {
+          notifier.addTab(
+            TabWindow(
+              type: TabbedWindowType.portfolio,
+              cache: portfolios.getItems().first,
+            ),
+          );
         });
       }
     });
@@ -85,79 +149,83 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           ),
         ),
         titleSpacing: 0,
-        title: Row(
-          children: [
-            Expanded(
-              child: AppHorizontalTaskBar(
-                mainActions: [
-                  AppLogo(size: 24, color: AppTheme.of(context).indicatorRate),
-                  const SizedBox(width: 24),
-                  _displayAssetsList(),
-                  const SizedBox(width: 4),
-                  _buildPortfolioButton(),
-                ],
-                overflowActions: [
-                  VerticalDivider(
-                    width: 1,
-                    thickness: 1,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  FittedBox(
-                    fit: BoxFit.fitWidth,
-                    child: Text(
-                      "Placeholder",
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        title: Row(children: [Expanded(child: _buildHorizontalTaskbar())]),
       ),
       body: Row(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // VERTICAL TASK BAR ON THE LEFT
-          AppVerticalTaskBar(
-            mainActions: [
-              // TAB ACTIONS MOVED TO VERTICAL BAR
-              TaskBarIcon(
-                icon: Icons.settings,
-                tooltip: 'Main Settings',
-                color: activeLeftPaneIndex == LeftPaneIndex.mainSettings
-                    ? AppTheme.of(context).taskHighlightColor
-                    : null,
-                onPressed: () =>
-                    _toggleVerticalLeftPanel(LeftPaneIndex.mainSettings),
-              ),
-              const Divider(height: 20, indent: 8, endIndent: 8),
-              TaskBarIcon(
-                icon: Icons.bar_chart,
-                tooltip: 'Analysis results',
-                color: activeRightPaneIndex == RightPaneIndex.analysisResults
-                    ? AppTheme.of(context).taskHighlightColor
-                    : null,
-                onPressed: () =>
-                    _toggleVerticalRightPane(RightPaneIndex.analysisResults),
-              ),
-            ],
-            overflowActions: [
-              ListTile(
-                leading: const Icon(Icons.help_outline, size: 20),
-                title: const Text('Help'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-
+          _buildVerticalTaskbar(),
           _buildLeftPane(),
           Expanded(flex: 4, child: _buildMainPane(ref)),
           _buildRightPane(),
         ],
       ),
+    );
+  }
+
+  Widget _buildHorizontalTaskbar() {
+    return AppHorizontalTaskBar(
+      mainActions: [
+        AppLogo(size: 24, color: AppTheme.of(context).indicatorRate),
+        const SizedBox(width: 24),
+        _displayAssetsList(),
+        _openAssetsTab(),
+        VerticalDivider(
+          width: 1,
+          thickness: 1.5,
+          color: Theme.of(context).dividerColor,
+        ),
+        _displayPortfolioList(),
+        _openPortfolioTab(),
+      ],
+      overflowActions: [
+        VerticalDivider(
+          width: 1,
+          thickness: 1,
+          color: Theme.of(context).dividerColor,
+        ),
+        FittedBox(
+          fit: BoxFit.fitWidth,
+          child: Text(
+            "Placeholder",
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalTaskbar() {
+    return AppVerticalTaskBar(
+      mainActions: [
+        TaskBarIcon(
+          icon: Icons.settings,
+          tooltip: 'Main Settings',
+          color: activeLeftPaneIndex == LeftPaneIndex.mainSettings
+              ? AppTheme.of(context).taskHighlightColor
+              : null,
+          onPressed: () => _toggleVerticalLeftPanel(LeftPaneIndex.mainSettings),
+        ),
+        const Divider(height: 20, indent: 8, endIndent: 8),
+        TaskBarIcon(
+          icon: Icons.bar_chart,
+          tooltip: 'Analysis results',
+          color: activeRightPaneIndex == RightPaneIndex.analysisResults
+              ? AppTheme.of(context).taskHighlightColor
+              : null,
+          onPressed: () =>
+              _toggleVerticalRightPane(RightPaneIndex.analysisResults),
+        ),
+      ],
+      overflowActions: [
+        ListTile(
+          leading: const Icon(Icons.help_outline, size: 20),
+          title: const Text('Help'),
+          onTap: () => Navigator.pop(context),
+        ),
+      ],
     );
   }
 
@@ -299,9 +367,18 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
     return const SizedBox.shrink();
   }
 
-  //-- Top horizontal toolbar
   Widget _displayAssetsList() {
     final assets = ref.watch(sortedAssetsProvider);
+    if (assets.isEmpty) {
+      return const SizedBox(
+        width: 100,
+        child: Text("Loading assets...", style: TextStyle(fontSize: 11)),
+      );
+    }
+    if (_selectedAsset == null && assets.isNotEmpty) {
+      _selectedAsset = assets.first;
+    }
+
     return DropdownList<AssetConfig>(
       textStyle: Theme.of(context).textTheme.labelLarge,
       backgroundColor: Colors.grey.shade600.withAlpha(128),
@@ -310,63 +387,78 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
           _selectedAsset = asset;
         });
       },
-      choiceType: _selectedAsset,
+      choiceType: _selectedAsset ?? assets.first,
       choices: assets,
     );
   }
 
-  Widget _buildPortfolioButton() {
+  Widget _openAssetsTab() {
     return IconButton(
+      icon: const Icon(Icons.add_card, size: 20),
+      tooltip: 'Open Selected Asset as New Tab',
       onPressed: () {
-        // Open portfolio panel, dialog, or switch view
+        if (_selectedAsset != null) {
+          ref
+              .read(tabWindowSessionProvider().notifier)
+              .addTab(
+                TabWindow(type: TabbedWindowType.asset, cache: _selectedAsset!),
+              );
+        }
       },
-      icon: const Icon(Icons.account_balance_wallet, size: 20),
-      tooltip: 'Portfolio',
     );
   }
 
-  //-- End - top horizontal toolbar
-
-  // Build the analysis panel UI
-  Widget _buildMainPane(WidgetRef ref) {
-    if (!_selectedAsset.isDefault()) {
-      final assetPriceAsync = ref.watch(assetPricesProvider(_selectedAsset.id));
-      return assetPriceAsync.when(
-        data: (priceData) {
-          if (priceData.isEmpty) {
-            return const Center(child: Text("No data available"));
-          }
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final priceResult = IndexPrice(
-                priceData: priceData,
-                config: Indicator.priceIndicator(),
-                style: ChartStyle.line,
-              );
-              return MultiChartView(
-                priceData: priceResult,
-                assetConfig: _selectedAsset,
-                chartHeight: constraints.maxHeight,
-                prefixDomain: 0,
-              ); // TODO: check out this
-              // prefixDomain: _selectedIndicator.isDefault() ? 0 : 20);
-            },
-          );
-        },
-        error: (error, stackTrace) {
-          return Center(
-            child: Text(
-              "Error: $error",
-              style: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-      );
+  Widget _displayPortfolioList() {
+    final portfolioAsync = ref.watch(
+      portfolioProvider(CacheKeyType.analysisCache),
+    );
+    final portfolios = portfolioAsync.value?.getItems() ?? [];
+    if (portfolios.isEmpty) {
+      return const SizedBox.shrink();
     }
-    return const Center(child: Text("Run analysis to see settings"));
+    if (_selectedPortfolio == null && portfolios.isNotEmpty) {
+      _selectedPortfolio = portfolios.first;
+    }
+    return DropdownList<PortfolioConfig>(
+      textStyle: Theme.of(context).textTheme.labelLarge,
+      backgroundColor: Colors.grey.shade600.withAlpha(128),
+      onSelected: (PortfolioConfig portfolio) {
+        setState(() {
+          _selectedPortfolio = portfolio;
+        });
+      },
+      choiceType: _selectedPortfolio ?? portfolios.first,
+      choices: portfolios,
+    );
+  }
+
+  Widget _openPortfolioTab() {
+    return IconButton(
+      icon: const Icon(Icons.account_balance_wallet, size: 20),
+      tooltip: "Open portfolio's assets and te related signals",
+      onPressed: () {
+        if (_selectedPortfolio != null) {
+          ref
+              .read(tabWindowSessionProvider().notifier)
+              .addTab(
+                TabWindow(
+                  type: TabbedWindowType.portfolio,
+                  cache: _selectedPortfolio!,
+                ),
+              );
+        }
+      },
+    );
+  }
+
+  Widget _buildMainPane(WidgetRef ref) {
+    return BrowserTabsView(
+      onPopOutTab: (tab) {
+        final title = tab.type == TabbedWindowType.asset
+            ? 'Chart: ${(tab.cache as AssetConfig).symbol}'
+            : 'Portfolio: ${(tab.cache as PortfolioConfig).portfolioName}';
+        _openPanelInNewWindow(title, tab.type);
+      },
+    );
   }
 }

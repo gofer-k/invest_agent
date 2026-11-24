@@ -7,8 +7,9 @@ import 'package:money2/money2.dart';
 
 import 'panels/invest_dashboard.dart';
 
-void main() {
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
   Currencies().registerList(CommonCurrencies().asList());
   runApp(
     ProviderScope(

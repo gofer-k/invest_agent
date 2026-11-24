@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   dart_duckdb
+  desktop_multi_window
   flutter_secure_storage_linux
   url_launcher_linux
 )
