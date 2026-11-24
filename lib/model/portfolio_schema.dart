@@ -297,4 +297,7 @@ class PortfolioConfig implements Cache {
     }
     return PeriodType.max;
   }
+
+  @override
+  int getId() => id ?? 0;
 }

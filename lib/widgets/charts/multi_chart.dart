@@ -81,6 +81,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     super.initState();
     _initializeControllers();
     _selectedChartStyle = widget.priceData.style;
+    // TODO: Support MultiChartType values
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final availableCharts = await ref
           .read(
@@ -93,7 +94,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
           .fetchAll()
           .then(
             (value) => value
-                .where((c) => c.asset.id == widget.assetConfig.id)
+                .where((c) => c.feature.getId() == widget.assetConfig.id)
                 .toList(),
           );
 
@@ -331,6 +332,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     _selectedIndicator = __defaultIndicator;
   }
 
+  // TODO: Support MultiChartType values
   void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
     showIndicator(context, currentConfig.charts[index].indicatorConfig, (
       Indicator? updateIndicator,
@@ -398,7 +400,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                   currentConfig.copyWith(
                     newId: MultiChartConfig.defaultId,
                     newTitle: MultiChartConfig.generateTitleBy(
-                      currentConfig.asset,
+                      // TODO: Support MultiChartType values
+                      currentConfig.feature as AssetConfig,
                       updateIndicator,
                       currentConfig.periodType,
                       currentConfig.mainChart.chartStyle,
@@ -662,14 +665,16 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     }
 
     final activeChartTitle = MultiChartConfig.generateTitleBy(
-      activeConfig.asset,
+      // TODO: Support MultiChartType values
+      (activeConfig.feature is AssetConfig) as AssetConfig?,
       newIndicator,
       newPeriodType,
       newStyle,
     );
 
     final newChartConfig = activeConfig.copyWith(
-      newAsset: widget.assetConfig,
+      // TODO: Support MultiChartType values
+      newFeature: widget.assetConfig,
       newPeriodType: targetPeriod,
       newActiveChart: newActiveChart,
       newCharts: updatedCharts,

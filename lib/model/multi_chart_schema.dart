@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:invest_agent/model/asset_config.dart';
+import 'package:invest_agent/model/portfolio_schema.dart';
 
 import 'cache_schema.dart';
 import 'chart_style.dart';
@@ -121,6 +122,9 @@ class ChartConfig extends Cache {
 
   @override
   List<Object?> get props => [mainChart, visible, chartStyle, indicatorConfig];
+
+  @override
+  int getId() => -1;
 }
 
 // -- Multi chart schema --
@@ -167,7 +171,7 @@ class MultiChartConfigSchema extends CacheSchema {
       INSERT INTO $cacheName 
       VALUES (
       nextval('$sequenceName'),
-      ${multiChart.asset.id},
+      ${multiChart.feature.getId()},
       '${multiChart.title}',
       ${multiChart.activeChart},
       '${multiChart.periodType.name}',
@@ -184,7 +188,7 @@ class MultiChartConfigSchema extends CacheSchema {
     return '''
       UPDATE $cacheName
       SET title = '${multiChart.title}',
-          asset_id = ${multiChart.asset.id},
+          asset_id = ${multiChart.feature.getId()},
           period_type = '${multiChart.periodType.name}',
           active_chart = ${multiChart.activeChart},
           charts = '${jsonEncode(multiChart.charts.map((e) => e.toMap()).toList())}',
@@ -210,13 +214,13 @@ class MultiChartConfig extends Cache {
   final String title; // Asset's name
   final List<ChartConfig> charts;
   final PeriodType periodType;
-  final AssetConfig asset;
+  final Cache feature;
   final MultiChartFeatureType chartType;
 
   MultiChartConfig({
     required this.id,
     required this.title,
-    required this.asset,
+    required this.feature,
     required this.chartType,
     this.charts = const [],
     this.activeChart = false,
@@ -227,19 +231,27 @@ class MultiChartConfig extends Cache {
     int? newId,
     bool? newActiveChart,
     String? newTitle,
-    AssetConfig? newAsset,
+    Cache? newFeature,
     PeriodType? newPeriodType,
     List<ChartConfig>? newCharts,
   }) {
+    var newChartTYpe = MultiChartFeatureType.empty;
+    if (newFeature != null) {
+      if (newFeature is AssetConfig) {
+        newChartTYpe = MultiChartFeatureType.asset;
+      } else if (newFeature is PortfolioConfig) {
+        newChartTYpe = MultiChartFeatureType.portfolio;
+      }
+    }
+
     return MultiChartConfig(
       id: newId ?? id,
       title: newTitle ?? title,
-      asset: newAsset ?? asset,
+      feature: newFeature ?? feature,
       activeChart: newActiveChart ?? activeChart,
       periodType: newPeriodType ?? periodType,
       charts: newCharts ?? charts,
-      chartType: MultiChartFeatureType
-          .asset, // TODO: by Cache feature (assetConfig, portfolioConfig)
+      chartType: newChartTYpe,
     );
   }
 
@@ -247,17 +259,22 @@ class MultiChartConfig extends Cache {
   factory MultiChartConfig.from(List<Object?> item) {
     if (item.length > 6) {
       final List<dynamic> jsonCharts = jsonDecode(item[5] as String);
-      final jsonAssetId = item[1] as int;
+      final jsonFeatureId = item[1] as int;
       final activeChart = item.length > 5 ? item[3] as bool : false;
       final multiChartTypeIdx = (item[6] as int).clamp(
         0,
         MultiChartFeatureType.values.length,
       );
       final multiChartType = MultiChartFeatureType.values[multiChartTypeIdx];
+      final feature = switch (multiChartType) {
+        MultiChartFeatureType.asset => AssetConfig.of(id: jsonFeatureId),
+        MultiChartFeatureType.portfolio => PortfolioConfig.of(jsonFeatureId),
+        _ => AssetConfig.of(id: jsonFeatureId),
+      };
 
       return MultiChartConfig(
         id: item[0] as int,
-        asset: AssetConfig.of(id: jsonAssetId),
+        feature: feature,
         activeChart: activeChart,
         title: item[2] as String,
         periodType: PeriodType.values.firstWhere(
@@ -276,7 +293,7 @@ class MultiChartConfig extends Cache {
   @override
   Map<String, dynamic> toMap() => {
     'id': id,
-    'feature_id': asset.id, // TODO: to Cache id
+    'feature_id': feature.getId(),
     'chart_type': chartType,
     'title': title,
     "active_chart": activeChart,
@@ -285,7 +302,7 @@ class MultiChartConfig extends Cache {
   };
 
   @override
-  String toString() => "$title, ${asset.toString()}, $periodType, [$charts]";
+  String toString() => "$title, ${feature.toString()}, $periodType, [$charts]";
 
   static MultiChartConfig defaultMultiChart({AssetConfig? asset}) =>
       MultiChartConfig(
@@ -293,7 +310,7 @@ class MultiChartConfig extends Cache {
         title: '',
         periodType: PeriodType.year,
         charts: [],
-        asset: asset ?? AssetConfig.defaultAsset(),
+        feature: asset ?? AssetConfig.defaultAsset(),
         chartType: MultiChartFeatureType.asset,
       );
 
@@ -313,7 +330,7 @@ class MultiChartConfig extends Cache {
         indicatorConfig: Indicator.priceIndicator(),
       ),
     ],
-    asset: asset,
+    feature: asset,
     chartType: MultiChartFeatureType.asset,
   );
 
@@ -349,7 +366,7 @@ class MultiChartConfig extends Cache {
           runtimeType == other.runtimeType &&
           id == other.id &&
           activeChart == other.activeChart &&
-          asset == other.asset &&
+          feature == other.feature &&
           title == other.title &&
           periodType == other.periodType &&
           chartType == other.chartType &&
@@ -359,7 +376,7 @@ class MultiChartConfig extends Cache {
   int get hashCode => Object.hash(
     id,
     activeChart,
-    asset,
+    feature,
     title,
     periodType,
     const ListEquality().hash(charts),
@@ -368,11 +385,14 @@ class MultiChartConfig extends Cache {
   @override
   List<Object?> get props => [
     id,
-    asset,
+    feature,
     title,
     periodType,
     activeChart,
     charts,
     chartType,
   ];
+
+  @override
+  int getId() => id;
 }

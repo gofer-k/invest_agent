@@ -294,4 +294,7 @@ class AssetConfig extends Cache {
 
   @override
   List<Object?> get props => [id, assetTypeId, symbol];
+
+  @override
+  int getId() => id;
 }

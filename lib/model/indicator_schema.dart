@@ -320,4 +320,7 @@ class Indicator extends Cache {
 
   @override
   List<Object?> get props => [id, name, drawingType, parameters];
+
+  @override
+  int getId() => id;
 }

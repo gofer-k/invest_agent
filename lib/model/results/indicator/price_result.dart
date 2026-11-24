@@ -280,6 +280,9 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
 
   @override
   bool? get stringify => true;
+
+  @override
+  int getId() => id;
 }
 
 class IndexPrice extends BaseIndicatorResult {

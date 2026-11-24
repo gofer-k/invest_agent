@@ -92,7 +92,7 @@ void main() {
             ),
           ),
         ],
-        asset: asset,
+        feature: asset,
         chartType: MultiChartFeatureType.asset,
       );
 
@@ -156,7 +156,7 @@ void main() {
       final config = MultiChartConfig(
         id: 1,
         title: 'Test Chart',
-        asset: asset,
+        feature: asset,
         chartType: MultiChartFeatureType.asset,
       );
       await container
@@ -178,7 +178,12 @@ void main() {
     test('deleteEntry removes a chart', () async {
       await container.read(loadDatabaseProvider(testPath).future);
 
-      final config = MultiChartConfig(id: 1, title: 'Test Chart', asset: asset,chartType: MultiChartFeatureType.asset);
+      final config = MultiChartConfig(
+        id: 1,
+        title: 'Test Chart',
+        feature: asset,
+        chartType: MultiChartFeatureType.asset,
+      );
       await container
           .read(multiChartProvider(testPath).notifier)
           .addEntry(config);
@@ -199,10 +204,20 @@ void main() {
 
       final notifier = container.read(multiChartProvider(testPath).notifier);
       await notifier.addEntry(
-        MultiChartConfig(id: 1, title: 'A', asset: asset, chartType: MultiChartFeatureType.asset),
+        MultiChartConfig(
+          id: 1,
+          title: 'A',
+          feature: asset,
+          chartType: MultiChartFeatureType.asset,
+        ),
       );
       await notifier.addEntry(
-        MultiChartConfig(id: 2, title: 'B', asset: asset, chartType: MultiChartFeatureType.asset),
+        MultiChartConfig(
+          id: 2,
+          title: 'B',
+          feature: asset,
+          chartType: MultiChartFeatureType.asset,
+        ),
       );
 
       expect(
@@ -223,13 +238,28 @@ void main() {
 
       final notifier = container.read(multiChartProvider(testPath).notifier);
       await notifier.addEntry(
-        MultiChartConfig(id: 1, title: 'C', asset: asset, chartType: MultiChartFeatureType.asset),
+        MultiChartConfig(
+          id: 1,
+          title: 'C',
+          feature: asset,
+          chartType: MultiChartFeatureType.asset,
+        ),
       );
       await notifier.addEntry(
-        MultiChartConfig(id: 2, title: 'A', asset: asset, chartType: MultiChartFeatureType.asset),
+        MultiChartConfig(
+          id: 2,
+          title: 'A',
+          feature: asset,
+          chartType: MultiChartFeatureType.asset,
+        ),
       );
       await notifier.addEntry(
-        MultiChartConfig(id: 3, title: 'B', asset: asset, chartType: MultiChartFeatureType.asset),
+        MultiChartConfig(
+          id: 3,
+          title: 'B',
+          feature: asset,
+          chartType: MultiChartFeatureType.asset,
+        ),
       );
 
       final sorted = container.read(sortedMultiChartsProvider(testPath));

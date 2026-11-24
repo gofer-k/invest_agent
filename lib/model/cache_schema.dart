@@ -30,6 +30,8 @@ abstract class Cache extends Equatable {
 
   Map<String, dynamic> toMap();
 
+  int getId();
+
   @override
   String toString();
 

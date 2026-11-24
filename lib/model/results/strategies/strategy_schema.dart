@@ -190,4 +190,7 @@ class Strategy extends Cache {
   PeriodType getRebalanceFrequency() => PeriodType.year;
 
   List<AssetAllocation> getAssetAllocations() => [];
+
+  @override
+  int getId() => id;
 }

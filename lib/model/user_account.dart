@@ -46,6 +46,9 @@ class UserAccount extends Cache {
   @override
   // TODO: implement props
   List<Object?> get props => [id, name, providerData];
+
+  @override
+  int getId() => id ?? 0;
 }
 
 class UserAccountSchema extends CacheSchema {

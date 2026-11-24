@@ -123,6 +123,9 @@ class LineFeature extends DrawingFeature {
 
   @override
   List<Object?> get props => [drawingType, color, width, style, begin, end];
+
+  @override
+  int getId() => 0;
 }
 
 class RectangleFeature extends DrawingFeature {
@@ -223,6 +226,9 @@ class RectangleFeature extends DrawingFeature {
     leftTop,
     rightBottom,
   ];
+
+  @override
+  int getId() => 0;
 }
 
 class LabelFeature extends DrawingFeature {
@@ -285,6 +291,9 @@ class LabelFeature extends DrawingFeature {
   @override
   // TODO: implement props
   List<Object?> get props => [drawingType, text, color, position];
+
+  @override
+  int getId() => 0;
 }
 
 extension on Point<num> {
