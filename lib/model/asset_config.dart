@@ -20,8 +20,7 @@ enum StockExchange {
   final String suffix;
 }
 
-class AssetConfigSchema implements CacheSchema
-{
+class AssetConfigSchema implements CacheSchema {
   static const String cacheName = "metadata";
   static const String cacheSequenceName = "metadata_id_sequence";
   static const String assetTypeTable = "asset_type";
@@ -29,7 +28,7 @@ class AssetConfigSchema implements CacheSchema
 
   @override
   String get create =>
-  '''
+      '''
       CREATE TABLE IF NOT EXISTS $cacheName (
         id INTEGER PRIMARY KEY DEFAULT nextval('$cacheSequenceName'),
         symbol TEXT NOT NULL,
@@ -47,7 +46,8 @@ class AssetConfigSchema implements CacheSchema
     ''';
 
   @override
-  String get createKey => '''
+  String get createKey =>
+      '''
     CREATE SEQUENCE IF NOT EXISTS $cacheSequenceName START 1;
     -- Create Asset Type sequence
     CREATE SEQUENCE IF NOT EXISTS $assetTypeSequenceName START 1;
@@ -57,18 +57,21 @@ class AssetConfigSchema implements CacheSchema
   String get deleteAll => "DELETE FROM $cacheName;";
 
   @override
-  String deleteOne(Cache cache) => "DELETE FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
+  String deleteOne(Cache cache) =>
+      "DELETE FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
 
   @override
-  String get readAll => '''
+  String get readAll =>
+      '''
     select * from $cacheName m
       left join $assetTypeTable t on m.asset_type = t.id
       order by m.id desc;
   ''';
-// "SELECT * FROM $cacheName ORDER BY id DESC;";
+  // "SELECT * FROM $cacheName ORDER BY id DESC;";
 
   @override
-  String readOne(Cache cache) => '''
+  String readOne(Cache cache) =>
+      '''
     select * from $cacheName m 
       left join $assetTypeTable t on m.asset_type = t.id
       where m.id = ${(cache as AssetConfig).id};
@@ -78,7 +81,9 @@ class AssetConfigSchema implements CacheSchema
   @override
   String saveOne(Cache cache) {
     final assetConfig = cache as AssetConfig;
-    final linksJson = jsonEncode(assetConfig.links.map((e) => e.toString()).toList());
+    final linksJson = jsonEncode(
+      assetConfig.links.map((e) => e.toString()).toList(),
+    );
     return '''
       INSERT INTO $cacheName 
       VALUES (
@@ -96,7 +101,9 @@ class AssetConfigSchema implements CacheSchema
   @override
   String updateOne(Cache cache) {
     final assetConfig = cache as AssetConfig;
-    final linksJson = jsonEncode(assetConfig.links.map((e) => e.toString()).toList());
+    final linksJson = jsonEncode(
+      assetConfig.links.map((e) => e.toString()).toList(),
+    );
     return '''
       UPDATE $cacheName
       SET symbol = '${assetConfig.symbol}',
@@ -112,7 +119,7 @@ class AssetConfigSchema implements CacheSchema
 
 typedef AssetsByExchange = Map<String, List<AssetConfig>>;
 
-class AssetConfig extends Cache{
+class AssetConfig extends Cache {
   final int id;
   final String symbol;
   final FiatCurrency currency;
@@ -124,15 +131,19 @@ class AssetConfig extends Cache{
 
   static const int defaultAssetId = -1;
 
-  static StockExchange? _stockExchangeFromString(String stockSymbol, String stockSuffix) {
+  static StockExchange? _stockExchangeFromString(
+    String stockSymbol,
+    String stockSuffix,
+  ) {
     try {
-      return StockExchange.values.firstWhere((e) =>
-      e.code == stockSymbol && e.suffix == stockSuffix);
+      return StockExchange.values.firstWhere(
+        (e) => e.code == stockSymbol && e.suffix == stockSuffix,
+      );
     } catch (e) {
       return null; // Return null if no match is found
     }
   }
-  
+
   static List<Uri>? _linksFromJson(Object? jsonLinks) {
     if (jsonLinks == null) return null;
     try {
@@ -147,10 +158,11 @@ class AssetConfig extends Cache{
         return null;
       }
 
-      return list.map((e) => Uri.tryParse(e.toString()))
-          .whereType<Uri>().toList();
-    }
-    catch (e){
+      return list
+          .map((e) => Uri.tryParse(e.toString()))
+          .whereType<Uri>()
+          .toList();
+    } catch (e) {
       log("Invalid asset's links format: $e");
     }
     return null;
@@ -171,16 +183,23 @@ class AssetConfig extends Cache{
     this.assetTypeDetails,
   }) : super.from([]);
 
-  static AssetConfig defaultAsset() => 
-    AssetConfig(id: defaultAssetId,
-      symbol: 'no symbol',
-      currency: FiatCurrency.pln(),
-      stockExchange: StockExchange.xWar,
-      links: []);
+  static AssetConfig defaultAsset() => AssetConfig(
+    id: defaultAssetId,
+    symbol: 'no symbol',
+    currency: FiatCurrency.pln(),
+    stockExchange: StockExchange.xWar,
+    links: [],
+  );
 
   bool isDefault() => id == defaultAssetId;
 
-  AssetConfig copyWith(int? id, String? symbol, FiatCurrency? currency, StockExchange? stock, List<Uri>? links) {
+  AssetConfig copyWith(
+    int? id,
+    String? symbol,
+    FiatCurrency? currency,
+    StockExchange? stock,
+    List<Uri>? links,
+  ) {
     return AssetConfig(
       id: id ?? this.id,
       assetTypeId: assetTypeId,
@@ -189,12 +208,18 @@ class AssetConfig extends Cache{
       stockExchange: stock ?? stockExchange,
       links: links ?? this.links,
       assetTypeName: assetTypeName,
-      assetTypeDetails: assetTypeDetails
+      assetTypeDetails: assetTypeDetails,
     );
   }
 
   factory AssetConfig.of({required int id}) {
-    return AssetConfig(id: id, symbol: '', currency: FiatCurrency.pln(), stockExchange: StockExchange.xWar, links: []);
+    return AssetConfig(
+      id: id,
+      symbol: '',
+      currency: FiatCurrency.pln(),
+      stockExchange: StockExchange.xWar,
+      links: [],
+    );
   }
 
   @override
@@ -210,26 +235,33 @@ class AssetConfig extends Cache{
     final dbCurrency = item[3] as String;
     final currency = FiatCurrency.maybeFromCode(dbCurrency.toUpperCase());
     if (currency == null) {
-      throw Exception("Invalidate input currency: $dbCurrency. It must tbe compatible to ISO 4217 code");
+      throw Exception(
+        "Invalidate input currency: $dbCurrency. It must tbe compatible to ISO 4217 code",
+      );
     }
-    final stockExchange = _stockExchangeFromString(item[2] as String, item[4] as String);
+    final stockExchange = _stockExchangeFromString(
+      item[2] as String,
+      item[4] as String,
+    );
     if (stockExchange == null) {
-      throw Exception("Invalidate input stock exchange: [${item[2]}, ${item[4]}]");
+      throw Exception(
+        "Invalidate input stock exchange: [${item[2]}, ${item[4]}]",
+      );
     }
-    
+
     final links = _linksFromJson(item[5]);
     final jsonAssetTypeName = item[8] as String?;
     final jsonAssetTypeDetails = item[9] as String?;
 
     return AssetConfig(
-        id: item[0] as int,
-        symbol: item[1] as String,
-        currency: currency,
-        stockExchange: stockExchange,
-        links: links ?? [],
-        assetTypeId: item[7] as int,
-        assetTypeName: jsonAssetTypeName,
-        assetTypeDetails: jsonAssetTypeDetails
+      id: item[0] as int,
+      symbol: item[1] as String,
+      currency: currency,
+      stockExchange: stockExchange,
+      links: links ?? [],
+      assetTypeId: item[7] as int,
+      assetTypeName: jsonAssetTypeName,
+      assetTypeDetails: jsonAssetTypeDetails,
     );
   }
 
@@ -243,7 +275,7 @@ class AssetConfig extends Cache{
     'links': AssetConfig._toJsonLinks(links),
     'asset_type_id': assetTypeId,
     'asset_type_name': assetTypeName,
-    'asset_type_details': assetTypeDetails
+    'asset_type_details': assetTypeDetails,
   };
 
   @override
