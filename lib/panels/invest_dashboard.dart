@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -86,26 +84,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
       } catch (_) {}
     }
     _childWindows.clear();
-  }
-
-  Future<void> _openPanelInNewWindow(
-    String title,
-    TabbedWindowType type,
-  ) async {
-    final controller = await WindowController.create(
-      WindowConfiguration(
-        arguments: jsonEncode({'title': title, 'type': type}),
-        hiddenAtLaunch: false,
-      ),
-    );
-    final notifier = ref.read(tabWindowSessionProvider().notifier);
-    if (notifier.activeTab != null) {
-      await controller.show();
-      _childWindows.add(controller);
-      controller.invokeMethod('update_tab', {
-        'params': notifier.activeTab.toString(),
-      });
-    }
   }
 
   @override
@@ -452,13 +430,6 @@ class _InvestDashboardState extends ConsumerState<InvestDashboard> {
   }
 
   Widget _buildMainPane(WidgetRef ref) {
-    return BrowserTabsView(
-      onPopOutTab: (tab) {
-        final title = tab.type == TabbedWindowType.asset
-            ? 'Chart: ${(tab.cache as AssetConfig).symbol}'
-            : 'Portfolio: ${(tab.cache as PortfolioConfig).portfolioName}';
-        _openPanelInNewWindow(title, tab.type);
-      },
-    );
+    return BrowserTabsView();
   }
 }

@@ -12,9 +12,7 @@ import 'package:invest_agent/widgets/charts/multi_chart.dart';
 import 'package:invest_agent/widgets/utils/tabbed_window_type.dart';
 
 class BrowserTabsView extends ConsumerWidget {
-  const BrowserTabsView({super.key, required this.onPopOutTab});
-
-  final Function(TabWindow tab) onPopOutTab;
+  const BrowserTabsView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,11 +107,6 @@ class BrowserTabsView extends ConsumerWidget {
                     );
                   },
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.open_in_new, size: 16),
-                tooltip: 'Pop out tab into new window',
-                onPressed: () => onPopOutTab(activeTab),
               ),
             ],
           ),
