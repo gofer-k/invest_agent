@@ -1,11 +1,13 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 enum RocParam {
   // -- input parameters
@@ -26,21 +28,17 @@ class Roc extends BaseIndicatorValue {
   final double? roc;
   final int? window;
 
-  Roc({
-    required super.dateTime,
-    required this.roc,
-    required this.window,});
+  Roc({required super.dateTime, required this.roc, required this.window});
 
   factory Roc.fromType(DateTime dateTime, {roc = double, window = int}) {
     return Roc(dateTime: dateTime, roc: roc, window: window);
   }
 
-  static Roc? fromJson(
-      DateTime dateTime, Map<String, dynamic> jsonMap) {
+  static Roc? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
     final roc = parseNum(jsonMap[RocParam.roc.name]);
     final window = jsonMap[RocParam.window.name] as int?;
     if (roc != null && window != null) {
-      return Roc(dateTime: dateTime, roc: roc,  window: window,);
+      return Roc(dateTime: dateTime, roc: roc, window: window);
     }
     return null;
   }
@@ -61,15 +59,18 @@ class RocResult extends BaseIndicatorResult {
   });
 
   factory RocResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final data = protoResult.points.map((p) {
@@ -80,11 +81,7 @@ class RocResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return RocResult(
-      style: style,
-      config: config,
-      points: data,
-    );
+    return RocResult(style: style, config: config, points: data);
   }
 
   List<Roc> getPoints({int rollingWindow = 20}) {
@@ -135,5 +132,6 @@ class RocResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 }

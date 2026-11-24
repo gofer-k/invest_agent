@@ -7,10 +7,12 @@ import 'package:sealed_currencies/sealed_currencies.dart';
 void main() {
   AssetConfig createMockAsset({required int id}) {
     // Assuming AssetConfig has a constructor similar to this based on usage
-    return AssetConfig(id: id,
+    return AssetConfig(
+      id: id,
       symbol: 'SYM$id',
       currency: FiatCurrency.usd(),
-      stockExchange: StockExchange.lSe);
+      stockExchange: StockExchange.lSe,
+    );
   }
 
   group('GemAsset Tests', () {
@@ -18,7 +20,7 @@ void main() {
       final map = {
         "asset-type": "bonds",
         "main-asset-id": 2,
-        "balance-assets": [3, 4]
+        "balance-assets": [3, 4],
       };
 
       final gemAsset = GemAsset.fromMap(map);
@@ -49,7 +51,7 @@ void main() {
       final strategy = GemStrategyConfig.emptyStrategy();
 
       expect(strategy.id, Strategy.defaultId);
-      expect(strategy.type, StrategyType.gem);
+      expect(strategy.drawingType, StrategyType.gem);
       expect(strategy.name, isEmpty);
       expect(strategy.mainAsset.type, GemAssetType.equity);
       expect(strategy.momentumAsset.type, GemAssetType.bond);
@@ -80,14 +82,15 @@ void main() {
       // Act
       final strategy = GemStrategyConfig(
         id: strategyId,
-        type: strategyType,
+        drawingType: strategyType,
         name: strategyName,
         mainAsset: riskAsset,
-        momentumAsset: safeAsset);
+        momentumAsset: safeAsset,
+      );
 
       // Assert
       expect(strategy.id, strategyId);
-      expect(strategy.type, strategyType);
+      expect(strategy.drawingType, strategyType);
       expect(strategy.name, strategyName);
 
       // Verify Risk Asset
@@ -115,13 +118,13 @@ void main() {
         "main-asset": {
           "asset-type": "equity",
           "main-asset-id": 20,
-          "balance-assets": [20, 21]
+          "balance-assets": [20, 21],
         },
         "momentum-assets": {
           "asset-type": "bonds",
           "main-asset-id": 2,
-          "balance-assets": [3, 4]
-        }
+          "balance-assets": [3, 4],
+        },
       };
 
       final strategy = GemStrategyConfig.fromMap(id, params);
@@ -141,21 +144,29 @@ void main() {
         supportingAssets: {},
       );
 
-      final updated = original.copyWith(
-        newName: "Updated Name",
-        newMainAsset: newMainAsset,
-      ) as GemStrategyConfig;
+      final updated =
+          original.copyWith(newName: "Updated Name", newMainAsset: newMainAsset)
+              as GemStrategyConfig;
 
       expect(updated.name, "Updated Name");
       expect(updated.mainAsset.type, GemAssetType.commodity);
       expect(updated.id, original.id); // Should remain same
-      expect(updated.momentumAsset, original.momentumAsset); // Should remain same
+      expect(
+        updated.momentumAsset,
+        original.momentumAsset,
+      ); // Should remain same
     });
 
     test('uniqueKey should be consistent and change with data', () {
-      final strategy1 = GemStrategyConfig.emptyStrategy().copyWith(newName: "Test") as GemStrategyConfig;
-      final strategy2 = GemStrategyConfig.emptyStrategy().copyWith(newName: "Test") as GemStrategyConfig;
-      final strategy3 = GemStrategyConfig.emptyStrategy().copyWith(newName: "Different") as GemStrategyConfig;
+      final strategy1 =
+          GemStrategyConfig.emptyStrategy().copyWith(newName: "Test")
+              as GemStrategyConfig;
+      final strategy2 =
+          GemStrategyConfig.emptyStrategy().copyWith(newName: "Test")
+              as GemStrategyConfig;
+      final strategy3 =
+          GemStrategyConfig.emptyStrategy().copyWith(newName: "Different")
+              as GemStrategyConfig;
 
       expect(strategy1.uniqueKey, equals(strategy2.uniqueKey));
       expect(strategy1.uniqueKey, isNot(equals(strategy3.uniqueKey)));
@@ -168,24 +179,37 @@ void main() {
       // 1. Verify basic properties
       expect(s1.id, s2.id);
       expect(s1.name, s2.name);
-      expect(s1.type, s2.type);
+      expect(s1.drawingType, s2.drawingType);
 
       // 2. Verify Nested GemAsset Equality
       // We check properties individually in case GemAsset doesn't override == correctly
       expect(s1.mainAsset.type, s2.mainAsset.type);
       expect(s1.mainAsset.asset.id, s2.mainAsset.asset.id);
-      expect(s1.mainAsset.supportingAssets.length, s2.mainAsset.supportingAssets.length);
+      expect(
+        s1.mainAsset.supportingAssets.length,
+        s2.mainAsset.supportingAssets.length,
+      );
 
       // 3. Verify Unique Key (The source of truth for your business logic)
-      expect(s1.uniqueKey, s2.uniqueKey,
-          reason: "uniqueKey must be identical for identical configurations");
+      expect(
+        s1.uniqueKey,
+        s2.uniqueKey,
+        reason: "uniqueKey must be identical for identical configurations",
+      );
 
       // 4. Final object equality check
       // This will only pass if you have overridden operator == in your classes
-      expect(s1, equals(s2),
-          reason: "GemStrategyConfig must implement value equality (check operator == and hashCode)");
-      expect(s1.hashCode, s2.hashCode,
-          reason: "Identical objects must have identical hashCodes");
+      expect(
+        s1,
+        equals(s2),
+        reason:
+            "GemStrategyConfig must implement value equality (check operator == and hashCode)",
+      );
+      expect(
+        s1.hashCode,
+        s2.hashCode,
+        reason: "Identical objects must have identical hashCodes",
+      );
     });
 
     test('uniqueKey should be consistent for same configuration', () {

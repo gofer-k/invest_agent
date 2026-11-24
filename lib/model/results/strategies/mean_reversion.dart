@@ -12,31 +12,37 @@ class MeanReversionConfig extends Strategy {
   final Indicator indicator;
 
   MeanReversionConfig({
-    super.type = StrategyType.meanReversion,
+    super.drawingType = StrategyType.meanReversion,
     required super.id,
     required super.name,
     required this.asset,
     required this.indicator,
-    this.lookbackPeriod = yearDays});
+    this.lookbackPeriod = yearDays,
+  });
 
   CacheUniqueKey get uniqueKey {
-    return "$name-$type--${asset.toDetailString()} $lookbackPeriod ${indicator.uniqueKey}".hashCode;
+    return "$name-$drawingType--${asset.toDetailString()} $lookbackPeriod ${indicator.uniqueKey}"
+        .hashCode;
   }
 
   factory MeanReversionConfig.emptyStrategy() {
     return MeanReversionConfig(
       id: Strategy.defaultId,
       asset: AssetConfig.defaultAsset(),
-      type: StrategyType.meanReversion,
+      drawingType: StrategyType.meanReversion,
       indicator: Indicator.emptyIndicator(),
       lookbackPeriod: yearDays,
-      name: '');
+      name: '',
+    );
   }
 
   @override
   Strategy fillAssets(List<AssetConfig> assets) {
     if (assets.isEmpty) return this;
-    final filledAsset = assets.firstWhere((a) => a.id == asset.id, orElse: () => asset);
+    final filledAsset = assets.firstWhere(
+      (a) => a.id == asset.id,
+      orElse: () => asset,
+    );
     return copyWith(newAsset: filledAsset);
   }
 
@@ -78,9 +84,7 @@ class MeanReversionConfig extends Strategy {
   }
    */
   @override
-  factory MeanReversionConfig.fromMap(
-      int id, Map<String, dynamic> params) {
-
+  factory MeanReversionConfig.fromMap(int id, Map<String, dynamic> params) {
     final assetId = params['asset'] as int? ?? 0;
     final name = params["name"] as String? ?? "";
     final lookBackPeriod = params['lookback_window'] as int? ?? yearDays;
@@ -96,14 +100,16 @@ class MeanReversionConfig extends Strategy {
         final String typeStr = firstEntry.keys.first.toString();
 
         // Use safe casting or 'Map.from' to avoid Type errors
-        final Map<String, dynamic> innerParams = Map<String, dynamic>.from(firstEntry[typeStr] ?? {});
+        final Map<String, dynamic> innerParams = Map<String, dynamic>.from(
+          firstEntry[typeStr] ?? {},
+        );
 
         indicator = Indicator(
           id: 0, // Or extract if available
           name: typeStr.toUpperCase(),
-          type: IndicatorType.values.firstWhere(
-                  (e) => e.name == typeStr,
-              orElse: () => IndicatorType.undefined
+          drawingType: IndicatorType.values.firstWhere(
+            (e) => e.name == typeStr,
+            orElse: () => IndicatorType.undefined,
           ),
           parameters: innerParams,
         );
@@ -118,7 +124,7 @@ class MeanReversionConfig extends Strategy {
       id: id,
       name: name,
       asset: AssetConfig.of(id: assetId),
-      type: StrategyType.meanReversion,
+      drawingType: StrategyType.meanReversion,
       lookbackPeriod: lookBackPeriod,
       indicator: indicator,
     );
@@ -128,7 +134,7 @@ class MeanReversionConfig extends Strategy {
     return MeanReversionConfig(
       id: strategy.id,
       name: strategy.name,
-      type: StrategyType.meanReversion,
+      drawingType: StrategyType.meanReversion,
       lookbackPeriod: yearDays,
       indicator: Indicator.emptyIndicator(),
       asset: AssetConfig.defaultAsset(),
@@ -142,14 +148,16 @@ class MeanReversionConfig extends Strategy {
     StrategyType? newType,
     int? newPeriod,
     AssetConfig? newAsset,
-    Indicator? newIndicator}) {
+    Indicator? newIndicator,
+  }) {
     return MeanReversionConfig(
-        id: newId ?? id,
-        asset: newAsset ?? asset,
-        type: StrategyType.meanReversion,
-        lookbackPeriod: newPeriod ?? lookbackPeriod,
-        indicator: newIndicator ?? indicator,
-        name: newName ?? name);
+      id: newId ?? id,
+      asset: newAsset ?? asset,
+      drawingType: StrategyType.meanReversion,
+      lookbackPeriod: newPeriod ?? lookbackPeriod,
+      indicator: newIndicator ?? indicator,
+      name: newName ?? name,
+    );
   }
 
   @override
@@ -158,35 +166,40 @@ class MeanReversionConfig extends Strategy {
     "asset": asset.id,
     "lookback_window": lookbackPeriod,
     "indicator": indicator.parameters.isNotEmpty
-      ? [{indicator.type.shortName.toLowerCase(): indicator.parameters}]
-      : []
+        ? [
+            {
+              indicator.drawingType.shortName.toLowerCase():
+                  indicator.parameters,
+            },
+          ]
+        : [],
   };
 
   @override
   List<AssetAllocation> getAssetAllocations() {
     return [
       AssetAllocation(
-        asset: asset, targetWeight: 100, assetSharesCount: 0,
-        indicators: {indicator}
-      )];
+        asset: asset,
+        targetWeight: 100,
+        assetSharesCount: 0,
+        indicators: {indicator},
+      ),
+    ];
   }
 
   @override
   bool operator ==(Object other) =>
-    (identical(this, other)) ||
-    (other is MeanReversionConfig &&
-      runtimeType == other.runtimeType &&
-      asset == other.asset &&
-      indicator == other.indicator &&
-      lookbackPeriod == other.lookbackPeriod &&
-      super == other);
+      (identical(this, other)) ||
+      (other is MeanReversionConfig &&
+          runtimeType == other.runtimeType &&
+          asset == other.asset &&
+          indicator == other.indicator &&
+          lookbackPeriod == other.lookbackPeriod &&
+          super == other);
 
   @override
-  int get hashCode => Object.hash(
-    super.hashCode,
-    asset,
-    lookbackPeriod,
-    indicator);
+  int get hashCode =>
+      Object.hash(super.hashCode, asset, lookbackPeriod, indicator);
 
   @override
   List<Object?> get props => [...super.props, lookbackPeriod, asset, indicator];

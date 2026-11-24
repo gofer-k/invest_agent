@@ -10,11 +10,13 @@ import '../../asset_config.dart';
 
 class StrategySchema implements CacheSchema {
   const StrategySchema();
+
   static const String tableName = "strategy";
   static const String sequenceName = "strategy_id_seq";
 
   @override
-  String get create => '''
+  String get create =>
+      '''
     CREATE TABLE IF NOT EXISTS $tableName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$sequenceName'),
       type TEXT NOT NULL,
@@ -24,7 +26,8 @@ class StrategySchema implements CacheSchema {
   ''';
 
   @override
-  String get createKey => "CREATE SEQUENCE IF NOT EXISTS $sequenceName START 1;";
+  String get createKey =>
+      "CREATE SEQUENCE IF NOT EXISTS $sequenceName START 1;";
 
   @override
   String get deleteAll => "DELETE FROM $tableName;";
@@ -47,7 +50,7 @@ class StrategySchema implements CacheSchema {
       INSERT INTO $tableName
       VALUES (
       nextval('$sequenceName'),
-      '${config.type.name}',
+      '${config.drawingType.name}',
       '${config.name}', 
       '${jsonEncode(config.toMap())}'
       ) ON CONFLICT(name) DO UPDATE SET
@@ -61,7 +64,7 @@ class StrategySchema implements CacheSchema {
     final config = cache as Strategy;
     return '''
       UPDATE $tableName
-      SET type = '${config.type.name}',
+      SET type = '${config.drawingType.name}',
           name = '${config.name}',
           parameters = '${jsonEncode(config.toMap())}'
       WHERE id = ${config.id};
@@ -87,40 +90,36 @@ enum StrategyType {
   empty("-");
 
   final String name;
+
   const StrategyType(this.name);
 }
 
 class Strategy extends Cache {
   final int id;
-  final StrategyType type;
+  final StrategyType drawingType;
   final String name;
 
   static const int defaultId = -1;
 
-  Strategy({required this.id, required this.type, required this.name})
-      : super.from([]);
+  Strategy({required this.id, required this.drawingType, required this.name})
+    : super.from([]);
 
   Strategy fillAssets(List<AssetConfig> assets) => this;
 
   factory Strategy.emptyStrategy() {
-    return Strategy(id: defaultId, type: StrategyType.asset, name: '');
+    return Strategy(id: defaultId, drawingType: StrategyType.asset, name: '');
   }
 
-  Strategy copyWith({
-    int? newId,
-    String? newName,
-    StrategyType? newType}) {
+  Strategy copyWith({int? newId, String? newName, StrategyType? newType}) {
     return Strategy(
-        id: newId ?? id,
-        name: newName ?? name,
-        type: newType ?? type);
+      id: newId ?? id,
+      name: newName ?? name,
+      drawingType: newType ?? drawingType,
+    );
   }
 
   factory Strategy.of({int id = defaultId}) {
-    return Strategy(
-        id: id,
-        type: StrategyType.empty,
-        name: '');
+    return Strategy(id: id, drawingType: StrategyType.empty, name: '');
   }
 
   @override
@@ -146,54 +145,47 @@ class Strategy extends Cache {
     final typeString = (item['type'] as String).toLowerCase();
     // Resilience: check enum type
     final jsonType = StrategyType.values.firstWhere(
-        (e) => e.name.toLowerCase() == typeString,
-        orElse: () => StrategyType.empty
+      (e) => e.name.toLowerCase() == typeString,
+      orElse: () => StrategyType.empty,
     );
-    return switch(jsonType) {
-      StrategyType.arbitrary =>
-      throw UnimplementedError(),
-      StrategyType.asset =>
-      throw UnimplementedError(),
-      StrategyType.gem =>
-          GemStrategyConfig.fromMap(strategyId, item),
-      StrategyType.meanReversion =>
-          MeanReversionConfig.fromMap(strategyId, item),
-      StrategyType.indexFundRebalancing =>
-      throw UnimplementedError(),
-      StrategyType.trendFollowing =>
-      throw UnimplementedError(),
-      StrategyType.empty => Strategy.emptyStrategy()
+    return switch (jsonType) {
+      StrategyType.arbitrary => throw UnimplementedError(),
+      StrategyType.asset => throw UnimplementedError(),
+      StrategyType.gem => GemStrategyConfig.fromMap(strategyId, item),
+      StrategyType.meanReversion => MeanReversionConfig.fromMap(
+        strategyId,
+        item,
+      ),
+      StrategyType.indexFundRebalancing => throw UnimplementedError(),
+      StrategyType.trendFollowing => throw UnimplementedError(),
+      StrategyType.empty => Strategy.emptyStrategy(),
     };
   }
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      "id": id,
-      "type": type.name,
-      "name": name
-    };
+    return {"id": id, "type": drawingType.name, "name": name};
   }
 
-  bool isEmpty() => id == defaultId && type == StrategyType.empty;
+  bool isEmpty() => id == defaultId && drawingType == StrategyType.empty;
 
   @override
-  List<Object?> get props => [id, type, name];
+  List<Object?> get props => [id, drawingType, name];
 
   @override
   bool operator ==(Object other) =>
       (identical(this, other)) ||
-          (other is Strategy &&
-              runtimeType == other.runtimeType &&
-              id == other.id &&
-              type == other.type &&
-              name == other.name);
+      (other is Strategy &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          drawingType == other.drawingType &&
+          name == other.name);
 
   @override
-  int get hashCode => Object.hash(id, name, type);
+  int get hashCode => Object.hash(id, name, drawingType);
 
   @override
-  String toString() => "${type.name} $name ($id)";
+  String toString() => "${drawingType.name} $name ($id)";
 
   PeriodType getRebalanceFrequency() => PeriodType.year;
 

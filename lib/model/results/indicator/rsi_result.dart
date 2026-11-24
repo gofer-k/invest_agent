@@ -1,11 +1,13 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 enum RsiParam {
   rsi("rsi"),
@@ -29,10 +31,7 @@ class Rsi extends BaseIndicatorValue {
   final double? rsi;
   final int? window;
 
-  Rsi({
-    required super.dateTime,
-    required this.rsi,
-    required this.window,});
+  Rsi({required super.dateTime, required this.rsi, required this.window});
 
   factory Rsi.fromType(DateTime dateTime, {rsi = double, window = int}) {
     return Rsi(dateTime: dateTime, rsi: rsi, window: window);
@@ -42,7 +41,7 @@ class Rsi extends BaseIndicatorValue {
     final rsi = parseNum(jsonMap[RsiParam.rsi.name]);
     final window = jsonMap[RsiParam.window.name] as int?;
     if (rsi != null && window != null) {
-      return Rsi(dateTime: dateTime, rsi: rsi,  window: window,);
+      return Rsi(dateTime: dateTime, rsi: rsi, window: window);
     }
     return null;
   }
@@ -63,15 +62,18 @@ class RsiResult extends BaseIndicatorResult {
   });
 
   factory RsiResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final data = protoResult.points.map((p) {
@@ -82,11 +84,7 @@ class RsiResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return RsiResult(
-      style: style,
-      config: config,
-      points: data,
-    );
+    return RsiResult(style: style, config: config, points: data);
   }
 
   List<Rsi> getPoints({int rollingWindow = 20}) {
@@ -137,5 +135,6 @@ class RsiResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 }

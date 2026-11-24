@@ -25,7 +25,9 @@ void main() {
       }
       if (!loaded) {
         final homePath = Platform.environment['HOME'];
-        DynamicLibrary.open('$homePath/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release/libduckdb.so');
+        DynamicLibrary.open(
+          '$homePath/.pub-cache/hosted/pub.dev/dart_duckdb-1.4.4/linux/Libraries/release/libduckdb.so',
+        );
       }
     } catch (e) {
       // Ignored for environments where duckdb might not be available
@@ -44,11 +46,8 @@ void main() {
 
       const schema = IndicatorSchema();
       await dbHelper.createCache(schema);
-      container = ProviderContainer(
-        overrides: [
-        ],
-      );
-      container.listen(indicatorProvider(testPath), (_,_){});
+      container = ProviderContainer(overrides: []);
+      container.listen(indicatorProvider(testPath), (_, _) {});
     });
 
     tearDown(() {
@@ -66,12 +65,14 @@ void main() {
     test('addIndicator adds an indicator and updates state', () async {
       await container.read(loadDatabaseProvider(testPath).future);
       final notifier = container.read(indicatorProvider(testPath).notifier);
-      await notifier.addEntry(Indicator(
-        id: 0,
-        name: 'SMA 20',
-        type: IndicatorType.sma,
-        parameters: {'window': 20},
-      ));
+      await notifier.addEntry(
+        Indicator(
+          id: 0,
+          name: 'SMA 20',
+          drawingType: IndicatorType.sma,
+          parameters: {'window': 20},
+        ),
+      );
 
       final state = container.read(indicatorProvider(testPath));
       expect(state.cache.length, 1);
@@ -82,19 +83,28 @@ void main() {
       await container.read(loadDatabaseProvider(testPath).future);
       container.read(indicatorProvider(testPath));
       final notifier = container.read(indicatorProvider(testPath).notifier);
-      await notifier.addEntry(Indicator(
-        id: 0, name: 'Old', type: IndicatorType.sma, parameters: {},
-      ));
+      await notifier.addEntry(
+        Indicator(
+          id: 0,
+          name: 'Old',
+          drawingType: IndicatorType.sma,
+          parameters: {},
+        ),
+      );
 
       var state = container.read(indicatorProvider(testPath));
       final savedIndicator = state.cache.first;
 
-      await notifier.updateIndicator(Indicator(
-        id: savedIndicator.id,
-        name: 'New',
-        type: IndicatorType.sma,
-        parameters: {'p': [1]},
-      ));
+      await notifier.updateIndicator(
+        Indicator(
+          id: savedIndicator.id,
+          name: 'New',
+          drawingType: IndicatorType.sma,
+          parameters: {
+            'p': [1],
+          },
+        ),
+      );
 
       final newState = container.read(indicatorProvider(testPath));
       final savedNewIndicator = newState.cache.first;
@@ -105,9 +115,14 @@ void main() {
       await container.read(loadDatabaseProvider(testPath).future);
       container.read(indicatorProvider(testPath));
       final notifier = container.read(indicatorProvider(testPath).notifier);
-      await notifier.addEntry(Indicator(
-        id: 0, name: 'T1', type: IndicatorType.undefined, parameters: {},
-      ));
+      await notifier.addEntry(
+        Indicator(
+          id: 0,
+          name: 'T1',
+          drawingType: IndicatorType.undefined,
+          parameters: {},
+        ),
+      );
 
       var state = container.read(indicatorProvider(testPath));
       expect(state.cache.length, 1);

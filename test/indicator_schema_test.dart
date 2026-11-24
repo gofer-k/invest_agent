@@ -7,16 +7,31 @@ void main() {
       // Setup the example input provided in the prompt
       final parameters = {
         "window": {"value": "9", "edit": "1", "type": "int", "visible": "1"},
-        "smooth length": {"value": "14", "edit": "1", "type": "int", "visible": "1"},
+        "smooth length": {
+          "value": "14",
+          "edit": "1",
+          "type": "int",
+          "visible": "1",
+        },
         "smooth type": ["SMA", "EMA"],
-        "upper limit": {"value": "70", "edit": "1", "type": "double", "visible": "1"},
-        "rsi chart": {"value": "#FF34BBE6", "edit": "1", "type": "color", "visible": "1"},
+        "upper limit": {
+          "value": "70",
+          "edit": "1",
+          "type": "double",
+          "visible": "1",
+        },
+        "rsi chart": {
+          "value": "#FF34BBE6",
+          "edit": "1",
+          "type": "color",
+          "visible": "1",
+        },
       };
 
       final indicator = Indicator(
         id: 1,
         name: "RSI",
-        type: IndicatorType.rsi,
+        drawingType: IndicatorType.rsi,
         parameters: parameters,
       );
 
@@ -43,11 +58,8 @@ void main() {
       final indicator = Indicator(
         id: 2,
         name: "Simple",
-        type: IndicatorType.undefined,
-        parameters: {
-          "period": 14,
-          "active": true,
-        },
+        drawingType: IndicatorType.undefined,
+        parameters: {"period": 14, "active": true},
       );
 
       final result = indicator.toDetailedString();
@@ -60,27 +72,30 @@ void main() {
       final indicator = Indicator(
         id: 3,
         name: "EmptyParam",
-        type: IndicatorType.undefined,
+        drawingType: IndicatorType.undefined,
         parameters: {},
       );
 
       expect(indicator.toDetailedString(), "EmptyParam");
     });
 
-    test('should correctly identify non-color map parameters even if value looks like a color', () {
-      final indicator = Indicator(
-        id: 4,
-        name: "HexTest",
-        type: IndicatorType.undefined,
-        parameters: {
-          "hex_code": {"value": "#FFFFFF", "type": "string"}
-        },
-      );
+    test(
+      'should correctly identify non-color map parameters even if value looks like a color',
+      () {
+        final indicator = Indicator(
+          id: 4,
+          name: "HexTest",
+          drawingType: IndicatorType.undefined,
+          parameters: {
+            "hex_code": {"value": "#FFFFFF", "type": "string"},
+          },
+        );
 
-      final result = indicator.toDetailedString();
+        final result = indicator.toDetailedString();
 
-      // Since type is "string" and not "color", it should be included
-      expect(result, contains("hex_code: #FFFFFF"));
-    });
+        // Since type is "string" and not "color", it should be included
+        expect(result, contains("hex_code: #FFFFFF"));
+      },
+    );
   });
 }

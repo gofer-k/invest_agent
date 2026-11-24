@@ -67,6 +67,7 @@ class AssetConfigSchema implements CacheSchema {
       left join $assetTypeTable t on m.asset_type = t.id
       order by m.id desc;
   ''';
+
   // "SELECT * FROM $cacheName ORDER BY id DESC;";
 
   @override
@@ -76,6 +77,7 @@ class AssetConfigSchema implements CacheSchema {
       left join $assetTypeTable t on m.asset_type = t.id
       where m.id = ${(cache as AssetConfig).id};
   ''';
+
   // "SELECT * FROM $cacheName WHERE id = ${(cache as AssetConfig).id};";
 
   @override

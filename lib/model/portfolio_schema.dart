@@ -9,12 +9,13 @@ import 'package:money2/money2.dart';
 
 class PortfolioConfigSchema implements CacheSchema {
   const PortfolioConfigSchema();
+
   static const String tableName = "portfolio";
   static const String tableSequenceName = "portfolio_sequence";
 
   @override
   String get create =>
-    '''
+      '''
     CREATE TABLE IF NOT EXISTS $tableName (
       id INTEGER PRIMARY KEY DEFAULT nextval('$tableSequenceName'),
       portfolio_name TEXT NOT NULL,
@@ -30,7 +31,8 @@ class PortfolioConfigSchema implements CacheSchema {
     ''';
 
   @override
-  String get createKey => ''' CREATE SEQUENCE IF NOT EXISTS '$tableSequenceName' START 1; ''';
+  String get createKey =>
+      ''' CREATE SEQUENCE IF NOT EXISTS '$tableSequenceName' START 1; ''';
 
   @override
   String get deleteAll => ''' DELETE FROM $tableName; ''';
@@ -42,10 +44,12 @@ class PortfolioConfigSchema implements CacheSchema {
   }
 
   @override
-  String get readAll => ''' SELECT * FROM $tableName  ORDER BY portfolio_name; ''';
+  String get readAll =>
+      ''' SELECT * FROM $tableName  ORDER BY portfolio_name; ''';
 
   @override
-  String readOne(Cache cache) => ''' SELECT * FROM $tableName WHERE id = ${(cache as PortfolioConfig).id}; ''';
+  String readOne(Cache cache) =>
+      ''' SELECT * FROM $tableName WHERE id = ${(cache as PortfolioConfig).id}; ''';
 
   @override
   String saveOne(Cache cache) {
@@ -113,8 +117,8 @@ class PortfolioConfig implements Cache {
     required this.endDateTime,
     this.analysisPeriod = PeriodType.fiveYears,
     Money? initialCapital,
-    this.strategy}
-  ): initialCapital = initialCapital ?? defaultCapital;
+    this.strategy,
+  }) : initialCapital = initialCapital ?? defaultCapital;
 
   PortfolioConfig copyWith({
     int? newId,
@@ -125,7 +129,8 @@ class PortfolioConfig implements Cache {
     DateTime? newStartDateTime,
     DateTime? newEndDateTime,
     PeriodType? newAnalysisPeriod,
-    Strategy? newStrategy}) {
+    Strategy? newStrategy,
+  }) {
     return PortfolioConfig(
       id: newId ?? id,
       portfolioName: newName ?? portfolioName,
@@ -149,7 +154,7 @@ class PortfolioConfig implements Cache {
       endDateTime: firstAllowedDate,
       analysisPeriod: PeriodType.fiveYears,
       initialCapital: defaultCapital,
-      strategy: Strategy.emptyStrategy()
+      strategy: Strategy.emptyStrategy(),
     );
   }
 
@@ -158,7 +163,10 @@ class PortfolioConfig implements Cache {
     final firstAllowedEndDate = DateTime(2026);
 
     return PortfolioConfig(
-      id: id, startDateTime: firstAllowedDate, endDateTime: firstAllowedEndDate);
+      id: id,
+      startDateTime: firstAllowedDate,
+      endDateTime: firstAllowedEndDate,
+    );
   }
 
   @override
@@ -179,7 +187,10 @@ class PortfolioConfig implements Cache {
       currencyCode = currencyCode.toUpperCase();
     }
 
-    final capital = Money.fromNum(item[7] as double? ?? 10000.0, isoCode: currencyCode);
+    final capital = Money.fromNum(
+      item[7] as double? ?? 10000.0,
+      isoCode: currencyCode,
+    );
 
     final jsonStrategy = jsonDecode(item[9] as String) as Map<String, dynamic>;
 
@@ -189,10 +200,12 @@ class PortfolioConfig implements Cache {
       portfolioDesc: item[2] as String? ?? "",
       startDateTime: beginDate,
       endDateTime: endDate,
-      analysisPeriod: PeriodType.values.firstWhereOrNull((e) => e.name == item[5] as String),
+      analysisPeriod: PeriodType.values.firstWhereOrNull(
+        (e) => e.name == item[5] as String,
+      ),
       riskFreeRatePerYear: (item[6] as num? ?? defaultRiskFreeRate).toDouble(),
       initialCapital: capital,
-      strategy: Strategy.fromMap(jsonStrategy)
+      strategy: Strategy.fromMap(jsonStrategy),
     );
   }
 
@@ -208,7 +221,7 @@ class PortfolioConfig implements Cache {
       'risk_free_rate': riskFreeRatePerYear,
       'initial_capital': initialCapital.amount.toDecimal().toDouble(),
       'currency': initialCapital.currency.isoCode,
-      'strategy': strategy?.toMap()
+      'strategy': strategy?.toMap(),
     };
   }
 
@@ -232,29 +245,40 @@ class PortfolioConfig implements Cache {
 
   @override
   int get hashCode => Object.hash(
-      id.hashCode,
-      portfolioName,
-      portfolioDesc,
-      riskFreeRatePerYear,
-      startDateTime,
-      endDateTime,
-      strategy,
-      analysisPeriod,
-      initialCapital);
+    id.hashCode,
+    portfolioName,
+    portfolioDesc,
+    riskFreeRatePerYear,
+    startDateTime,
+    endDateTime,
+    strategy,
+    analysisPeriod,
+    initialCapital,
+  );
 
   @override
-  List<Object?> get props => [id, portfolioName, portfolioDesc,
-    riskFreeRatePerYear, startDateTime, endDateTime,
-    strategy, analysisPeriod, initialCapital];
+  List<Object?> get props => [
+    id,
+    portfolioName,
+    portfolioDesc,
+    riskFreeRatePerYear,
+    startDateTime,
+    endDateTime,
+    strategy,
+    analysisPeriod,
+    initialCapital,
+  ];
 
-  bool isEmpty() => id == null && id != defaultId  && portfolioName.isEmpty;
+  bool isEmpty() => id == null && id != defaultId && portfolioName.isEmpty;
 
   @override
   bool? get stringify => true;
 
   PortfolioConfig fillAssets(List<AssetConfig> assets) {
     if (assets.isEmpty) return this;
-    return strategy != null ? copyWith(newStrategy: strategy?.fillAssets(assets)) : this;
+    return strategy != null
+        ? copyWith(newStrategy: strategy?.fillAssets(assets))
+        : this;
   }
 
   PeriodType getRebalanceFrequency() {

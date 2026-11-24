@@ -42,19 +42,28 @@ class GemAsset {
   final AssetConfig asset;
   final Set<AssetConfig> supportingAssets;
 
-  GemAsset({required this.type, required this.asset, required this.supportingAssets});
+  GemAsset({
+    required this.type,
+    required this.asset,
+    required this.supportingAssets,
+  });
 
-  GemAsset copyWith({GemAssetType? newType, AssetConfig? newAsset, Set<AssetConfig>? newSupportingAssets}) {
+  GemAsset copyWith({
+    GemAssetType? newType,
+    AssetConfig? newAsset,
+    Set<AssetConfig>? newSupportingAssets,
+  }) {
     return GemAsset(
       type: newType ?? type,
       asset: newAsset ?? asset,
-      supportingAssets: newSupportingAssets ?? supportingAssets);
+      supportingAssets: newSupportingAssets ?? supportingAssets,
+    );
   }
 
   factory GemAsset.fromMap(Map<String, dynamic> params) {
     final assetType = GemAssetType.values.firstWhere(
       (e) => e.name == params['asset-type'],
-      orElse: () => GemAssetType.equity
+      orElse: () => GemAssetType.equity,
     );
 
     final mainAssetId = params['main-asset-id'] as int;
@@ -62,31 +71,40 @@ class GemAsset {
     final balanceAssets = balanceAssetsRaw.cast<int>();
 
     final mainAsset = AssetConfig.of(id: mainAssetId);
-    final supportingAssets = balanceAssets.map((e) => AssetConfig.of(id: e)).toSet();
-    return GemAsset(type: assetType, asset: mainAsset, supportingAssets: supportingAssets);
+    final supportingAssets = balanceAssets
+        .map((e) => AssetConfig.of(id: e))
+        .toSet();
+    return GemAsset(
+      type: assetType,
+      asset: mainAsset,
+      supportingAssets: supportingAssets,
+    );
   }
 
   Map<String, dynamic> toMap() => {
     "asset-type": type.name,
     "main-asset-id": asset.id,
-    "balance-assets": supportingAssets.map((e) => e.id).toList()};
+    "balance-assets": supportingAssets.map((e) => e.id).toList(),
+  };
 
   @override
   bool operator ==(Object other) =>
-    (identical(this, other)) ||
-    (other is GemAsset &&
-      runtimeType == other.runtimeType &&
-      type == other.type &&
-      asset == other.asset &&
-      const SetEquality().equals(supportingAssets, other.supportingAssets));
+      (identical(this, other)) ||
+      (other is GemAsset &&
+          runtimeType == other.runtimeType &&
+          type == other.type &&
+          asset == other.asset &&
+          const SetEquality().equals(supportingAssets, other.supportingAssets));
 
   @override
-  int get hashCode => Object.hash(asset, type, const SetEquality().hash(supportingAssets),);
+  int get hashCode =>
+      Object.hash(asset, type, const SetEquality().hash(supportingAssets));
 
   List<Object?> get props => [type, asset, supportingAssets];
 
   @override
-  String toString() => "gen_asset_type: ${type.name}, asset: ${asset.toDetailString()}, supporting assets: ${supportingAssets.map((e) => e.toDetailString()).join(', ')}";
+  String toString() =>
+      "gen_asset_type: ${type.name}, asset: ${asset.toDetailString()}, supporting assets: ${supportingAssets.map((e) => e.toDetailString()).join(', ')}";
 }
 
 class GemStrategyConfig extends Strategy {
@@ -101,7 +119,7 @@ class GemStrategyConfig extends Strategy {
 
   GemStrategyConfig({
     required super.id,
-    required super.type,
+    required super.drawingType,
     required super.name,
     required this.mainAsset,
     required this.momentumAsset,
@@ -111,7 +129,8 @@ class GemStrategyConfig extends Strategy {
   });
 
   CacheUniqueKey get uniqueKey {
-    return "$name-$type-$inflation-$absoluteMomentumInterval-$relativeMomentumInterval-${mainAsset.toString()} ${momentumAsset.toString()}".hashCode;
+    return "$name-$drawingType-$inflation-$absoluteMomentumInterval-$relativeMomentumInterval-${mainAsset.toString()} ${momentumAsset.toString()}"
+        .hashCode;
   }
 
   @override
@@ -124,34 +143,40 @@ class GemStrategyConfig extends Strategy {
     return copyWith(
       newMainAsset: mainAsset.copyWith(
         newAsset: find(mainAsset.asset),
-        newSupportingAssets: mainAsset.supportingAssets.map(find).toSet()
+        newSupportingAssets: mainAsset.supportingAssets.map(find).toSet(),
       ),
       newMomentumAsset: momentumAsset.copyWith(
         newAsset: find(momentumAsset.asset),
-        newSupportingAssets: momentumAsset.supportingAssets.map(find).toSet()
-      )
+        newSupportingAssets: momentumAsset.supportingAssets.map(find).toSet(),
+      ),
     );
   }
 
   factory GemStrategyConfig.emptyStrategy() {
     return GemStrategyConfig(
       id: Strategy.defaultId,
-      type: StrategyType.gem,
+      drawingType: StrategyType.gem,
       name: '',
       inflation: defaultInflation,
       absoluteMomentumInterval: defaultIntervalInMonth,
       relativeMomentumInterval: defaultIntervalInMonth,
       mainAsset: GemAsset(
-        type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
-        supportingAssets: {}),
+        type: GemAssetType.equity,
+        asset: AssetConfig.defaultAsset(),
+        supportingAssets: {},
+      ),
       momentumAsset: GemAsset(
-        type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
-        supportingAssets: {}),
+        type: GemAssetType.bond,
+        asset: AssetConfig.defaultAsset(),
+        supportingAssets: {},
+      ),
     );
   }
 
   @override
-  Strategy copyWith({int? newId, String? newName,
+  Strategy copyWith({
+    int? newId,
+    String? newName,
     StrategyType? newType,
     GemAsset? newMainAsset,
     GemAsset? newMomentumAsset,
@@ -159,16 +184,17 @@ class GemStrategyConfig extends Strategy {
     int? newAbsoluteMomentumInMonth,
     int? newRelativeMomentumInMonth,
   }) {
-
     return GemStrategyConfig(
       id: newId ?? id,
       name: newName ?? name,
-      type: newType ?? type,
+      drawingType: newType ?? drawingType,
       mainAsset: newMainAsset ?? mainAsset,
       momentumAsset: newMomentumAsset ?? momentumAsset,
       inflation: newInflation ?? inflation,
-      absoluteMomentumInterval: newAbsoluteMomentumInMonth ?? absoluteMomentumInterval,
-      relativeMomentumInterval: newRelativeMomentumInMonth ?? relativeMomentumInterval,
+      absoluteMomentumInterval:
+          newAbsoluteMomentumInMonth ?? absoluteMomentumInterval,
+      relativeMomentumInterval:
+          newRelativeMomentumInMonth ?? relativeMomentumInterval,
     );
   }
 
@@ -179,9 +205,13 @@ class GemStrategyConfig extends Strategy {
     final jsonMomentumAsset = params['momentum-assets'] as Map<String, dynamic>;
     final jsonInflation = params['inflation'] as double;
     final jsonRebalanceIntervalInMonth = params['absolute-momentum'] as int;
-    final jsonRelativeRebalanceIntervalInMonth = params['relative-momentum'] as int;
+    final jsonRelativeRebalanceIntervalInMonth =
+        params['relative-momentum'] as int;
 
-    return GemStrategyConfig(id: id, type: StrategyType.gem, name: name,
+    return GemStrategyConfig(
+      id: id,
+      drawingType: StrategyType.gem,
+      name: name,
       mainAsset: GemAsset.fromMap(jsonMainAsset),
       momentumAsset: GemAsset.fromMap(jsonMomentumAsset),
       inflation: jsonInflation,
@@ -194,13 +224,17 @@ class GemStrategyConfig extends Strategy {
     return GemStrategyConfig(
       id: strategy.id,
       name: strategy.name,
-      type: StrategyType.gem,
+      drawingType: StrategyType.gem,
       mainAsset: GemAsset(
-        type: GemAssetType.equity, asset: AssetConfig.defaultAsset(),
-        supportingAssets: {}),
+        type: GemAssetType.equity,
+        asset: AssetConfig.defaultAsset(),
+        supportingAssets: {},
+      ),
       momentumAsset: GemAsset(
-        type: GemAssetType.bond, asset: AssetConfig.defaultAsset(),
-        supportingAssets: {}),
+        type: GemAssetType.bond,
+        asset: AssetConfig.defaultAsset(),
+        supportingAssets: {},
+      ),
       inflation: defaultInflation,
       absoluteMomentumInterval: defaultIntervalInMonth,
       relativeMomentumInterval: defaultIntervalInMonth,
@@ -214,39 +248,55 @@ class GemStrategyConfig extends Strategy {
     "absolute-momentum": absoluteMomentumInterval,
     "relative-momentum": relativeMomentumInterval,
     "main-asset": mainAsset.toMap(),
-    "momentum-assets": momentumAsset.toMap()
+    "momentum-assets": momentumAsset.toMap(),
   };
 
   @override
   List<AssetAllocation> getAssetAllocations() {
     return [
-      AssetAllocation(asset: mainAsset.asset, targetWeight: 1, assetSharesCount: 0),
-      AssetAllocation(asset: momentumAsset.asset, targetWeight: 0, assetSharesCount: 0),
+      AssetAllocation(
+        asset: mainAsset.asset,
+        targetWeight: 1,
+        assetSharesCount: 0,
+      ),
+      AssetAllocation(
+        asset: momentumAsset.asset,
+        targetWeight: 0,
+        assetSharesCount: 0,
+      ),
       // TODO: Add support for supporting assets
     ];
   }
 
   @override
   bool operator ==(Object other) =>
-    (identical(this, other)) ||
-    (other is GemStrategyConfig &&
-      runtimeType == other.runtimeType &&
-      super == other &&
-      absoluteMomentumInterval == other.absoluteMomentumInterval &&
-      relativeMomentumInterval == other.relativeMomentumInterval &&
-      inflation == other.inflation &&
-      mainAsset == other.mainAsset &&
-      momentumAsset == other.momentumAsset);
+      (identical(this, other)) ||
+      (other is GemStrategyConfig &&
+          runtimeType == other.runtimeType &&
+          super == other &&
+          absoluteMomentumInterval == other.absoluteMomentumInterval &&
+          relativeMomentumInterval == other.relativeMomentumInterval &&
+          inflation == other.inflation &&
+          mainAsset == other.mainAsset &&
+          momentumAsset == other.momentumAsset);
 
   @override
   int get hashCode => Object.hash(
-      super.hashCode,
-      inflation,
-      absoluteMomentumInterval,
-      relativeMomentumInterval,
-      mainAsset,
-      momentumAsset,);
+    super.hashCode,
+    inflation,
+    absoluteMomentumInterval,
+    relativeMomentumInterval,
+    mainAsset,
+    momentumAsset,
+  );
 
   @override
-  List<Object?> get props => [...super.props, inflation, absoluteMomentumInterval, relativeMomentumInterval, mainAsset, momentumAsset];
+  List<Object?> get props => [
+    ...super.props,
+    inflation,
+    absoluteMomentumInterval,
+    relativeMomentumInterval,
+    mainAsset,
+    momentumAsset,
+  ];
 }

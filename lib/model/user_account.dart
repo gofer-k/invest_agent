@@ -34,12 +34,14 @@ class UserAccount extends Cache {
       name: item[1] as String,
       apiKey: item[2] as String,
       apiSecret: item[3] as String,
-      providerData: ResourceUri.fromString(item[4] as String) ?? ResourceUri.marketStack,
+      providerData:
+          ResourceUri.fromString(item[4] as String) ?? ResourceUri.marketStack,
     );
   }
 
   @override
-  String toString() => 'UserAccount(id: $id, name: $name, provider: $providerData)';
+  String toString() =>
+      'UserAccount(id: $id, name: $name, provider: $providerData)';
 
   @override
   // TODO: implement props

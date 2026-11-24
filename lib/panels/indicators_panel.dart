@@ -11,16 +11,20 @@ class IndicatorsPanel extends ConsumerStatefulWidget {
   const IndicatorsPanel({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _IndicatorsPanelState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _IndicatorsPanelState();
 }
 
 class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
   @override
   Widget build(BuildContext context) {
-    final indicatorsPController = ref.watch(indicatorProvider(CacheKeyType.analysisCache, true));
+    final indicatorsPController = ref.watch(
+      indicatorProvider(CacheKeyType.analysisCache, true),
+    );
     final indicators = indicatorsPController.getItems();
 
-    return Shrinkable(title: "Indicators",
+    return Shrinkable(
+      title: "Indicators",
       body: Column(
         children: [
           ElevatedButton.icon(
@@ -34,21 +38,29 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
             itemCount: indicators.length,
             itemBuilder: (BuildContext context, int index) {
               final indicator = indicators[index];
-              return Card(child: ListTile(
+              return Card(
+                child: ListTile(
                   title: Text(indicator.name),
-                  subtitle: Text(indicator.type.name, style: const TextStyle(fontSize: 11)),
-                  trailing: _buildTrailingActions(context, indicator)
+                  subtitle: Text(
+                    indicator.drawingType.name,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  trailing: _buildTrailingActions(context, indicator),
                 ),
               );
-          })
-        ]
-      ));
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleAddIndicator(BuildContext context, WidgetRef ref) {
     showIndicator(context, null, (newIndicator) {
       if (newIndicator != null) {
-        ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).addEntry(newIndicator);
+        ref
+            .read(indicatorProvider(CacheKeyType.analysisCache, true).notifier)
+            .addEntry(newIndicator);
       }
     });
   }
@@ -59,22 +71,34 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
       children: [
         IconButton(
           icon: Icon(Icons.edit),
-          onPressed: (){
+          onPressed: () {
             showIndicator(context, indicator, (newIndicator) {
               if (newIndicator != null) {
-                ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).updateIndicator(newIndicator);
+                ref
+                    .read(
+                      indicatorProvider(
+                        CacheKeyType.analysisCache,
+                        true,
+                      ).notifier,
+                    )
+                    .updateIndicator(newIndicator);
               }
             });
-        }),
+          },
+        ),
         IconButton(
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-          onPressed: () => _handleDelete(context, ref, indicator)
+          onPressed: () => _handleDelete(context, ref, indicator),
         ),
       ],
     );
   }
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, Indicator indicator) async {
+  Future<void> _handleDelete(
+    BuildContext context,
+    WidgetRef ref,
+    Indicator indicator,
+  ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -87,14 +111,19 @@ class _IndicatorsPanelState extends ConsumerState<IndicatorsPanel> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      await ref.read(indicatorProvider(CacheKeyType.analysisCache, true).notifier).deleteEntry(indicator);
+      await ref
+          .read(indicatorProvider(CacheKeyType.analysisCache, true).notifier)
+          .deleteEntry(indicator);
     }
   }
 }

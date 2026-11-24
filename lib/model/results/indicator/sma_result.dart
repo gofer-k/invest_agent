@@ -1,19 +1,30 @@
 import 'dart:math';
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 class SimpleMovingAverage extends BaseIndicatorValue {
   final double? rollingStd;
   final double? rollingMean;
   final int? rollingWindow;
 
-  SimpleMovingAverage({required super.dateTime, this.rollingWindow, this.rollingStd, this.rollingMean});
+  SimpleMovingAverage({
+    required super.dateTime,
+    this.rollingWindow,
+    this.rollingStd,
+    this.rollingMean,
+  });
 
-  static SimpleMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+  static SimpleMovingAverage? fromJson(
+    DateTime dateTime,
+    Map<String, dynamic> jsonMap,
+  ) {
     final rollingMean = parseNum(jsonMap['rolling_mean'] ?? jsonMap['mean']);
     final rollingStd = parseNum(jsonMap['rolling_std'] ?? jsonMap['std']);
     final rollingWindow = parseNum(jsonMap["window"]);
@@ -22,10 +33,11 @@ class SimpleMovingAverage extends BaseIndicatorValue {
     }
 
     return SimpleMovingAverage(
-        dateTime: dateTime,
-        rollingWindow: rollingWindow?.toInt(),
-        rollingMean: rollingMean,
-        rollingStd: rollingStd);
+      dateTime: dateTime,
+      rollingWindow: rollingWindow?.toInt(),
+      rollingMean: rollingMean,
+      rollingStd: rollingStd,
+    );
   }
 
   Map<String, dynamic> toJson() => {
@@ -45,20 +57,24 @@ class SmaResult extends BaseIndicatorResult {
   });
 
   factory SmaResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final points = protoResult.points.map((p) {
       // Safe extraction of the rolling window, handling both scalar and list types
-      final dynamic windowValue = p.values['window'] ?? config.parameters['window'];
+      final dynamic windowValue =
+          p.values['window'] ?? config.parameters['window'];
       final int? window = (windowValue is num)
           ? windowValue.toInt()
           : (windowValue is List && windowValue.isNotEmpty)
@@ -73,11 +89,7 @@ class SmaResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return SmaResult(
-      style: style,
-      config: config,
-      points: points,
-    );
+    return SmaResult(style: style, config: config, points: points);
   }
 
   List<SimpleMovingAverage> getPoints({int rollingWindow = 20}) {
@@ -89,15 +101,25 @@ class SmaResult extends BaseIndicatorResult {
   double get maxValue => points.isEmpty
       ? 0
       : points
-      .map((p) => max(p.rollingMean ?? -double.infinity, p.rollingStd ?? -double.infinity))
-      .reduce(max);
+            .map(
+              (p) => max(
+                p.rollingMean ?? -double.infinity,
+                p.rollingStd ?? -double.infinity,
+              ),
+            )
+            .reduce(max);
 
   @override
   double get minValue => points.isEmpty
       ? 0
       : points
-      .map((p) => min(p.rollingMean ?? double.infinity, p.rollingStd ?? double.infinity))
-      .reduce(min);
+            .map(
+              (p) => min(
+                p.rollingMean ?? double.infinity,
+                p.rollingStd ?? double.infinity,
+              ),
+            )
+            .reduce(min);
 
   @override
   double getMax(DateTime? startDate, DateTime? endDate) {
@@ -105,8 +127,13 @@ class SmaResult extends BaseIndicatorResult {
     return filtered.isEmpty
         ? 0
         : filtered
-        .map((p) => max(p.rollingMean ?? -double.infinity, p.rollingStd ?? -double.infinity))
-        .reduce(max);
+              .map(
+                (p) => max(
+                  p.rollingMean ?? -double.infinity,
+                  p.rollingStd ?? -double.infinity,
+                ),
+              )
+              .reduce(max);
   }
 
   @override
@@ -115,8 +142,13 @@ class SmaResult extends BaseIndicatorResult {
     return filtered.isEmpty
         ? 0
         : filtered
-        .map((p) => min(p.rollingMean ?? double.infinity, p.rollingStd ?? double.infinity))
-        .reduce(min);
+              .map(
+                (p) => min(
+                  p.rollingMean ?? double.infinity,
+                  p.rollingStd ?? double.infinity,
+                ),
+              )
+              .reduce(min);
   }
 
   @override
@@ -127,7 +159,8 @@ class SmaResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 
   Iterable<SimpleMovingAverage> _filterPoints(DateTime? start, DateTime? end) {
     if (start == null && end == null) return points;

@@ -14,14 +14,12 @@ import 'indicator_config_dialog.dart';
 class StrategyConfigMeanReversion extends ConsumerWidget {
   final Strategy? strategyKey;
 
-  const StrategyConfigMeanReversion({
-    super.key,
-    required this.strategyKey,
-  });
+  const StrategyConfigMeanReversion({super.key, required this.strategyKey});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentStrategy = ref.watch(strategySessionProvider(strategyKey)) as MeanReversionConfig;
+    final currentStrategy =
+        ref.watch(strategySessionProvider(strategyKey)) as MeanReversionConfig;
     final notifier = ref.read(strategySessionProvider(strategyKey).notifier);
 
     final indicators = ref.watch(sortedIndicatorsProvider);
@@ -31,31 +29,37 @@ class StrategyConfigMeanReversion extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Asset" ),
+            Text("Asset"),
             const SizedBox(width: 8),
-            Flexible(flex: 2,
+            Flexible(
+              flex: 2,
               child: DropdownList<AssetConfig>(
-                onSelected: (AssetConfig asset) => notifier.save(currentStrategy.copyWith(newAsset: asset)),
+                onSelected: (AssetConfig asset) =>
+                    notifier.save(currentStrategy.copyWith(newAsset: asset)),
                 choiceType: currentStrategy.asset,
                 choices: assets,
-                backgroundColor: Colors.transparent)
+                backgroundColor: Colors.transparent,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Indicator" ),
+            Text("Indicator"),
             const SizedBox(width: 8),
-            Flexible(flex: 1,
+            Flexible(
+              flex: 1,
               child: DropdownList<Indicator>(
                 onSelected: (Indicator ind) =>
-                  notifier.save(currentStrategy.copyWith(newIndicator: ind)),
+                    notifier.save(currentStrategy.copyWith(newIndicator: ind)),
                 // choiceType: currentStrategy.indicator,
                 choiceType: indicators.firstWhere(
-                  (e) => e.type == currentStrategy.indicator.type,
+                  (e) => e.drawingType == currentStrategy.indicator.drawingType,
                   orElse: () => currentStrategy.indicator,
                 ),
                 choices: indicators,
@@ -64,16 +68,21 @@ class StrategyConfigMeanReversion extends ConsumerWidget {
             ),
             IconButton(
               icon: Icon(Icons.edit),
-              onPressed: (){
-                showIndicator(context, currentStrategy.indicator, (newIndicator) {
+              onPressed: () {
+                showIndicator(context, currentStrategy.indicator, (
+                  newIndicator,
+                ) {
                   if (newIndicator != null) {
-                    notifier.save(currentStrategy.copyWith(newIndicator: newIndicator));
+                    notifier.save(
+                      currentStrategy.copyWith(newIndicator: newIndicator),
+                    );
                   }
                 });
-            }),
-          ]
-        )
-      ]
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

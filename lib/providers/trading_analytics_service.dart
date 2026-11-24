@@ -6,20 +6,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grpc/grpc.dart';
 import 'package:invest_agent/providers/price_controller.dart';
-import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart' as $pb_struct;
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
+import 'package:protobuf/well_known_types/google/protobuf/struct.pb.dart'
+    as $pb_struct;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
+    as $pb_ts;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../model/period_type.dart';
+import '../model/portfolio_schema.dart';
 import '../model/proto/generated/portfolio.pb.dart' as $pb;
 import '../model/proto/generated/portfolio.pbgrpc.dart';
-import '../model/proto/logging_interceptor.dart';
 import '../model/proto/generated/price.pb.dart' as $pb_price;
+import '../model/proto/logging_interceptor.dart';
+import '../model/results/asset_allocation.dart' as model_allocations;
 import '../model/results/indicator/price_result.dart' as model_price;
 import '../model/results/portfolio_result.dart' as model_result;
-import '../model/portfolio_schema.dart';
 import '../model/results/strategies/strategy_schema.dart' as model_strategy;
-import '../model/results/asset_allocation.dart'  as model_allocations;
 
 part 'trading_analytics_service.g.dart';
 
@@ -27,15 +29,18 @@ typedef TradingAnalyticsServiceClient = AnalyticsServiceClient;
 
 // Use '10.0.2.2' for Android emulator to reach host's localhost, and '127.0.0.1' for other platforms.
 final String defaultHost = String.fromEnvironment(
-    'GRPC_HOST',
-    defaultValue: Platform.isAndroid ? '10.0.2.2' : '127.0.0.1'
+  'GRPC_HOST',
+  defaultValue: Platform.isAndroid ? '10.0.2.2' : '127.0.0.1',
 );
 
 final int defaultPort = 50052;
 
 @riverpod
 TradingAnalyticsServiceClient tradingAnalyticsClient(
-    Ref ref, [String? customHost, int? customPort]) {
+  Ref ref, [
+  String? customHost,
+  int? customPort,
+]) {
   final host = customHost ?? defaultHost;
   final port = customPort ?? defaultPort;
   final channel = ClientChannel(
@@ -71,7 +76,6 @@ class TradingAnalyticsServiceState {
   final model_result.PortfolioResultMap cache;
 
   const TradingAnalyticsServiceState({this.cache = const {}, this.error});
-
 }
 
 @riverpod
@@ -91,37 +95,39 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
     });
     return const TradingAnalyticsServiceState(cache: {});
   }
-  
+
   void _initStream() {
     if (!ref.mounted) return;
 
     // Reset existing stream and subscription
     _incomingSubscription?.cancel();
     _incomingSubscription = null;
-    
+
     if (_outgoingController != null && !_outgoingController!.isClosed) {
       _outgoingController!.close();
     }
-    
+
     _outgoingController = StreamController<$pb.EvaluatePortfolioRequest>();
     final controller = _outgoingController!;
-    
+
     try {
       final responseStream = controller.stream.asyncMap(
-        (request) => _client.evaluatePortfolio(request)
+        (request) => _client.evaluatePortfolio(request),
       );
-      
+
       _incomingSubscription = responseStream.listen(
         (response) {
           if (!ref.mounted) return;
 
           // Map and update state
-          final resId = int.tryParse(response.portfolioId) ?? PortfolioConfig.defaultId;
+          final resId =
+              int.tryParse(response.portfolioId) ?? PortfolioConfig.defaultId;
           final equityCurvePoints = response.equityCurve.map((e) {
             return model_result.EquityCurvePoint(
               timestamp: e.timestamp.toDateTime(),
               portfolioValue: e.portfolioValue,
-              drawdown: e.drawdown);
+              drawdown: e.drawdown,
+            );
           }).toList();
 
           final currentCache = state.cache;
@@ -157,17 +163,20 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
         },
         onError: (error) {
           if (!ref.mounted) return;
-          
+
           String errorMsg = error.toString();
           if (error is GrpcError) {
             errorMsg = _connectionMessage(error);
           }
-          
+
           log("Trading analysis service error: $errorMsg");
-          
+
           final currentCache = state.cache;
-          state = TradingAnalyticsServiceState(error: errorMsg, cache: currentCache);
-          
+          state = TradingAnalyticsServiceState(
+            error: errorMsg,
+            cache: currentCache,
+          );
+
           // Close the current subscription/controller on error to allow re-initialization
           _incomingSubscription?.cancel();
           _incomingSubscription = null;
@@ -182,7 +191,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
           if (!controller.isClosed) {
             controller.close();
           }
-        }
+        },
       );
     } catch (e) {
       log("Trading analysis service: Error initializing stream: $e");
@@ -198,18 +207,20 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       if (!ref.mounted || protoPortfolio == null) return;
 
       final request = $pb.EvaluatePortfolioRequest(
-        portfolio: protoPortfolio, 
+        portfolio: protoPortfolio,
         startDate: $pb_ts.Timestamp.fromDateTime(portfolio.startDateTime),
         endDate: $pb_ts.Timestamp.fromDateTime(portfolio.endDateTime),
         strategyConfig: $pb.StrategyConfig(
-          strategyType: _toProtoStrategyType(portfolio.strategy!.type),
-          rebalanceFrequency: _toRebalanceFrequency(portfolio.getRebalanceFrequency()),
+          strategyType: _toProtoStrategyType(portfolio.strategy!.drawingType),
+          rebalanceFrequency: _toRebalanceFrequency(
+            portfolio.getRebalanceFrequency(),
+          ),
           customParameters: _toProtoStruct(portfolio.strategy?.toMap() ?? {}),
-        )
+        ),
       );
 
-      if (_outgoingController == null || 
-          _outgoingController!.isClosed || 
+      if (_outgoingController == null ||
+          _outgoingController!.isClosed ||
           _incomingSubscription == null) {
         _initStream();
       }
@@ -218,21 +229,25 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       if (ref.mounted && controller != null && !controller.isClosed) {
         controller.add(request);
       } else {
-        log("Trading analysis service: Cannot add request (controller closed or disposed)");
+        log(
+          "Trading analysis service: Cannot add request (controller closed or disposed)",
+        );
       }
     } catch (e) {
       log("Trading analysis service: Evaluation error: $e");
       if (ref.mounted) {
-        state = TradingAnalyticsServiceState(error: e.toString(), cache: state.cache);
+        state = TradingAnalyticsServiceState(
+          error: e.toString(),
+          cache: state.cache,
+        );
       }
     }
-
-
   }
 
   String _connectionMessage(GrpcError grpcError) {
     return switch (grpcError.code) {
-      StatusCode.unavailable => "Server is down or unreachable (check host: $defaultHost).",
+      StatusCode.unavailable =>
+        "Server is down or unreachable (check host: $defaultHost).",
       StatusCode.deadlineExceeded => "Request timed out.",
       StatusCode.aborted => "Request aborted.",
       StatusCode.cancelled => "Request cancelled.",
@@ -248,7 +263,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       StatusCode.outOfRange => "Request out of range.",
       StatusCode.unimplemented => "Method not implemented.",
       StatusCode.dataLoss => "Data loss.",
-      _ => "Connection error: ${grpcError.code}"
+      _ => "Connection error: ${grpcError.code}",
     };
   }
 
@@ -258,9 +273,12 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       model_strategy.StrategyType.arbitrary => $pb.StrategyType.ARBITRARY,
       model_strategy.StrategyType.asset => $pb.StrategyType.ASSETALLOCATION,
       model_strategy.StrategyType.gem => $pb.StrategyType.GEM,
-      model_strategy.StrategyType.meanReversion => $pb.StrategyType.MEANREVERSION,
-      model_strategy.StrategyType.indexFundRebalancing => $pb.StrategyType.INDEXFUNDREBALANCING,
-      model_strategy.StrategyType.trendFollowing => $pb.StrategyType.TRENDfOLLOWING,
+      model_strategy.StrategyType.meanReversion =>
+        $pb.StrategyType.MEANREVERSION,
+      model_strategy.StrategyType.indexFundRebalancing =>
+        $pb.StrategyType.INDEXFUNDREBALANCING,
+      model_strategy.StrategyType.trendFollowing =>
+        $pb.StrategyType.TRENDfOLLOWING,
     };
   }
 
@@ -309,7 +327,7 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
     }
     return result;
   }
-  
+
   $pb_price.IndexPriceItem _toProtoPrice(model_price.IndexPriceItem item) {
     return $pb_price.IndexPriceItem()
       ..id = item.id
@@ -317,17 +335,24 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
       ..close = item.closePrice
       ..dateTime = $pb_ts.Timestamp.fromDateTime(item.dateTime);
   }
-  
-  $pb.AssetAllocation _toProtoAssetAllocation(model_allocations.AssetAllocation allocation, List<model_price.IndexPriceItem> price) {
-    final reqPrice = price.where((e) => e.assetId == allocation.asset.id).map((e) =>  _toProtoPrice(e)).toList();
-    
+
+  $pb.AssetAllocation _toProtoAssetAllocation(
+    model_allocations.AssetAllocation allocation,
+    List<model_price.IndexPriceItem> price,
+  ) {
+    final reqPrice = price
+        .where((e) => e.assetId == allocation.asset.id)
+        .map((e) => _toProtoPrice(e))
+        .toList();
+
     return $pb.AssetAllocation(
       assetId: allocation.asset.id,
       targetWeight: allocation.targetWeight,
       assetSharesCount: allocation.assetSharesCount,
-      price: reqPrice);
+      price: reqPrice,
+    );
   }
-  
+
   Future<$pb.Portfolio?> _toProtoPortfolio(PortfolioConfig portfolio) async {
     if (!ref.mounted) return null;
 
@@ -342,9 +367,10 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
         if (!ref.mounted) return null;
         try {
           final prices = await priceNotifier.fetchDateRange(
-            priceSchema, a.asset, 
-            portfolio.startDateTime.subtract(const Duration(days: 30)), 
-            portfolio.endDateTime.add(const Duration(days: 30))
+            priceSchema,
+            a.asset,
+            portfolio.startDateTime.subtract(const Duration(days: 30)),
+            portfolio.endDateTime.add(const Duration(days: 30)),
           );
           return _toProtoAssetAllocation(a, prices);
         } catch (e) {
@@ -368,13 +394,18 @@ class TradingAnalyticsService extends _$TradingAnalyticsService {
 
 /// Provider to watch the result of a specific portfolio evaluation
 @riverpod
-AsyncValue<model_result.PortfolioResult?> portfolioResult(Ref ref, {required int portfolioId}) {
-  final (error, result) = ref.watch(tradingAnalyticsServiceProvider.select(
-    (s) => (s.error, s.cache[portfolioId])
-  ));
+AsyncValue<model_result.PortfolioResult?> portfolioResult(
+  Ref ref, {
+  required int portfolioId,
+}) {
+  final (error, result) = ref.watch(
+    tradingAnalyticsServiceProvider.select(
+      (s) => (s.error, s.cache[portfolioId]),
+    ),
+  );
 
   if (error != null) return AsyncValue.error(error, StackTrace.current);
   if (result == null) return const AsyncValue.loading();
-  
+
   return AsyncValue.data(result);
 }

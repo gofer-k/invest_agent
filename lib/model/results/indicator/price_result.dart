@@ -2,8 +2,8 @@ import 'package:invest_agent/model/asset_config.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
 import '../../chart_style.dart';
-import 'indicator_result.dart';
 import '../../indicator_schema.dart';
+import 'indicator_result.dart';
 
 class IndexPriceSchema implements CacheSchema {
   static const String cacheName = "price";
@@ -34,8 +34,7 @@ class IndexPriceSchema implements CacheSchema {
 
   @override
   String deleteOne(Cache cache) {
-    return
-      '''
+    return '''
       DELETE FROM $cacheName WHERE id = ${(cache as IndexPriceItem).id} AND
       meta_id = ${cache.assetId};
       ''';
@@ -91,21 +90,25 @@ class IndexPriceSchema implements CacheSchema {
     ''';
   }
 
-  String oldestDate(AssetConfig asset) => 'SELECT MIN(date) FROM $cacheName WHERE meta_id = ${asset.id};';
+  String oldestDate(AssetConfig asset) =>
+      'SELECT MIN(date) FROM $cacheName WHERE meta_id = ${asset.id};';
 
-  String newestDate(AssetConfig asset) => 'SELECT MAX(date) FROM $cacheName WHERE meta_id = ${asset.id};';
+  String newestDate(AssetConfig asset) =>
+      'SELECT MAX(date) FROM $cacheName WHERE meta_id = ${asset.id};';
 
-  String readDateRange(AssetConfig asset, DateTime beginDate, DateTime endDate) {
+  String readDateRange(
+    AssetConfig asset,
+    DateTime beginDate,
+    DateTime endDate,
+  ) {
     if (beginDate.isAfter(endDate)) {
-      return
-        '''
+      return '''
         SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
         AND date BETWEEN '${endDate.toIso8601String()}'::TIMESTAMP
         AND '${beginDate.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
         ''';
     }
-    return
-      '''
+    return '''
       SELECT * FROM $cacheName WHERE meta_id = ${asset.id}
       AND date BETWEEN '${beginDate.toIso8601String()}'::TIMESTAMP
       AND '${endDate.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
@@ -118,28 +121,27 @@ class IndexPriceSchema implements CacheSchema {
       ''';
 
   String readAfterDate(AssetConfig asset, DateTime date) =>
-    '''
+      '''
       SELECT * FROM $cacheName WHERE meta_id = ${asset.id} AND date > '${date.toIso8601String()}'::TIMESTAMP ORDER BY date ASC;
     ''';
 
   String readCount(AssetConfig asset, DateTime beginDate, DateTime endDate) {
     if (beginDate.isAfter(endDate)) {
-      return
-      '''
+      return '''
         SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
         AND date BETWEEN '${endDate.toIso8601String()}'::TIMESTAMP
         AND '${beginDate.toIso8601String()}'::TIMESTAMP;
       ''';
     }
-    return
-      '''
+    return '''
       SELECT COUNT(*) FROM $cacheName WHERE meta_id = ${asset.id}
       AND date BETWEEN '${beginDate.toIso8601String()}'::TIMESTAMP
       AND '${endDate.toIso8601String()}'::TIMESTAMP;
       ''';
   }
 
-  String get allAssetDetails => 'SELECT meta_id, MIN(date), MAX(date), COUNT(*) FROM $cacheName GROUP BY meta_id;';
+  String get allAssetDetails =>
+      'SELECT meta_id, MIN(date), MAX(date), COUNT(*) FROM $cacheName GROUP BY meta_id;';
 }
 
 class IndexPriceItem implements Cache, BaseIndicatorValue {
@@ -152,6 +154,7 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
   final double volume;
 
   final DateTime _dateTime;
+
   @override
   DateTime get dateTime => _dateTime;
 
@@ -162,7 +165,9 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
     required this.closePrice,
     required this.highPrice,
     required this.lowPrice,
-    required this.volume, required DateTime dateTime}) : _dateTime = dateTime;
+    required this.volume,
+    required DateTime dateTime,
+  }) : _dateTime = dateTime;
 
   static double toDouble(Object? val) {
     if (val == null) return 0.0;
@@ -191,7 +196,9 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
         dateTime = DateTime.parse(item[2].toString());
       }
 
-      final jsonVolume = item[7] == null ? 0.0 : IndexPriceItem.toDouble(item[7]);
+      final jsonVolume = item[7] == null
+          ? 0.0
+          : IndexPriceItem.toDouble(item[7]);
 
       return IndexPriceItem(
         id: (item[0] as num).toInt(),
@@ -203,8 +210,7 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
         closePrice: IndexPriceItem.toDouble(item[6]),
         volume: jsonVolume,
       );
-    }
-    catch (e) {
+    } catch (e) {
       throw Exception("Invalidate input data: $e");
     }
   }
@@ -218,7 +224,8 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
       closePrice: 0.0,
       highPrice: 0.0,
       lowPrice: 0.0,
-      volume: 0.0);
+      volume: 0.0,
+    );
   }
 
   @override
@@ -235,23 +242,41 @@ class IndexPriceItem implements Cache, BaseIndicatorValue {
 
   @override
   bool operator ==(Object other) =>
-    identical(this, other) ||
-        other is IndexPriceItem &&
-            runtimeType == other.runtimeType &&
-            id == other.id &&
-            assetId == other.assetId &&
-            dateTime == other.dateTime &&
-            openPrice == other.openPrice &&
-            closePrice == other.closePrice &&
-            highPrice == other.highPrice &&
-            lowPrice == other.lowPrice &&
-            volume == other.volume;
+      identical(this, other) ||
+      other is IndexPriceItem &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          assetId == other.assetId &&
+          dateTime == other.dateTime &&
+          openPrice == other.openPrice &&
+          closePrice == other.closePrice &&
+          highPrice == other.highPrice &&
+          lowPrice == other.lowPrice &&
+          volume == other.volume;
 
   @override
-  int get hashCode => Object.hash(id, assetId, dateTime, openPrice, closePrice, highPrice, lowPrice, volume);
+  int get hashCode => Object.hash(
+    id,
+    assetId,
+    dateTime,
+    openPrice,
+    closePrice,
+    highPrice,
+    lowPrice,
+    volume,
+  );
 
   @override
-  List<Object?> get props => [id, assetId, dateTime, openPrice, closePrice, highPrice, lowPrice, volume];
+  List<Object?> get props => [
+    id,
+    assetId,
+    dateTime,
+    openPrice,
+    closePrice,
+    highPrice,
+    lowPrice,
+    volume,
+  ];
 
   @override
   bool? get stringify => true;
@@ -261,17 +286,20 @@ class IndexPrice extends BaseIndicatorResult {
   final List<IndexPriceItem> priceData;
 
   double _maxValue = 0.0;
+
   @override
   double get maxValue => _maxValue;
 
   double _minValue = 0.0;
+
   @override
   double get minValue => _minValue;
 
   IndexPrice({
     required this.priceData,
     required super.style,
-    required super.config});
+    required super.config,
+  });
 
   void resetMinMax() {
     _minValue = 0.0;
@@ -281,7 +309,8 @@ class IndexPrice extends BaseIndicatorResult {
   IndexPrice copyWith({
     List<IndexPriceItem>? newPriceData,
     ChartStyle? newStyle,
-    Indicator? newConfig}) {
+    Indicator? newConfig,
+  }) {
     return IndexPrice(
       priceData: newPriceData ?? priceData,
       style: newStyle ?? style,
@@ -289,29 +318,51 @@ class IndexPrice extends BaseIndicatorResult {
     );
   }
 
-  List<IndexPriceItem> _filteredBy(int prefixWindow, DateTime startDate, DateTime endDate) {
-    final priceDataFiltered =
-    priceData.where(
-            (element) => element.dateTime.isAfter(startDate)
-            && element.dateTime.isBefore(endDate)).toList();
+  List<IndexPriceItem> _filteredBy(
+    int prefixWindow,
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    final priceDataFiltered = priceData
+        .where(
+          (element) =>
+              element.dateTime.isAfter(startDate) &&
+              element.dateTime.isBefore(endDate),
+        )
+        .toList();
     if (priceDataFiltered.length <= prefixWindow) {
-      throw Exception("IndexPrice._filteredBy: Invalid input data, prefixWindow: $prefixWindow, startDate: $startDate, endDate: $endDate");
+      throw Exception(
+        "IndexPrice._filteredBy: Invalid input data, prefixWindow: $prefixWindow, startDate: $startDate, endDate: $endDate",
+      );
     }
     return priceDataFiltered.sublist(prefixWindow);
   }
 
   List<DateTime> dateTimeDomain(int prefixWindow) {
     if (priceData.length <= prefixWindow) {
-      throw Exception("IndexPrice.dateTimeDomain: Invalid input data, prefixWindow: $prefixWindow");
+      throw Exception(
+        "IndexPrice.dateTimeDomain: Invalid input data, prefixWindow: $prefixWindow",
+      );
     }
-    return priceData.sublist(prefixWindow).map((element) => element.dateTime).toList();
+    return priceData
+        .sublist(prefixWindow)
+        .map((element) => element.dateTime)
+        .toList();
   }
 
-  List<IndexPriceItem> getData(int prefixWindow, DateTime? startDate, DateTime? endDate) {
+  List<IndexPriceItem> getData(
+    int prefixWindow,
+    DateTime? startDate,
+    DateTime? endDate,
+  ) {
     if (prefixWindow > 0) {
       return priceData.sublist(prefixWindow);
     }
-    return _filteredBy(prefixWindow, startDate ?? DateTime.now(), endDate ?? DateTime.now());
+    return _filteredBy(
+      prefixWindow,
+      startDate ?? DateTime.now(),
+      endDate ?? DateTime.now(),
+    );
   }
 
   @override
@@ -320,17 +371,21 @@ class IndexPrice extends BaseIndicatorResult {
       return 0.0;
     }
 
-    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final priceDataFiltered = (startDate != null && endDate != null)
+        ? _filteredBy(0, startDate, endDate)
+        : priceData;
     if (priceDataFiltered.isEmpty) {
       return 0.0;
     }
 
     final minPriceItem = priceDataFiltered.reduce(
-            (currentItem, nextItem) =>
-        currentItem.closePrice <= nextItem.closePrice ? currentItem : nextItem);
+      (currentItem, nextItem) => currentItem.closePrice <= nextItem.closePrice
+          ? currentItem
+          : nextItem,
+    );
 
-   _minValue = minPriceItem.closePrice;
-   return _minValue;
+    _minValue = minPriceItem.closePrice;
+    return _minValue;
   }
 
   @override
@@ -339,31 +394,35 @@ class IndexPrice extends BaseIndicatorResult {
       return 0.0;
     }
 
-    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final priceDataFiltered = (startDate != null && endDate != null)
+        ? _filteredBy(0, startDate, endDate)
+        : priceData;
     if (priceDataFiltered.isEmpty) {
       return 0.0;
     }
 
     final maxPriceItem = priceDataFiltered.reduce(
-          (currentItem, nextItem) =>
+      (currentItem, nextItem) =>
           currentItem.closePrice > nextItem.closePrice ? currentItem : nextItem,
     );
     _maxValue = maxPriceItem.closePrice;
-   return _maxValue;
+    return _maxValue;
   }
 
   double getChangeFor(int days) {
-    if (priceData.isEmpty)  return 0.0;
+    if (priceData.isEmpty) return 0.0;
 
     List<IndexPriceItem> priceDataFiltered = const [];
-    if (days == -2 || priceData.length < days) {  // all available period
+    if (days == -2 || priceData.length < days) {
+      // all available period
       priceDataFiltered = priceData;
-    }
-    else if(days == -1){  // current year
+    } else if (days == -1) {
+      // current year
       final currentYear = DateTime.now().year;
-      priceDataFiltered = priceData.where((element) => element.dateTime.year == currentYear).toList();
-    }
-    else {
+      priceDataFiltered = priceData
+          .where((element) => element.dateTime.year == currentYear)
+          .toList();
+    } else {
       priceDataFiltered = priceData.sublist(priceData.length - days);
     }
     final firstPrice = priceDataFiltered.first.closePrice;
@@ -371,7 +430,7 @@ class IndexPrice extends BaseIndicatorResult {
     return 100.0 * (lastPrice - firstPrice) / firstPrice; // in precents
   }
 
-  double getCurrent() => priceData.isNotEmpty ?  priceData.last.closePrice : 0;
+  double getCurrent() => priceData.isNotEmpty ? priceData.last.closePrice : 0;
 }
 
 class VolumeResult extends IndexPrice {
@@ -384,20 +443,32 @@ class VolumeResult extends IndexPrice {
   @override
   double getMin(DateTime? startDate, DateTime? endDate) {
     if (priceData.isEmpty) return 0.0;
-    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final priceDataFiltered = (startDate != null && endDate != null)
+        ? _filteredBy(0, startDate, endDate)
+        : priceData;
     if (priceDataFiltered.isEmpty) return 0.0;
 
-    _minValue = priceDataFiltered.reduce((value, element) => value.volume <= element.volume ? value : element).volume;
+    _minValue = priceDataFiltered
+        .reduce(
+          (value, element) => value.volume <= element.volume ? value : element,
+        )
+        .volume;
     return _minValue;
   }
 
   @override
   double getMax(DateTime? startDate, DateTime? endDate) {
     if (priceData.isEmpty) return 0.0;
-    final priceDataFiltered = (startDate != null && endDate != null) ? _filteredBy(0, startDate, endDate) : priceData;
+    final priceDataFiltered = (startDate != null && endDate != null)
+        ? _filteredBy(0, startDate, endDate)
+        : priceData;
     if (priceDataFiltered.isEmpty) return 0.0;
 
-    _maxValue =  priceDataFiltered.reduce((value, element) => value.volume > element.volume ? value : element).volume;
+    _maxValue = priceDataFiltered
+        .reduce(
+          (value, element) => value.volume > element.volume ? value : element,
+        )
+        .volume;
     return _maxValue;
   }
 }

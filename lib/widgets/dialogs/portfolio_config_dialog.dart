@@ -18,8 +18,10 @@ extension CurrencyExtension on Currency {
 }
 
 void showPortfolio(
-  BuildContext context, PortfolioConfig? portfolio,
-  Function(PortfolioConfig? portfolio) onSave) async {
+  BuildContext context,
+  PortfolioConfig? portfolio,
+  Function(PortfolioConfig? portfolio) onSave,
+) async {
   final result = await showDialog<PortfolioConfig>(
     context: context,
     builder: (context) => PortfolioDialog(portfolioConfig: portfolio),
@@ -47,14 +49,25 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
   @override
   void initState() {
     super.initState();
-    controllerName = TextEditingController(text: widget.portfolioConfig?.portfolioName ?? '');
-    controllerDesc = TextEditingController(text: widget.portfolioConfig?.portfolioDesc ?? '');
+    controllerName = TextEditingController(
+      text: widget.portfolioConfig?.portfolioName ?? '',
+    );
+    controllerDesc = TextEditingController(
+      text: widget.portfolioConfig?.portfolioDesc ?? '',
+    );
 
-    final riskFreeRate = widget.portfolioConfig?.riskFreeRatePerYear ?? PortfolioConfig.defaultRiskFreeRate;
-    controllerRiskFreeRate = TextEditingController(text: riskFreeRate.toStringAsFixed(2));
+    final riskFreeRate =
+        widget.portfolioConfig?.riskFreeRatePerYear ??
+        PortfolioConfig.defaultRiskFreeRate;
+    controllerRiskFreeRate = TextEditingController(
+      text: riskFreeRate.toStringAsFixed(2),
+    );
 
     controllerCapital = TextEditingController(
-      text: widget.portfolioConfig?.initialCapital.toDouble().toString() ?? PortfolioConfig.defaultCapital.toDouble().toString());
+      text:
+          widget.portfolioConfig?.initialCapital.toDouble().toString() ??
+          PortfolioConfig.defaultCapital.toDouble().toString(),
+    );
 
     _isDateRange = switch (widget.portfolioConfig?.analysisPeriod) {
       null || PeriodType.empty || PeriodType.max => false,
@@ -73,49 +86,70 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final currentPortfolio = ref.watch(portfolioSessionProvider(widget.portfolioConfig));
-    final notifier = ref.read(portfolioSessionProvider(widget.portfolioConfig).notifier);
+    final currentPortfolio = ref.watch(
+      portfolioSessionProvider(widget.portfolioConfig),
+    );
+    final notifier = ref.read(
+      portfolioSessionProvider(widget.portfolioConfig).notifier,
+    );
     return AlertDialog.adaptive(
       title: Text("Portfolio: ${currentPortfolio.portfolioName}"),
-      content: SizedBox(width: 320,
+      content: SizedBox(
+        width: 320,
         child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildMainContents(currentPortfolio, notifier),
-                const SizedBox(height: 8),
-                _selectStrategy(currentPortfolio, notifier),
-              ],
-            )
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildMainContents(currentPortfolio, notifier),
+              const SizedBox(height: 8),
+              _selectStrategy(currentPortfolio, notifier),
+            ],
           ),
         ),
-        actions: [
-          BackButton(onPressed: () => Navigator.of(context).pop()),
-          ElevatedButton(
-            onPressed: () {
-              final name = controllerName.text.trim();
-              final capital = double.tryParse(controllerCapital.text) ?? PortfolioConfig.defaultCapital.amount.toDecimal().toDouble();
-              final riskFreeRate = double.tryParse(controllerRiskFreeRate.text) ?? PortfolioConfig.defaultRiskFreeRate;
+      ),
+      actions: [
+        BackButton(onPressed: () => Navigator.of(context).pop()),
+        ElevatedButton(
+          onPressed: () {
+            final name = controllerName.text.trim();
+            final capital =
+                double.tryParse(controllerCapital.text) ??
+                PortfolioConfig.defaultCapital.amount.toDecimal().toDouble();
+            final riskFreeRate =
+                double.tryParse(controllerRiskFreeRate.text) ??
+                PortfolioConfig.defaultRiskFreeRate;
 
-              if (name.isEmpty || capital < 0.0) return;
+            if (name.isEmpty || capital < 0.0) return;
 
-              notifier.updateField((s) => s.copyWith(
-                newName: name, newDesc: controllerDesc.text,
-                newInitialCapital: Money.fromNum(capital, isoCode: currentPortfolio.initialCapital.currency.isoCode),
-                newRiskFreeRatePerYear: riskFreeRate));
+            notifier.updateField(
+              (s) => s.copyWith(
+                newName: name,
+                newDesc: controllerDesc.text,
+                newInitialCapital: Money.fromNum(
+                  capital,
+                  isoCode: currentPortfolio.initialCapital.currency.isoCode,
+                ),
+                newRiskFreeRatePerYear: riskFreeRate,
+              ),
+            );
 
-              final finalizedPortfolio = ref.read(portfolioSessionProvider(widget.portfolioConfig));
-              Navigator.of(context).pop(finalizedPortfolio);
-            },
-            child: const Text("Save"),
-          )
-        ]
+            final finalizedPortfolio = ref.read(
+              portfolioSessionProvider(widget.portfolioConfig),
+            );
+            Navigator.of(context).pop(finalizedPortfolio);
+          },
+          child: const Text("Save"),
+        ),
+      ],
     );
   }
 
   // -- General contents
-  Widget _buildMainContents(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+  Widget _buildMainContents(
+    PortfolioConfig currentPortfolio,
+    PortfolioSession notifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -133,7 +167,10 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         const SizedBox(height: 8),
         TextField(
           controller: controllerRiskFreeRate,
-          keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true),
+          keyboardType: const TextInputType.numberWithOptions(
+            signed: true,
+            decimal: true,
+          ),
           decoration: const InputDecoration(labelText: 'Risk free rate'),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d{0,2}')),
@@ -141,15 +178,19 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         ),
         const SizedBox(height: 8),
         _analysisPeriod(currentPortfolio, notifier),
-      ]
+      ],
     );
   }
 
-  Widget _capitalContents(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
+  Widget _capitalContents(
+    PortfolioConfig currentPortfolio,
+    PortfolioSession notifier,
+  ) {
     final currencies = CommonCurrencies().asList();
     return Row(
       children: [
-        Expanded(flex: 2,
+        Expanded(
+          flex: 2,
           child: TextField(
             controller: controllerCapital,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -163,33 +204,41 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
         DropdownList<Currency>(
           onSelected: (Currency c) => notifier.updateField(
             (portfolio) => portfolio.copyWith(
-                newInitialCapital: Money.fromNum(
-                  currentPortfolio.initialCapital.amount.toDecimal().toDouble(),
-                  isoCode: c.isoCode))),
+              newInitialCapital: Money.fromNum(
+                currentPortfolio.initialCapital.amount.toDecimal().toDouble(),
+                isoCode: c.isoCode,
+              ),
+            ),
+          ),
           choiceType: currentPortfolio.initialCapital.currency,
           choices: currencies,
           iconBuilder: (Currency c) => Text(c.display),
           backgroundColor: Colors.transparent,
-        )
-      ]
+        ),
+      ],
     );
   }
 
   Widget _selectPeriodType() {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text("Period", style: Theme.of(context).textTheme.labelLarge),
         Switch(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            value: _isDateRange,
-            onChanged: (bool value) => setState(() => _isDateRange = value)),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          value: _isDateRange,
+          onChanged: (bool value) => setState(() => _isDateRange = value),
+        ),
         Text("Date range", style: Theme.of(context).textTheme.labelLarge),
-      ]
+      ],
     );
   }
 
-  Widget _analysisPeriod(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
-    final firstDate= DateTime(2000);
+  Widget _analysisPeriod(
+    PortfolioConfig currentPortfolio,
+    PortfolioSession notifier,
+  ) {
+    final firstDate = DateTime(2000);
     final lastDate = DateTime(2100);
     final currentDate = DateTime.now();
     return Column(
@@ -197,7 +246,8 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
       children: [
         _selectPeriodType(),
         const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             OutlinedButton(
               onPressed: () async {
@@ -205,12 +255,17 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
                   context: context,
                   initialDate: notifier.startDateTime,
                   firstDate: firstDate,
-                  lastDate: lastDate);
+                  lastDate: lastDate,
+                );
                 if (date != null) {
-                  notifier.updateField((portfolio) => portfolio.copyWith(newStartDateTime: date));
+                  notifier.updateField(
+                    (portfolio) => portfolio.copyWith(newStartDateTime: date),
+                  );
                 }
               },
-              child: Text("Start: ${notifier.startDateTime?.toIso8601String().split('T')[0]}"),
+              child: Text(
+                "Start: ${notifier.startDateTime?.toIso8601String().split('T')[0]}",
+              ),
             ),
             const SizedBox(width: 6),
             if (_isDateRange)
@@ -220,35 +275,55 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
                     context: context,
                     initialDate: notifier.endDateTime ?? currentDate,
                     firstDate: notifier.endDateTime ?? currentDate,
-                    lastDate: lastDate);
+                    lastDate: lastDate,
+                  );
                   if (date != null) {
-                    notifier.updateField((portfolio) => portfolio.copyWith(newEndDateTime: date));
+                    notifier.updateField(
+                      (portfolio) => portfolio.copyWith(newEndDateTime: date),
+                    );
                   }
                 },
-                child: Text("End: ${notifier.endDateTime?.toIso8601String().split('T')[0]}"),
-              ),
-            if (!_isDateRange)
-              Expanded(flex: 1,
-                child: DropdownButtonFormField<PeriodType>(
-                  decoration: const InputDecoration(labelText: "Period analysis"),
-                  initialValue: notifier.analysisPeriod,
-                  items: PeriodType.values.map((c) =>
-                    DropdownMenuItem(value: c, child: Text(c.name.toUpperCase()))
-                  ).toList(),
-                  onChanged: (val) {
-                    if (val == null) return;
-                    notifier.updateField((portfolio) => portfolio.copyWith(newAnalysisPeriod: val));
-                  }
+                child: Text(
+                  "End: ${notifier.endDateTime?.toIso8601String().split('T')[0]}",
                 ),
               ),
-          ])
-        ]
+            if (!_isDateRange)
+              Expanded(
+                flex: 1,
+                child: DropdownButtonFormField<PeriodType>(
+                  decoration: const InputDecoration(
+                    labelText: "Period analysis",
+                  ),
+                  initialValue: notifier.analysisPeriod,
+                  items: PeriodType.values
+                      .map(
+                        (c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c.name.toUpperCase()),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    notifier.updateField(
+                      (portfolio) => portfolio.copyWith(newAnalysisPeriod: val),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
   // -- General contents - END
 
-  Widget _selectStrategy(PortfolioConfig currentPortfolio, PortfolioSession notifier) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _selectStrategy(
+    PortfolioConfig currentPortfolio,
+    PortfolioSession notifier,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (notifier.strategy == null)
           ElevatedButton.icon(
@@ -257,28 +332,42 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
             label: const Text('Add strategy'),
           ),
         if (notifier.strategy != null)
-          Card(child: ListTile(
-            title: Text(notifier.strategy!.name),
-            subtitle: _viewStrategyContents(context, notifier.strategy!),
-            trailing: _buildTrailingStrategyActions(context, notifier, notifier.strategy!),
-          ))
+          Card(
+            child: ListTile(
+              title: Text(notifier.strategy!.name),
+              subtitle: _viewStrategyContents(context, notifier.strategy!),
+              trailing: _buildTrailingStrategyActions(
+                context,
+                notifier,
+                notifier.strategy!,
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Future<void> _openStrategyDialog(BuildContext context, PortfolioSession notifier) async {
+  Future<void> _openStrategyDialog(
+    BuildContext context,
+    PortfolioSession notifier,
+  ) async {
     final result = await showDialog<Strategy>(
       context: context,
       builder: (context) => StrategyDialog(strategy: notifier.strategy),
     );
 
     if (result != null) {
-      notifier.updateField((portfolio) => portfolio.copyWith(newStrategy: result));
+      notifier.updateField(
+        (portfolio) => portfolio.copyWith(newStrategy: result),
+      );
     }
   }
 
-  Widget? _buildTrailingStrategyActions(BuildContext context,
-      PortfolioSession notifier, Strategy strategy) {
+  Widget? _buildTrailingStrategyActions(
+    BuildContext context,
+    PortfolioSession notifier,
+    Strategy strategy,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -286,14 +375,16 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
           icon: Icon(Icons.edit),
           onPressed: () => showStrategy(context, strategy, (updatedStrategy) {
             if (updatedStrategy != null) {
-              ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
-                 .addEntry(updatedStrategy);
-              notifier.updateField((portfolio) => portfolio.copyWith(
-                  newStrategy: updatedStrategy));
+              ref
+                  .read(strategyProvider(CacheKeyType.analysisCache).notifier)
+                  .addEntry(updatedStrategy);
+              notifier.updateField(
+                (portfolio) => portfolio.copyWith(newStrategy: updatedStrategy),
+              );
             }
-          })
-        )
-      ]
+          }),
+        ),
+      ],
     );
   }
 
@@ -301,22 +392,32 @@ class _PortfolioDialogState extends ConsumerState<PortfolioDialog> {
     final assets = strategy.getAssetAllocations();
 
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(strategy.type.name, style: Theme.of(context).textTheme.labelLarge),
-          const Divider(),
-          ...assets.map((item) => Padding(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          strategy.drawingType.name,
+          style: Theme.of(context).textTheme.labelLarge,
+        ),
+        const Divider(),
+        ...assets.map(
+          (item) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Row(
               children: [
-                Expanded(child: Text(item.asset.symbol, style: const TextStyle(fontWeight: FontWeight.bold))),
+                Expanded(
+                  child: Text(
+                    item.asset.symbol,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 Text("${item.targetWeight}%"),
                 const SizedBox(width: 16),
                 Text("Shares: ${item.assetSharesCount}"),
               ],
             ),
-          )),
-        ]
+          ),
+        ),
+      ],
     );
   }
 }

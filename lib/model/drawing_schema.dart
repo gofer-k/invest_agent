@@ -4,22 +4,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/cache_schema.dart';
 
-enum DrawFeatureType {
-  line,
-  rectangle,
-  label;
-}
+enum DrawFeatureType { line, rectangle, label }
 
-enum LineStyle {
-  solid,
-  dashed,
-  dotted;
-}
+enum LineStyle { solid, dashed, dotted }
 
 abstract class DrawingFeature extends Cache {
-  final DrawFeatureType type;
+  final DrawFeatureType drawingType;
 
-  DrawingFeature({required this.type}) : super.from([]);
+  DrawingFeature({required this.drawingType}) : super.from([]);
 
   static DrawFeatureType? from(Map<String, dynamic> item) {
     if (item['type'] == null) return null;
@@ -33,16 +25,17 @@ abstract class DrawingFeature extends Cache {
   }
 
   @override
-  String toString() => type.name;
+  String toString() => drawingType.name;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is DrawingFeature && runtimeType == other.runtimeType &&
-      type == other.type;
+      other is DrawingFeature &&
+          runtimeType == other.runtimeType &&
+          drawingType == other.drawingType;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ type.hashCode;
+  int get hashCode => runtimeType.hashCode ^ drawingType.hashCode;
 }
 
 class LineFeature extends DrawingFeature {
@@ -53,26 +46,34 @@ class LineFeature extends DrawingFeature {
   final Point end;
 
   LineFeature({
-    super.type = DrawFeatureType.line,
+    super.drawingType = DrawFeatureType.line,
     this.color = Colors.black,
     this.width = 1.0,
     this.style = LineStyle.solid,
     required this.begin,
-    required this.end});
+    required this.end,
+  });
 
-  LineFeature copyWith(Color? color, double? width, LineStyle? style, Point? begin, Point? end) {
+  LineFeature copyWith(
+    Color? color,
+    double? width,
+    LineStyle? style,
+    Point? begin,
+    Point? end,
+  ) {
     return LineFeature(
-      type: type,
+      drawingType: drawingType,
       color: color ?? this.color,
       width: width ?? this.width,
       style: style ?? this.style,
       begin: begin ?? this.begin,
-      end: end ?? this.end,);
+      end: end ?? this.end,
+    );
   }
 
   @override
   Map<String, dynamic> toMap() => {
-    "type": type.name,
+    "type": drawingType.name,
     "color": color.toARGB32(),
     "width": width,
     "style": style.name,
@@ -86,7 +87,7 @@ class LineFeature extends DrawingFeature {
     final jsonEnd = jsonDecode(item['end'] as String);
 
     return LineFeature(
-      type: DrawFeatureType.line,
+      drawingType: DrawFeatureType.line,
       color: Color(item['color'] as int),
       width: item['width'] as double,
       begin: Point(jsonBegin['x'] as num, jsonBegin['y'] as num),
@@ -97,22 +98,31 @@ class LineFeature extends DrawingFeature {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LineFeature && runtimeType == other.runtimeType &&
-      super.type == other.type &&
-      color == other.color &&
-      width == other.width &&
-      style == other.style &&
-      begin == other.begin &&
-      end == other.end;
+      other is LineFeature &&
+          runtimeType == other.runtimeType &&
+          super.drawingType == other.drawingType &&
+          color == other.color &&
+          width == other.width &&
+          style == other.style &&
+          begin == other.begin &&
+          end == other.end;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ super.hashCode ^ color.hashCode ^ width.hashCode ^ style.hashCode ^ begin.hashCode ^ end.hashCode;
+  int get hashCode =>
+      runtimeType.hashCode ^
+      super.hashCode ^
+      color.hashCode ^
+      width.hashCode ^
+      style.hashCode ^
+      begin.hashCode ^
+      end.hashCode;
 
   bool isHorizontal() => begin.y == end.y;
+
   bool isVertical() => begin.x == end.x;
 
   @override
-  List<Object?> get props => [type, color, width, style, begin, end];
+  List<Object?> get props => [drawingType, color, width, style, begin, end];
 }
 
 class RectangleFeature extends DrawingFeature {
@@ -124,17 +134,25 @@ class RectangleFeature extends DrawingFeature {
   final Point rightBottom;
 
   RectangleFeature({
-    super.type = DrawFeatureType.rectangle,
+    super.drawingType = DrawFeatureType.rectangle,
     this.strokeColor = Colors.black,
     this.fillColor = Colors.transparent,
     this.width = 1.0,
     this.style = LineStyle.solid,
     required this.leftTop,
-    required this.rightBottom});
+    required this.rightBottom,
+  });
 
-  RectangleFeature copyWith(Color? strokeColor, Color? fillColor, double? width, LineStyle? style, Point? leftTop, Point? rightBottom) {
+  RectangleFeature copyWith(
+    Color? strokeColor,
+    Color? fillColor,
+    double? width,
+    LineStyle? style,
+    Point? leftTop,
+    Point? rightBottom,
+  ) {
     return RectangleFeature(
-      type: type,
+      drawingType: drawingType,
       strokeColor: strokeColor ?? this.strokeColor,
       fillColor: fillColor ?? this.fillColor,
       width: width ?? this.width,
@@ -145,16 +163,15 @@ class RectangleFeature extends DrawingFeature {
   }
 
   @override
-  Map<String, dynamic> toMap() =>
-    {
-      "type": type.name,
-      "strokeColor": strokeColor.toARGB32(),
-      "fillColor": fillColor.toARGB32(),
-      "width": width,
-      "style": style.name,
-      "leftTop": jsonEncode(leftTop.toMap()),
-      "rightBottom": jsonEncode(rightBottom.toMap()),
-    };
+  Map<String, dynamic> toMap() => {
+    "type": drawingType.name,
+    "strokeColor": strokeColor.toARGB32(),
+    "fillColor": fillColor.toARGB32(),
+    "width": width,
+    "style": style.name,
+    "leftTop": jsonEncode(leftTop.toMap()),
+    "rightBottom": jsonEncode(rightBottom.toMap()),
+  };
 
   @override
   factory RectangleFeature.from(Map<String, dynamic> item) {
@@ -162,33 +179,50 @@ class RectangleFeature extends DrawingFeature {
     final jsonRightBottom = jsonDecode(item['rightBottom'] as String);
 
     return RectangleFeature(
-      type: DrawFeatureType.rectangle,
+      drawingType: DrawFeatureType.rectangle,
       strokeColor: Color(item['strokeColor'] as int),
       fillColor: Color(item['fillColor'] as int),
       width: item['width'] as double,
       leftTop: Point(jsonLeftTop['x'] as num, jsonLeftTop['y'] as num),
-      rightBottom: Point(jsonRightBottom['x'] as num, jsonRightBottom['y'] as num),
+      rightBottom: Point(
+        jsonRightBottom['x'] as num,
+        jsonRightBottom['y'] as num,
+      ),
     );
   }
 
   @override
-  bool operator==(Object other) =>
-   identical(this, other) ||
-   other is RectangleFeature && runtimeType == other.runtimeType &&
-   super.type == other.type &&
-   strokeColor == other.strokeColor &&
-   fillColor == other.fillColor &&
-   width == other.width &&
-   style == other.style &&
-   leftTop == other.leftTop &&
-   rightBottom == other.rightBottom;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RectangleFeature &&
+          runtimeType == other.runtimeType &&
+          super.drawingType == other.drawingType &&
+          strokeColor == other.strokeColor &&
+          fillColor == other.fillColor &&
+          width == other.width &&
+          style == other.style &&
+          leftTop == other.leftTop &&
+          rightBottom == other.rightBottom;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ super.hashCode ^ strokeColor.hashCode ^ fillColor.hashCode ^ width.hashCode;
+  int get hashCode =>
+      runtimeType.hashCode ^
+      super.hashCode ^
+      strokeColor.hashCode ^
+      fillColor.hashCode ^
+      width.hashCode;
 
   @override
   // TODO: implement props
-  List<Object?> get props => [type, strokeColor, fillColor, width, style, leftTop, rightBottom];
+  List<Object?> get props => [
+    drawingType,
+    strokeColor,
+    fillColor,
+    width,
+    style,
+    leftTop,
+    rightBottom,
+  ];
 }
 
 class LabelFeature extends DrawingFeature {
@@ -197,14 +231,15 @@ class LabelFeature extends DrawingFeature {
   final Point position;
 
   LabelFeature({
-    super.type = DrawFeatureType.label,
+    super.drawingType = DrawFeatureType.label,
     required this.text,
     this.color = Colors.black,
-    required this.position});
+    required this.position,
+  });
 
   LabelFeature copyWith(String? text, Color? color, Point? position) {
     return LabelFeature(
-      type: type,
+      drawingType: drawingType,
       text: text ?? this.text,
       color: color ?? this.color,
       position: position ?? this.position,
@@ -213,7 +248,7 @@ class LabelFeature extends DrawingFeature {
 
   @override
   Map<String, dynamic> toMap() => {
-    "type": type.name,
+    "type": drawingType.name,
     "text": text,
     "color": color.toARGB32(),
     "position": jsonEncode(position.toMap()),
@@ -223,7 +258,7 @@ class LabelFeature extends DrawingFeature {
   factory LabelFeature.from(Map<String, dynamic> item) {
     final jsonPosition = jsonDecode(item['position'] as String);
     return LabelFeature(
-      type: DrawFeatureType.label,
+      drawingType: DrawFeatureType.label,
       text: item['text'] as String,
       color: Color(item['color'] as int),
       position: Point(jsonPosition['x'] as num, jsonPosition['y'] as num),
@@ -231,24 +266,27 @@ class LabelFeature extends DrawingFeature {
   }
 
   @override
-  bool operator==(Object other) =>
-    identical(this, other) ||
-    other is LabelFeature && runtimeType == other.runtimeType &&
-    text.compareTo(other.text) == 0 &&
-    color == other.color &&
-    position == other.position;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LabelFeature &&
+          runtimeType == other.runtimeType &&
+          text.compareTo(other.text) == 0 &&
+          color == other.color &&
+          position == other.position;
 
   @override
-  int get hashCode => runtimeType.hashCode ^ super.hashCode ^ text.hashCode ^ color.hashCode ^ position.hashCode;
+  int get hashCode =>
+      runtimeType.hashCode ^
+      super.hashCode ^
+      text.hashCode ^
+      color.hashCode ^
+      position.hashCode;
 
   @override
   // TODO: implement props
-  List<Object?> get props => [type, text, color, position];
+  List<Object?> get props => [drawingType, text, color, position];
 }
 
 extension on Point<num> {
-  Map<String, num> toMap() => {
-    'x': x,
-    'y': y,
-  };
+  Map<String, num> toMap() => {'x': x, 'y': y};
 }

@@ -241,7 +241,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                             newIndicator: chart.charts
                                                 .firstWhere(
                                                   (ch) =>
-                                                      ch.indicatorConfig.type ==
+                                                      ch
+                                                          .indicatorConfig
+                                                          .drawingType ==
                                                       IndicatorType.price,
                                                 )
                                                 .indicatorConfig,
@@ -254,7 +256,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                                   : null,
                             ),
                             for (int i = 0; i < chart.charts.length; i++)
-                              if (chart.charts[i].indicatorConfig.type !=
+                              if (chart.charts[i].indicatorConfig.drawingType !=
                                   IndicatorType.price)
                                 IndicatorOverlayTaskbar(
                                   indicator: chart.charts[i].indicatorConfig,
@@ -304,7 +306,8 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   void _handleDeleteIndicator(int index, MultiChartConfig currentConfig) {
     final chartToRemove = currentConfig.charts.elementAtOrNull(index);
-    if (chartToRemove?.indicatorConfig.type == IndicatorType.price) return;
+    if (chartToRemove?.indicatorConfig.drawingType == IndicatorType.price)
+      return;
 
     final notifier = ref.read(
       multiChartProvider(
@@ -446,7 +449,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     List<OverlayChart> availableOverlayCharts = [_showMainChart(mainChart)];
     for (var overlayChart in chart.overlayCharts) {
       // _showOverlayChart(overlayChart),
-      if (overlayChart.indicatorConfig.type != IndicatorType.price) {
+      if (overlayChart.indicatorConfig.drawingType != IndicatorType.price) {
         availableOverlayCharts.addAll(
           _showOverlayIndicatorCharts(overlayChart),
         );
@@ -489,7 +492,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
   OverlayChart _showMainChart(ChartConfig chart) {
     if (!chart.mainChart) return EmptyOverlayChart();
 
-    if (chart.indicatorConfig.type == IndicatorType.price) {
+    if (chart.indicatorConfig.drawingType == IndicatorType.price) {
       return OverlayPriceChart(
         data: widget.priceData,
         chartStyle: chart.chartStyle,
@@ -508,7 +511,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     return indicatorResultAsync.when(
       data: (result) {
-        switch (result?.config.type) {
+        switch (result?.config.drawingType) {
           case IndicatorType.bollingerBands:
             final bbResult = result as BollingerBandsResult;
             final bbColors = bbResult.config.visibleIndicatorColors();
@@ -606,7 +609,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     DateTime? startDate,
     DateTime? endDate,
   ) {
-    if (indicator.type == IndicatorType.price) {
+    if (indicator.drawingType == IndicatorType.price) {
       return widget.priceData.getMax(startDate, endDate);
     }
     final notifier = ref.watch(tradingServiceProvider.notifier);
@@ -619,7 +622,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     DateTime? startDate,
     DateTime? endDate,
   ) {
-    if (indicator.type == IndicatorType.price) {
+    if (indicator.drawingType == IndicatorType.price) {
       return widget.priceData.getMin(startDate, endDate);
     }
     final notifier = ref.watch(tradingServiceProvider.notifier);
@@ -642,7 +645,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
     if (newIndicator != null) {
       final existingIndex = updatedCharts.indexWhere(
-        (c) => c.indicatorConfig.type == targetIndicator.type,
+        (c) => c.indicatorConfig.drawingType == targetIndicator.drawingType,
       );
       final newConfig = ChartConfig(
         indicatorConfig: targetIndicator,

@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../model/results/strategies/global_equity_momentum.dart';
 import '../model/results/strategies/mean_reversion.dart';
 import '../model/results/strategies/strategy_schema.dart';
@@ -12,19 +13,21 @@ class StrategySession extends _$StrategySession {
     return strategy ?? Strategy.emptyStrategy();
   }
 
-  StrategyType get type => state.type;
+  StrategyType get type => state.drawingType;
   String get name => state.name;
 
   void save(Strategy updatedStrategy) => state = updatedStrategy;
 
   void updateType(StrategyType newType) {
-    if (state.type == newType) return;
+    if (state.drawingType == newType) return;
 
     // Convert the base state to the specific subclass when the type changes
     state = switch (newType) {
       StrategyType.meanReversion => MeanReversionConfig.fromStrategy(state),
       StrategyType.gem => GemStrategyConfig.fromStrategy(state),
-      _ => state.copyWith(newType: newType), // Fallback for base/unimplemented types
+      _ => state.copyWith(
+        newType: newType,
+      ), // Fallback for base/unimplemented types
     };
   }
 

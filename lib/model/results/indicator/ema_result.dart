@@ -1,31 +1,41 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 class ExponentialMovingAverage extends BaseIndicatorValue {
   final double? maValue;
   final int? rollingWindow;
 
-  ExponentialMovingAverage({required super.dateTime, this.maValue, this.rollingWindow});
+  ExponentialMovingAverage({
+    required super.dateTime,
+    this.maValue,
+    this.rollingWindow,
+  });
 
-  static ExponentialMovingAverage? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+  static ExponentialMovingAverage? fromJson(
+    DateTime dateTime,
+    Map<String, dynamic> jsonMap,
+  ) {
     final value = parseNum(jsonMap['value']);
     final rollingWindow = parseNum(jsonMap["window"]);
     if (value == null || rollingWindow == null) {
       return null;
     }
-    return ExponentialMovingAverage(dateTime: dateTime, maValue: value, rollingWindow: rollingWindow.toInt());
+    return ExponentialMovingAverage(
+      dateTime: dateTime,
+      maValue: value,
+      rollingWindow: rollingWindow.toInt(),
+    );
   }
 
-  Map<String, dynamic> toJson() => {
-    "value": maValue,
-    "window": rollingWindow,
-  };
+  Map<String, dynamic> toJson() => {"value": maValue, "window": rollingWindow};
 }
 
 class EmaResult extends BaseIndicatorResult {
@@ -38,20 +48,24 @@ class EmaResult extends BaseIndicatorResult {
   });
 
   factory EmaResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final points = protoResult.points.map((p) {
       // Safe extraction of the rolling window, handling both scalar and list types
-      final dynamic windowValue = p.values['window'] ?? config.parameters['window'];
+      final dynamic windowValue =
+          p.values['window'] ?? config.parameters['window'];
       final int? window = (windowValue is num)
           ? windowValue.toInt()
           : (windowValue is List && windowValue.isNotEmpty)
@@ -65,11 +79,7 @@ class EmaResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return EmaResult(
-      style: style,
-      config: config,
-      points: points,
-    );
+    return EmaResult(style: style, config: config, points: points);
   }
 
   List<ExponentialMovingAverage> getPoints({int rollingWindow = 20}) {
@@ -103,7 +113,10 @@ class EmaResult extends BaseIndicatorResult {
         : filtered.map((p) => p.maValue ?? double.infinity).reduce(min);
   }
 
-  Iterable<ExponentialMovingAverage> _filterPoints(DateTime? start, DateTime? end) {
+  Iterable<ExponentialMovingAverage> _filterPoints(
+    DateTime? start,
+    DateTime? end,
+  ) {
     if (start == null && end == null) return points;
     return points.where((p) {
       if (start != null && p.dateTime.isBefore(start)) return false;
@@ -120,5 +133,6 @@ class EmaResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 }

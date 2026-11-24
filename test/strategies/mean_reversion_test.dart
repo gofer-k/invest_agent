@@ -10,9 +10,9 @@ void main() {
       final strategy = MeanReversionConfig.emptyStrategy();
 
       expect(strategy.id, equals(Strategy.defaultId));
-      expect(strategy.type, equals(StrategyType.meanReversion));
+      expect(strategy.drawingType, equals(StrategyType.meanReversion));
       expect(strategy.name, isEmpty);
-      expect(strategy.indicator.type, equals(IndicatorType.undefined));
+      expect(strategy.indicator.drawingType, equals(IndicatorType.undefined));
     });
 
     test('should correctly instantiate fromMap', () {
@@ -22,10 +22,10 @@ void main() {
         "indicator": [
           {
             "sma": {
-              "window": {"value": "50", "type": "int"}
-            }
-          }
-        ]
+              "window": {"value": "50", "type": "int"},
+            },
+          },
+        ],
       };
 
       final strategy = MeanReversionConfig.fromMap(1, params);
@@ -33,16 +33,18 @@ void main() {
       expect(strategy.id, 1);
       expect(strategy.name, params["name"]);
       expect(strategy.asset.id, 20);
-      expect(strategy.indicator.type, IndicatorType.sma);
+      expect(strategy.indicator.drawingType, IndicatorType.sma);
       expect(strategy.indicator.parameters['window']['value'], "50");
     });
 
     test('should return correct map from toMap()', () {
       final indicator = Indicator(
-          id: 1,
-          name: 'sma',
-          type: IndicatorType.sma,
-          parameters: {"window": {"value": "20"}}
+        id: 1,
+        name: 'sma',
+        drawingType: IndicatorType.sma,
+        parameters: {
+          "window": {"value": "20"},
+        },
       );
 
       final strategy = MeanReversionConfig(

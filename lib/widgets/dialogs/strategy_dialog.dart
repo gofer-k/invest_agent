@@ -7,8 +7,11 @@ import 'package:invest_agent/widgets/dialogs/strategy_config_mean_reversion.dart
 import '../../model/results/strategies/strategy_schema.dart';
 import '../utils/dropdown.dart';
 
-Future<void> showStrategy(BuildContext context, Strategy? strategy,
-    Function(Strategy? strategy) onSave) async {
+Future<void> showStrategy(
+  BuildContext context,
+  Strategy? strategy,
+  Function(Strategy? strategy) onSave,
+) async {
   final result = await showDialog<Strategy>(
     context: context,
     builder: (context) => StrategyDialog(strategy: strategy),
@@ -24,6 +27,7 @@ class StrategyDialog extends ConsumerStatefulWidget {
   @override
   ConsumerState<StrategyDialog> createState() => StrategyDialogState();
 }
+
 class StrategyDialogState extends ConsumerState<StrategyDialog> {
   late final TextEditingController controllerName;
   bool addingParameter = false;
@@ -31,7 +35,7 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
   @override
   void initState() {
     super.initState();
-    controllerName = TextEditingController(text:  widget.strategy?.name ?? '');
+    controllerName = TextEditingController(text: widget.strategy?.name ?? '');
   }
 
   @override
@@ -43,7 +47,9 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
   @override
   Widget build(BuildContext context) {
     final currentStrategy = ref.watch(strategySessionProvider(widget.strategy));
-    final notifier = ref.read(strategySessionProvider(widget.strategy).notifier);
+    final notifier = ref.read(
+      strategySessionProvider(widget.strategy).notifier,
+    );
 
     return AlertDialog.adaptive(
       title: Text("Strategy: ${currentStrategy.name}"),
@@ -54,17 +60,13 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _generalStrategyContents(
-                currentStrategy,
-                notifier),
+              _generalStrategyContents(currentStrategy, notifier),
               const SizedBox(height: 8),
-              _selectStrategy(currentStrategy,
-                notifier),
+              _selectStrategy(currentStrategy, notifier),
               const SizedBox(height: 8),
-              _strategyContents(currentStrategy,
-                notifier),
+              _strategyContents(currentStrategy, notifier),
             ],
-          )
+          ),
         ),
       ),
       actions: [
@@ -72,20 +74,27 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
         ElevatedButton(
           onPressed: () {
             final name = controllerName.text.trim();
-            if (name.isEmpty || currentStrategy.type == StrategyType.empty) return;
+            if (name.isEmpty ||
+                currentStrategy.drawingType == StrategyType.empty)
+              return;
 
             notifier.updateField((s) => s.copyWith(newName: name));
 
-            final finalizedStrategy = ref.read(strategySessionProvider(widget.strategy));
+            final finalizedStrategy = ref.read(
+              strategySessionProvider(widget.strategy),
+            );
             Navigator.of(context).pop(finalizedStrategy);
           },
           child: const Text("Save"),
-        )
-      ]
+        ),
+      ],
     );
   }
 
-  Widget _generalStrategyContents(Strategy currentStrategy, StrategySession notifier) {
+  Widget _generalStrategyContents(
+    Strategy currentStrategy,
+    StrategySession notifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -93,7 +102,7 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
           controller: controllerName,
           decoration: const InputDecoration(labelText: 'Strategy Name'),
         ),
-      ]
+      ],
     );
   }
 
@@ -102,15 +111,16 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
       onSelected: (StrategyType newType) {
         notifier.updateType(newType);
       },
-      choices:StrategyType.values,
-      choiceType: currentStrategy.type,
+      choices: StrategyType.values,
+      choiceType: currentStrategy.drawingType,
     );
   }
 
   Widget _strategyContents(Strategy currentStrategy, StrategySession notifier) {
-    return switch (currentStrategy.type) {
+    return switch (currentStrategy.drawingType) {
       StrategyType.meanReversion => StrategyConfigMeanReversion(
-          strategyKey: widget.strategy),
+        strategyKey: widget.strategy,
+      ),
       StrategyType.gem => StrategyConfigGem(strategyKey: widget.strategy),
       _ => Text("No implemented more strategies"),
     };

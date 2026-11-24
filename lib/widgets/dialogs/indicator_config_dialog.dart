@@ -3,23 +3,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/widgets/utils/color_button.dart';
 import 'package:invest_agent/widgets/utils/dropdownlist.dart';
 import 'package:invest_agent/widgets/utils/shrinkable.dart';
+
 import '../../model/cache_schema.dart';
 import '../../model/indicator_schema.dart';
 
-void showIndicator(BuildContext context,
-    Indicator? indicator,
-    Function(Indicator? indicator) onSave) {
-  showDialog(context: context,
+void showIndicator(
+  BuildContext context,
+  Indicator? indicator,
+  Function(Indicator? indicator) onSave,
+) {
+  showDialog(
+    context: context,
     builder: (BuildContext context) {
       return IndicatorDialog(indicator: indicator, onSave: onSave);
-    }
+    },
   );
 }
 
 class IndicatorDialog extends ConsumerStatefulWidget {
   final Function(Indicator? indicator) onSave;
   final Indicator? indicator;
-  const IndicatorDialog({super.key, required this.onSave, required this.indicator});
+  const IndicatorDialog({
+    super.key,
+    required this.onSave,
+    required this.indicator,
+  });
 
   @override
   ConsumerState<IndicatorDialog> createState() => _IndicatorDialogState();
@@ -35,7 +43,7 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
   void initState() {
     super.initState();
     controllerName = TextEditingController(text: widget.indicator?.name ?? '');
-    _selectedType = widget.indicator?.type ?? IndicatorType.undefined;
+    _selectedType = widget.indicator?.drawingType ?? IndicatorType.undefined;
     parameters = Map<String, dynamic>.from(widget.indicator?.parameters ?? {});
   }
 
@@ -50,83 +58,115 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     return AlertDialog.adaptive(
       title: Text("Indicator ${widget.indicator?.name ?? 'New'}"),
       content: SizedBox(
-        width: 320, // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
+        width:
+            320, // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _editIndicatorName(controllerName, "Input indicator name", "Indicator name"),
+              _editIndicatorName(
+                controllerName,
+                "Input indicator name",
+                "Indicator name",
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Supplement chart", style: Theme.of(context).textTheme.labelLarge),
+                  Text(
+                    "Supplement chart",
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
                   Switch(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     value: parameters[Indicator.mainChart] ?? false,
                     onChanged: (bool value) => setState(() {
                       parameters[Indicator.mainChart] = value;
-                    })),
-                  Text("Main chart", style: Theme.of(context).textTheme.labelLarge),
-                ]
+                    }),
+                  ),
+                  Text(
+                    "Main chart",
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ],
               ),
               const Divider(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Parameters", style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    "Parameters",
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   IconButton(
                     icon: Icon(addingParameter ? Icons.close : Icons.add),
-                    onPressed: () => setState(() => addingParameter = !addingParameter),
+                    onPressed: () =>
+                        setState(() => addingParameter = !addingParameter),
                   ),
                 ],
               ),
               if (addingParameter) _handleAddParameter(context),
               const SizedBox(height: 8),
-              for (var parameter in parameters.entries.where((e) => e.key != Indicator.mainChart))
+              for (var parameter in parameters.entries.where(
+                (e) => e.key != Indicator.mainChart,
+              ))
                 Shrinkable(
                   expanded: true,
                   title: parameter.key,
                   body: _buildIndicatorParameter(context, parameter),
-               ),
+                ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
-        ElevatedButton(onPressed: () {
-          final name = controllerName.text.trim();
-          if (name.isEmpty) return;
-          final newIndicator = Indicator(id: widget.indicator?.id ?? -1,
-            name: name,
-            type: _selectedType,
-            parameters: parameters
-          );
-          widget.onSave(newIndicator);
-          Navigator.of(context).pop();
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text("Cancel"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final name = controllerName.text.trim();
+            if (name.isEmpty) return;
+            final newIndicator = Indicator(
+              id: widget.indicator?.id ?? -1,
+              name: name,
+              drawingType: _selectedType,
+              parameters: parameters,
+            );
+            widget.onSave(newIndicator);
+            Navigator.of(context).pop();
           },
-        child: const Text("Save"))
+          child: const Text("Save"),
+        ),
       ],
     );
   }
 
-  Widget _editIndicatorName(TextEditingController controller, String hint, String label) {
+  Widget _editIndicatorName(
+    TextEditingController controller,
+    String hint,
+    String label,
+  ) {
     return TextField(
       controller: controller,
-      decoration: InputDecoration(labelText: label, hintText: hint,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
         border: const OutlineInputBorder(),
       ),
       keyboardType: TextInputType.text,
     );
   }
 
-  Widget _buildIndicatorParameter(BuildContext context, MapEntry<String, dynamic> parameter) {
+  Widget _buildIndicatorParameter(
+    BuildContext context,
+    MapEntry<String, dynamic> parameter,
+  ) {
     if (parameter.value is Map) {
       return _editIndicatorParameter(context, parameter);
-    }
-    else if (parameter.value is List) {
+    } else if (parameter.value is List) {
       final list = parameter.value as List;
       // List structured parameter
       if (list.every((e) => e is Map)) {
@@ -137,66 +177,70 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
             String innerKey = itemMap.keys.first;
             dynamic innerValue = itemMap.values.first;
             return _editIndicatorParameter(
-                context,
-                MapEntry(innerKey, innerValue),
-                onChanged: (newValue) {
-                  setState(() {
-                    final newList = List.from(list);
-                      // Update the specific inner map value
-                    newList[index] = {
-                      innerKey: Cache.updateParameterValue(innerValue, newValue)
-                    };
-                    parameters[parameter.key] = newList;
-                  });
-                }
+              context,
+              MapEntry(innerKey, innerValue),
+              onChanged: (newValue) {
+                setState(() {
+                  final newList = List.from(list);
+                  // Update the specific inner map value
+                  newList[index] = {
+                    innerKey: Cache.updateParameterValue(innerValue, newValue),
+                  };
+                  parameters[parameter.key] = newList;
+                });
+              },
             );
           }).toList(),
         );
-      }
-      else {
+      } else {
         // List trivial parameter, e.g. list of string
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
-          child:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               DropdownList<String>(
                 onSelected: (item) {
                   setState(() {
-                    parameters[parameter.key] = Cache.updateParameterValue(parameter.value, item);
+                    parameters[parameter.key] = Cache.updateParameterValue(
+                      parameter.value,
+                      item,
+                    );
                   });
                 },
                 choiceType: list.first.toString(),
                 choices: list.map((e) => e.toString()).toList(),
                 backgroundColor: Colors.transparent,
               ),
-            ]
-           ),
+            ],
+          ),
         );
       }
-      }
+    }
     // Simple parameter
     return _editIndicatorParameter(context, parameter);
   }
 
   Widget _editIndicatorParameter(
     BuildContext context,
-    MapEntry<String, dynamic> parameter,
-    { void Function(dynamic)? onChanged} ) {
-
+    MapEntry<String, dynamic> parameter, {
+    void Function(dynamic)? onChanged,
+  }) {
     final value = parameter.value;
     final bool isEditable = Cache.isEditable(value);
     final bool hasVisibility = Cache.hasVisibilityOption(value);
     final bool isVisible = Cache.isVisible(value);
-    
-    CacheParamType? type = Cache.getParameterType(value);
-    if (type == null && value is! String && value is! num) return const SizedBox.shrink();
 
-    TextInputType keyboardType = switch(type) {
+    CacheParamType? type = Cache.getParameterType(value);
+    if (type == null && value is! String && value is! num)
+      return const SizedBox.shrink();
+
+    TextInputType keyboardType = switch (type) {
       CacheParamType.int => TextInputType.number,
-      CacheParamType.double => const TextInputType.numberWithOptions(decimal: true),
+      CacheParamType.double => const TextInputType.numberWithOptions(
+        decimal: true,
+      ),
       CacheParamType.string => TextInputType.text,
       CacheParamType.color => TextInputType.text,
       null => TextInputType.text,
@@ -226,8 +270,10 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                     onChanged(v); // Use the custom callback for nested items
                   } else {
                     setState(() {
-                      parameters[parameter.key] =
-                          Cache.updateParameterValue(value, v);
+                      parameters[parameter.key] = Cache.updateParameterValue(
+                        value,
+                        v,
+                      );
                     });
                   }
                 },
@@ -240,24 +286,32 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 key: ValueKey("color_${parameter.key}"),
                 label: parameter.key,
                 hexValue: displayValue,
-                showLabel: false, // Avoid internal Row with Expanded inside ColorButton
+                showLabel:
+                    false, // Avoid internal Row with Expanded inside ColorButton
                 onColorChanged: (String colorHex) {
                   setState(() {
-                    parameters[parameter.key] = Cache.updateParameterValue(value, colorHex);
+                    parameters[parameter.key] = Cache.updateParameterValue(
+                      value,
+                      colorHex,
+                    );
                   });
                 },
               ),
             ),
-          
+
           if (hasVisibility)
             Checkbox.adaptive(
               value: isVisible,
               onChanged: (val) {
                 if (val == null) return;
                 setState(() {
-                  parameters[parameter.key] = Cache.updateParameterAttr(value, CacheParam.visible, val ? "1" : "0");
+                  parameters[parameter.key] = Cache.updateParameterAttr(
+                    value,
+                    CacheParam.visible,
+                    val ? "1" : "0",
+                  );
                 });
-              }
+              },
             ),
         ],
       ),
@@ -275,7 +329,12 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
       onSubmitted: (v) {
         if (v.trim().isNotEmpty) {
           setState(() {
-            parameters[v.trim()] = {"value": "0", "edit": "1", "type": "int", "visible": "1"};
+            parameters[v.trim()] = {
+              "value": "0",
+              "edit": "1",
+              "type": "int",
+              "visible": "1",
+            };
             addingParameter = false;
           });
         }

@@ -1,11 +1,13 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 enum BollingerBandParam {
   upperBB("BB_upper"),
@@ -22,7 +24,7 @@ enum BollingerBandParam {
   String toString() => name;
 }
 
-class BollingerBands extends BaseIndicatorValue{
+class BollingerBands extends BaseIndicatorValue {
   final double? upperBB;
   final double? lowerBB;
   final double? medianBB;
@@ -31,18 +33,27 @@ class BollingerBands extends BaseIndicatorValue{
   final int? rollingWindow;
 
   BollingerBands({
-    required super.dateTime, this.upperBB, this.lowerBB, this.medianBB,
-    this.widthBB, this.percentBB, this.rollingWindow});
+    required super.dateTime,
+    this.upperBB,
+    this.lowerBB,
+    this.medianBB,
+    this.widthBB,
+    this.percentBB,
+    this.rollingWindow,
+  });
 
-  static BollingerBands? fromJson(DateTime dateTime, Map<String, dynamic> jsonMap) {
+  static BollingerBands? fromJson(
+    DateTime dateTime,
+    Map<String, dynamic> jsonMap,
+  ) {
     return BollingerBands(
-        dateTime: dateTime,
-        lowerBB: parseNum(jsonMap[BollingerBandParam.lowerBB.name]),
-        upperBB: parseNum(jsonMap[BollingerBandParam.upperBB.name]),
-        medianBB: parseNum(jsonMap[BollingerBandParam.medianBB.name]),
-        percentBB: parseNum(jsonMap[BollingerBandParam.precentBB.name]),
-        widthBB: parseNum(jsonMap[BollingerBandParam.widthBB.name]),
-        rollingWindow: parseNum(jsonMap[BollingerBandParam.window.name])?.toInt()
+      dateTime: dateTime,
+      lowerBB: parseNum(jsonMap[BollingerBandParam.lowerBB.name]),
+      upperBB: parseNum(jsonMap[BollingerBandParam.upperBB.name]),
+      medianBB: parseNum(jsonMap[BollingerBandParam.medianBB.name]),
+      percentBB: parseNum(jsonMap[BollingerBandParam.precentBB.name]),
+      widthBB: parseNum(jsonMap[BollingerBandParam.widthBB.name]),
+      rollingWindow: parseNum(jsonMap[BollingerBandParam.window.name])?.toInt(),
     );
   }
 
@@ -65,21 +76,29 @@ class BollingerBandsResult extends BaseIndicatorResult {
     required this.points,
   });
 
-  factory BollingerBandsResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+  factory BollingerBandsResult.fromProto(
+    IndicatorSeries protoResult,
+    IndicatorType type,
+  ) {
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final points = protoResult.points.map((p) {
       // Safe extraction of the rolling window, handling both scalar and list types
-      final dynamic windowValue = p.values[BollingerBandParam.window.name] ?? config.parameters[BollingerBandParam.window.name];
+      final dynamic windowValue =
+          p.values[BollingerBandParam.window.name] ??
+          config.parameters[BollingerBandParam.window.name];
       final int? window = (windowValue is num)
           ? windowValue.toInt()
           : (windowValue is List && windowValue.isNotEmpty)
@@ -97,11 +116,7 @@ class BollingerBandsResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return BollingerBandsResult(
-      style: style,
-      config: config,
-      points: points,
-    );
+    return BollingerBandsResult(style: style, config: config, points: points);
   }
 
   List<BollingerBands> getPoints({int rollingWindow = 20}) {
@@ -152,5 +167,6 @@ class BollingerBandsResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 }

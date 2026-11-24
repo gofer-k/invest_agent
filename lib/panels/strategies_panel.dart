@@ -7,7 +7,7 @@ import '../providers/load_database_provider.dart';
 import '../providers/strategy_provider.dart';
 import '../widgets/dialogs/strategy_dialog.dart';
 
-class StrategiesPanel extends ConsumerStatefulWidget{
+class StrategiesPanel extends ConsumerStatefulWidget {
   const StrategiesPanel({super.key});
 
   @override
@@ -19,10 +19,13 @@ class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final strategiesAsync = ref.watch(strategyProvider(CacheKeyType.analysisCache));
+    final strategiesAsync = ref.watch(
+      strategyProvider(CacheKeyType.analysisCache),
+    );
     final strategies = strategiesAsync.value?.getItems() ?? [];
 
-    return Shrinkable(title: "Strategies",
+    return Shrinkable(
+      title: "Strategies",
       body: Column(
         children: [
           ElevatedButton.icon(
@@ -36,16 +39,20 @@ class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
             itemCount: strategies.length,
             itemBuilder: (BuildContext context, int index) {
               final strategy = strategies[index];
-              return Card(child: ListTile(
+              return Card(
+                child: ListTile(
                   title: Text(strategy.name),
-                  subtitle: Text(strategy.type.name, style: const TextStyle(fontSize: 11)),
-                  trailing: _buildTrailingActions(context, strategy)
-              ),
+                  subtitle: Text(
+                    strategy.drawingType.name,
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  trailing: _buildTrailingActions(context, strategy),
+                ),
               );
-            }
+            },
           ),
-        ]
-      )
+        ],
+      ),
     );
   }
 
@@ -61,26 +68,32 @@ class _StrategiesPanelState extends ConsumerState<StrategiesPanel> {
           icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
           onPressed: () => _handleDelete(ref, strategy),
         ),
-      ]
+      ],
     );
   }
 
   void _handleDelete(WidgetRef ref, Strategy strategy) {
     if (!strategy.isEmpty()) {
-      ref.read(strategyProvider(CacheKeyType.analysisCache).notifier)
+      ref
+          .read(strategyProvider(CacheKeyType.analysisCache).notifier)
           .deleteEntry(strategy);
     }
   }
 
   // Unified method for Add and Edit
-  Future<void> _openStrategyDialog(BuildContext context, {Strategy? strategy}) async {
+  Future<void> _openStrategyDialog(
+    BuildContext context, {
+    Strategy? strategy,
+  }) async {
     final result = await showDialog<Strategy>(
       context: context,
       builder: (context) => StrategyDialog(strategy: strategy),
     );
 
     if (result != null) {
-      final notifier = ref.read(strategyProvider(CacheKeyType.analysisCache).notifier);
+      final notifier = ref.read(
+        strategyProvider(CacheKeyType.analysisCache).notifier,
+      );
       if (strategy == null) {
         notifier.addEntry(result);
       } else {

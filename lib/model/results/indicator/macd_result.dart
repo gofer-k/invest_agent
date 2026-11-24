@@ -1,11 +1,13 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 enum MacdParam {
   // -- Input parameters
@@ -18,6 +20,7 @@ enum MacdParam {
   macd("macd"),
   signal("signal"),
   hist("hist");
+
   final String name;
   const MacdParam(this.name);
 }
@@ -31,26 +34,37 @@ class MovingAverageConvergenceDivergence extends BaseIndicatorValue {
     required super.dateTime,
     required this.macd,
     required this.signal,
-    required this.hist});
+    required this.hist,
+  });
 
   factory MovingAverageConvergenceDivergence.fromType(
-      DateTime dateTime,
-      {macd = double, signal = double, hist = double, window = int}) {
+    DateTime dateTime, {
+    macd = double,
+    signal = double,
+    hist = double,
+    window = int,
+  }) {
     return MovingAverageConvergenceDivergence(
-        dateTime: dateTime, macd: macd, signal: signal, hist: hist);
+      dateTime: dateTime,
+      macd: macd,
+      signal: signal,
+      hist: hist,
+    );
   }
 
   static MovingAverageConvergenceDivergence? fromJson(
-      DateTime dateTime, Map<String, dynamic> jsonMap) {
+    DateTime dateTime,
+    Map<String, dynamic> jsonMap,
+  ) {
     final macd = parseNum(jsonMap[MacdParam.macd.name]);
     final signal = parseNum(jsonMap[MacdParam.signal.name]);
     final hist = parseNum(jsonMap[MacdParam.hist.name]);
     if (macd != null && signal != null && hist != null) {
       return MovingAverageConvergenceDivergence(
-          dateTime: dateTime,
-          macd: macd,
-          signal: signal,
-          hist: hist,
+        dateTime: dateTime,
+        macd: macd,
+        signal: signal,
+        hist: hist,
       );
     }
     return null;
@@ -66,24 +80,26 @@ class MovingAverageConvergenceDivergence extends BaseIndicatorValue {
 class MacdResult extends BaseIndicatorResult {
   final List<MovingAverageConvergenceDivergence> data;
 
-  MacdResult({
-    required super.style,
-    required super.config,
-    required this.data,
-  });
+  MacdResult({required super.style, required super.config, required this.data});
 
   List<MovingAverageConvergenceDivergence> getPoints() => data;
 
-  factory MacdResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+  factory MacdResult.fromProto(
+    IndicatorSeries protoResult,
+    IndicatorType type,
+  ) {
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final data = protoResult.points.map((p) {
@@ -95,11 +111,7 @@ class MacdResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return MacdResult(
-      style: style,
-      config: config,
-      data: data,
-    );
+    return MacdResult(style: style, config: config, data: data);
   }
 
   @override
@@ -108,9 +120,8 @@ class MacdResult extends BaseIndicatorResult {
       : data.map((p) => p.macd ?? -double.infinity).reduce(max);
 
   @override
-  double get minValue => data.isEmpty
-      ? 0
-      : data.map((p) => p.macd ?? double.infinity).reduce(min);
+  double get minValue =>
+      data.isEmpty ? 0 : data.map((p) => p.macd ?? double.infinity).reduce(min);
 
   @override
   double getMax(DateTime? startDate, DateTime? endDate) {
@@ -136,7 +147,10 @@ class MacdResult extends BaseIndicatorResult {
     return min(minMacd, minSignal);
   }
 
-  Iterable<MovingAverageConvergenceDivergence> _filterPoints(DateTime? start, DateTime? end) {
+  Iterable<MovingAverageConvergenceDivergence> _filterPoints(
+    DateTime? start,
+    DateTime? end,
+  ) {
     if (start == null && end == null) return data;
     return data.where((p) {
       if (start != null && p.dateTime.isBefore(start)) return false;
@@ -153,5 +167,6 @@ class MacdResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(data), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(data), super.hashCode);
 }

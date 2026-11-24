@@ -2,24 +2,26 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:grpc/grpc.dart';
-import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $pb_ts;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
+    as $pb_ts;
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../model/indicator_schema.dart' as schema;
+import '../model/proto/generated/indicators.pb.dart' as $pb_inds;
+import '../model/proto/generated/invest_agent.pb.dart' as $pb;
+import '../model/proto/generated/invest_agent.pbgrpc.dart';
+import '../model/proto/generated/price.pb.dart' as $pb_price;
 // Hide conflicting types from the gRPC generated code to avoid global namespace pollution
 import '../model/proto/logging_interceptor.dart';
 import '../model/results/indicator/bollinger_bands_result.dart';
 import '../model/results/indicator/ema_result.dart';
+import '../model/results/indicator/indicator_result.dart';
 import '../model/results/indicator/kst_result.dart';
 import '../model/results/indicator/macd_result.dart';
-import '../model/proto/generated/indicators.pb.dart' as $pb_inds;
-import '../model/proto/generated/price.pb.dart' as $pb_price;
-import '../model/proto/generated/invest_agent.pb.dart' as $pb;
-import '../model/proto/generated/invest_agent.pbgrpc.dart';
-import '../model/results/indicator/indicator_result.dart';
-import '../model/indicator_schema.dart' as schema;
 import '../model/results/indicator/price_result.dart' as model;
 import '../model/results/indicator/roc_result.dart';
 import '../model/results/indicator/rsi_result.dart';
@@ -36,8 +38,8 @@ typedef TradingServiceClient = InvestAgentServiceClient;
 
 // Use 'localhost' as it handles IPv4/IPv6 better on some Linux setups than 127.0.0.1
 final String host = String.fromEnvironment(
-  'GRPC_HOST', 
-  defaultValue: Platform.isAndroid ? '10.0.2.2' : 'localhost'
+  'GRPC_HOST',
+  defaultValue: Platform.isAndroid ? '10.0.2.2' : 'localhost',
 );
 
 @riverpod
@@ -54,7 +56,7 @@ TradingServiceClient tradingClient(Ref ref) {
     log("indicates service: Shutting down gRPC channel");
     channel.shutdown();
   });
-  
+
   // Interceptors are passed to the Client constructor, not ChannelOptions
   return TradingServiceClient(
     channel,
@@ -103,7 +105,7 @@ class TradingService extends _$TradingService {
       StatusCode.outOfRange => "Request out of range.",
       StatusCode.unimplemented => "Method not implemented.",
       StatusCode.dataLoss => "Data loss.",
-      _ => "Unknown connection error: ${grpcError.code}"
+      _ => "Unknown connection error: ${grpcError.code}",
     };
   }
 
@@ -112,33 +114,38 @@ class TradingService extends _$TradingService {
     _outgoingController = StreamController<$pb.TradingRequest>();
 
     try {
-      final responseStream = _client.calculateIndicators(_outgoingController!.stream);
-      _incomingSubscription = responseStream.listen((response) {
-        final newResults = _mapResponse(response);
-        state = TradingServiceState(
-            cache: {
-          ...state.cache,
-          ...newResults,
-        });
-      }, onError: (error) {
-        _incomingSubscription?.cancel();
-        _incomingSubscription = null;
+      final responseStream = _client.calculateIndicators(
+        _outgoingController!.stream,
+      );
+      _incomingSubscription = responseStream.listen(
+        (response) {
+          final newResults = _mapResponse(response);
+          state = TradingServiceState(cache: {...state.cache, ...newResults});
+        },
+        onError: (error) {
+          _incomingSubscription?.cancel();
+          _incomingSubscription = null;
 
-        if (error is GrpcError) {
-          final errorMsg = _connectionMessage(error);
-          log("indicates service: $errorMsg");
-          state = TradingServiceState(error: errorMsg);
-        }
-      }, onDone: () {
-        log("indicates service: gRPC Stream closed by server");
-        _incomingSubscription = null;
-      });
+          if (error is GrpcError) {
+            final errorMsg = _connectionMessage(error);
+            log("indicates service: $errorMsg");
+            state = TradingServiceState(error: errorMsg);
+          }
+        },
+        onDone: () {
+          log("indicates service: gRPC Stream closed by server");
+          _incomingSubscription = null;
+        },
+      );
     } catch (e) {
       log("indicates service: Error initializing stream: $e");
     }
   }
 
-  void calculateIndicators(List<InternalIndexPriceItem> prices, List<InternalIndicator> indicators) {
+  void calculateIndicators(
+    List<InternalIndexPriceItem> prices,
+    List<InternalIndicator> indicators,
+  ) {
     // Check for empty list
     if (indicators.isEmpty) {
       log("ABORT: No indicators provided in the list.");
@@ -146,9 +153,13 @@ class TradingService extends _$TradingService {
     }
 
     // Check for undefined types
-    final validIndicators = indicators.where((ind) => ind.type != schema.IndicatorType.undefined).toList();
+    final validIndicators = indicators
+        .where((ind) => ind.drawingType != schema.IndicatorType.undefined)
+        .toList();
     if (validIndicators.isEmpty) {
-      log("ABORT: All indicators provided have type 'undefined'. Check your Indicator objects.");
+      log(
+        "ABORT: All indicators provided have type 'undefined'. Check your Indicator objects.",
+      );
       return;
     }
 
@@ -179,8 +190,8 @@ class TradingService extends _$TradingService {
     final proto = $pb_inds.Indicator()
       ..id = indicator.id
       ..name = indicator.name
-      ..type = _toProtoIndicatorType(indicator.type);
-    
+      ..type = _toProtoIndicatorType(indicator.drawingType);
+
     if (indicator.parameters.isNotEmpty) {
       proto.ensureParameters().mergeFromProto3Json(indicator.parameters);
     }
@@ -190,7 +201,8 @@ class TradingService extends _$TradingService {
   $pb_inds.IndicatorType _toProtoIndicatorType(schema.IndicatorType type) {
     return switch (type) {
       schema.IndicatorType.price => $pb_inds.IndicatorType.PRICE,
-      schema.IndicatorType.bollingerBands => $pb_inds.IndicatorType.BOLLINGER_BANDS,
+      schema.IndicatorType.bollingerBands =>
+        $pb_inds.IndicatorType.BOLLINGER_BANDS,
       schema.IndicatorType.sma => $pb_inds.IndicatorType.SMA,
       schema.IndicatorType.ema => $pb_inds.IndicatorType.EMA,
       schema.IndicatorType.macd => $pb_inds.IndicatorType.MACD,
@@ -212,10 +224,11 @@ class TradingService extends _$TradingService {
       for (var result in results) {
         try {
           final indicatorKey = result.config.uniqueKey;
-          log("Add result key $indicatorKey, value ${result.config.toDetailedString()}");
+          log(
+            "Add result key $indicatorKey, value ${result.config.toDetailedString()}",
+          );
           resultMap[indicatorKey] = result;
-        }
-        catch (e){
+        } catch (e) {
           log("Unexpected result key: $key expect ${schema.IndicatorKey}");
         }
       }
@@ -226,7 +239,10 @@ class TradingService extends _$TradingService {
   BaseIndicatorResult? _mapSeries($pb_inds.IndicatorSeries series) {
     final indicatorType = _fromProtoIndicatorType(series.config.type);
     return switch (indicatorType) {
-      schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(series, indicatorType),
+      schema.IndicatorType.bollingerBands => BollingerBandsResult.fromProto(
+        series,
+        indicatorType,
+      ),
       schema.IndicatorType.ema => EmaResult.fromProto(series, indicatorType),
       schema.IndicatorType.kst => KstResult.fromProto(series, indicatorType),
       schema.IndicatorType.macd => MacdResult.fromProto(series, indicatorType),
@@ -241,7 +257,8 @@ class TradingService extends _$TradingService {
   schema.IndicatorType _fromProtoIndicatorType($pb_inds.IndicatorType type) {
     return switch (type) {
       $pb_inds.IndicatorType.PRICE => schema.IndicatorType.price,
-      $pb_inds.IndicatorType.BOLLINGER_BANDS => schema.IndicatorType.bollingerBands,
+      $pb_inds.IndicatorType.BOLLINGER_BANDS =>
+        schema.IndicatorType.bollingerBands,
       $pb_inds.IndicatorType.SMA => schema.IndicatorType.sma,
       $pb_inds.IndicatorType.EMA => schema.IndicatorType.ema,
       $pb_inds.IndicatorType.MACD => schema.IndicatorType.macd,
@@ -259,33 +276,48 @@ class TradingService extends _$TradingService {
     state.cache.remove(indicator.uniqueKey);
   }
 
-  double? getMax(schema.Indicator indicator, {DateTime? startDate, DateTime? endDate}) {
+  double? getMax(
+    schema.Indicator indicator, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
     final res = state.cache[indicator.uniqueKey];
     return res?.getMax(startDate, endDate) ?? 0.0;
   }
 
-  double? getMin(schema.Indicator indicator, {DateTime? startDate, DateTime? endDate}) {
+  double? getMin(
+    schema.Indicator indicator, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
     final res = state.cache[indicator.uniqueKey];
     return res?.getMin(startDate, endDate) ?? 0.0;
   }
 }
 
 @riverpod
-AsyncValue<IndicatorResult?> indicatorResult(Ref ref,
-  {required List<InternalIndexPriceItem> prices,
-   required InternalIndicator indicator}) {
-  
-  if (indicator.type == schema.IndicatorType.undefined) {
+AsyncValue<IndicatorResult?> indicatorResult(
+  Ref ref, {
+  required List<InternalIndexPriceItem> prices,
+  required InternalIndicator indicator,
+}) {
+  if (indicator.drawingType == schema.IndicatorType.undefined) {
     return const AsyncValue.data(null);
   }
-  final (errorResult, result) = ref.watch(tradingServiceProvider.select((s) => (s.error, s.cache[indicator.uniqueKey]) ));
+  final (errorResult, result) = ref.watch(
+    tradingServiceProvider.select(
+      (s) => (s.error, s.cache[indicator.uniqueKey]),
+    ),
+  );
 
   if (errorResult != null) {
     return AsyncValue.error(errorResult.toString(), StackTrace.current);
   }
   if (result == null) {
     Future.microtask(() {
-      ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [indicator]);
+      ref.read(tradingServiceProvider.notifier).calculateIndicators(prices, [
+        indicator,
+      ]);
     });
     return const AsyncValue.loading();
   }

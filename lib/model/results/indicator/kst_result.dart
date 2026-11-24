@@ -1,11 +1,13 @@
 import 'dart:math';
 
-import 'package:invest_agent/model/proto/generated/indicators.pb.dart' hide IndicatorType, Indicator;
+import 'package:collection/collection.dart';
 import 'package:invest_agent/model/indicator_schema.dart';
+import 'package:invest_agent/model/proto/generated/indicators.pb.dart'
+    hide IndicatorType, Indicator;
+
 import '../../chart_style.dart';
 import '../analysis_respond.dart';
 import 'indicator_result.dart';
-import 'package:collection/collection.dart';
 
 enum KstParam {
   // -- input parameters
@@ -24,6 +26,7 @@ enum KstParam {
   signal("signal");
 
   final String name;
+
   const KstParam(this.name);
 }
 
@@ -31,10 +34,7 @@ class Kst extends BaseIndicatorValue {
   final double? kst;
   final double? signal;
 
-  Kst({
-    required super.dateTime,
-    required this.kst,
-    required this.signal,});
+  Kst({required super.dateTime, required this.kst, required this.signal});
 
   factory Kst.fromType(DateTime dateTime, {kst = double, signal = double}) {
     return Kst(dateTime: dateTime, kst: kst, signal: signal);
@@ -44,7 +44,7 @@ class Kst extends BaseIndicatorValue {
     final kst = parseNum(jsonMap[KstParam.kst.name]);
     final signal = parseNum(jsonMap[KstParam.signal.name]);
     if (kst != null && signal != null) {
-      return Kst(dateTime: dateTime, kst: kst,  signal: signal);
+      return Kst(dateTime: dateTime, kst: kst, signal: signal);
     }
     return null;
   }
@@ -65,15 +65,18 @@ class KstResult extends BaseIndicatorResult {
   });
 
   factory KstResult.fromProto(IndicatorSeries protoResult, IndicatorType type) {
-    final style = ChartStyle.values.firstWhereOrNull(
+    final style =
+        ChartStyle.values.firstWhereOrNull(
           (e) => e.name == protoResult.chartStyle,
-    ) ?? ChartStyle.line;
+        ) ??
+        ChartStyle.line;
 
     final config = Indicator(
       id: protoResult.config.id,
       name: protoResult.config.name,
-      type: type,
-      parameters: protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
+      drawingType: type,
+      parameters:
+          protoResult.config.parameters.toProto3Json() as Map<String, dynamic>,
     );
 
     final data = protoResult.points.map((p) {
@@ -84,11 +87,7 @@ class KstResult extends BaseIndicatorResult {
       );
     }).toList();
 
-    return KstResult(
-      style: style,
-      config: config,
-      points: data,
-    );
+    return KstResult(style: style, config: config, points: data);
   }
 
   List<Kst> getPoints() => points;
@@ -136,5 +135,6 @@ class KstResult extends BaseIndicatorResult {
   }
 
   @override
-  int get hashCode => Object.hash(const ListEquality().hash(points), super.hashCode);
+  int get hashCode =>
+      Object.hash(const ListEquality().hash(points), super.hashCode);
 }

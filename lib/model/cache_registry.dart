@@ -1,12 +1,11 @@
 import 'package:invest_agent/model/portfolio_schema.dart';
 import 'package:invest_agent/model/results/strategies/strategy_schema.dart';
 import 'package:invest_agent/model/user_account.dart';
-import 'package:invest_agent/model/analysis_schema.dart';
 
 import 'asset_config.dart';
-import 'results/indicator/price_result.dart';
 import 'indicator_schema.dart';
 import 'multi_chart_schema.dart';
+import 'results/indicator/price_result.dart';
 
 typedef CacheFactory<T> = T Function(List<Object?> item);
 
@@ -17,7 +16,6 @@ class CacheRegistry {
     AssetConfig: (item) => AssetConfig.from(item),
     UserAccount: (item) => UserAccount.fromList(item),
     IndexPriceItem: (item) => IndexPriceItem.from(item),
-    AnalysisEntry: (item) => AnalysisEntry.from(item),
     Indicator: (item) => Indicator.from(item),
     MultiChartConfig: (item) => MultiChartConfig.from(item),
     Strategy: (item) => Strategy.from(item),
