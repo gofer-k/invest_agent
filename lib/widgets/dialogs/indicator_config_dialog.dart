@@ -23,6 +23,7 @@ void showIndicator(
 class IndicatorDialog extends ConsumerStatefulWidget {
   final Function(Indicator? indicator) onSave;
   final Indicator? indicator;
+
   const IndicatorDialog({
     super.key,
     required this.onSave,
@@ -58,8 +59,8 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     return AlertDialog.adaptive(
       title: Text("Indicator ${widget.indicator?.name ?? 'New'}"),
       content: SizedBox(
-        width:
-            320, // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
+        width: 320,
+        // Fixed width to resolve IntrinsicWidth + Expanded issues in AlertDialog
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -233,8 +234,9 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
     final bool isVisible = Cache.isVisible(value);
 
     CacheParamType? type = Cache.getParameterType(value);
-    if (type == null && value is! String && value is! num)
+    if (type == null && value is! String && value is! num) {
       return const SizedBox.shrink();
+    }
 
     TextInputType keyboardType = switch (type) {
       CacheParamType.int => TextInputType.number,
@@ -286,8 +288,8 @@ class _IndicatorDialogState extends ConsumerState<IndicatorDialog> {
                 key: ValueKey("color_${parameter.key}"),
                 label: parameter.key,
                 hexValue: displayValue,
-                showLabel:
-                    false, // Avoid internal Row with Expanded inside ColorButton
+                showLabel: false,
+                // Avoid internal Row with Expanded inside ColorButton
                 onColorChanged: (String colorHex) {
                   setState(() {
                     parameters[parameter.key] = Cache.updateParameterValue(

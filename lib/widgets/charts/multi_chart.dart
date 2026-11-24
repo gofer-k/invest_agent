@@ -306,8 +306,9 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
 
   void _handleDeleteIndicator(int index, MultiChartConfig currentConfig) {
     final chartToRemove = currentConfig.charts.elementAtOrNull(index);
-    if (chartToRemove?.indicatorConfig.drawingType == IndicatorType.price)
+    if (chartToRemove?.indicatorConfig.drawingType == IndicatorType.price) {
       return;
+    }
 
     final notifier = ref.read(
       multiChartProvider(

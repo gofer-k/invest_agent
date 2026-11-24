@@ -75,9 +75,9 @@ class StrategyDialogState extends ConsumerState<StrategyDialog> {
           onPressed: () {
             final name = controllerName.text.trim();
             if (name.isEmpty ||
-                currentStrategy.drawingType == StrategyType.empty)
+                currentStrategy.drawingType == StrategyType.empty) {
               return;
-
+            }
             notifier.updateField((s) => s.copyWith(newName: name));
 
             final finalizedStrategy = ref.read(

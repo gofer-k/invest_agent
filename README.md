@@ -58,6 +58,7 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ## - support user strategies
 
+- support multi price in the multi chart (like portfolio use case)
 - display multi vertical chart's key values (with custom colorful labels)
 - display portfolios assets
 - display portfolio result's curve points onto the chart
