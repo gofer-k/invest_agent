@@ -58,12 +58,11 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ## - support user strategies
 
+- display multi vertical chart's key values (with custom colorful labels)
+- display portfolios assets
+- display portfolio result's curve points onto the chart
 - How to check out portfolio's metrics results
-- support multi-window chart boards, portfolios results
 - display portfolio strategies (in proceed):
-- asset's indicators (multi chart configs)
-
-- display vertical side multi chart's bar!!
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
