@@ -253,7 +253,16 @@ class GemStrategyConfig extends Strategy {
 
   @override
   List<AssetAllocation> getAssetAllocations() {
-    return [
+    final mainSuppAssets = mainAsset.supportingAssets.map(
+      (asset) =>
+          AssetAllocation(asset: asset, targetWeight: 0, assetSharesCount: 0),
+    );
+    final momentumSuppAssets = momentumAsset.supportingAssets.map(
+      (asset) =>
+          AssetAllocation(asset: asset, targetWeight: 0, assetSharesCount: 0),
+    );
+
+    Set<AssetAllocation> tmp = {
       AssetAllocation(
         asset: mainAsset.asset,
         targetWeight: 1,
@@ -264,8 +273,10 @@ class GemStrategyConfig extends Strategy {
         targetWeight: 0,
         assetSharesCount: 0,
       ),
-      // TODO: Add support for supporting assets
-    ];
+    };
+    tmp.addAll(mainSuppAssets);
+    tmp.addAll(momentumSuppAssets);
+    return tmp.toList(growable: false);
   }
 
   @override
