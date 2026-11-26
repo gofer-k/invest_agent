@@ -58,25 +58,23 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 
 ## - support user strategies
 
-- support multi price in the multi chart (like portfolio use case)
 - display multi vertical chart's key values (with custom colorful labels)
-- display portfolios assets
-- display portfolio result's curve points onto the chart
+- display portfolio result's curve or signal points onto the chart
 - How to check out portfolio's metrics results
-- display portfolio strategies (in proceed):
 - display tooltips on the chart's board
 
 ### - convert time controller to provider
 
+- support customizable interval for chart (list defined intervals: 1M, 3, M, 6M, 1Y, 3Y, 5Y, MAX)
 - extend assets config for assets type type (equity, bonds, regions: usa, acits, emi, pol)
-- support customizable interval for chart ?
 - display candles signals
-- filter out the respond data by specific intervals??
 - custom style visualization, themes
 - improve performance of visualization
 - various signals: Golden/Death cross, EMA signal
 
 ### BUGS:
 
+- the date with vertical line is not match to a chart data
+- portfolio asset prices data isn't filter out from the one configuration timestamp period.
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume

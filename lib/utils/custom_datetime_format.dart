@@ -1,15 +1,17 @@
 import '../model/period_type.dart';
 
 class CustomDatetimeFormat {
-  static Duration span(DateTime startDate, DateTime endDate, DateTime currTime) {
+  static Duration span(
+    DateTime startDate,
+    DateTime endDate,
+    DateTime currTime,
+  ) {
     final span = endDate.difference(startDate);
-    if(span.inDays > twiceYearDays) {
+    if (span.inDays > twiceYearDays) {
       return Duration(days: yearDays);
-    }
-    else if (span.inDays > twiceMonthDays) {
+    } else if (span.inDays > twiceMonthDays) {
       return Duration(days: monthDays);
-    }
-    else if(span.inDays > twiceWeekDays) {
+    } else if (span.inDays > twiceWeekDays) {
       return Duration(days: weekDays);
     }
     return Duration(days: 1);
@@ -17,7 +19,9 @@ class CustomDatetimeFormat {
 
   static String format(DateTime currTime, Duration span) {
     if (span.inDays > twiceYearDays) return "${currTime.year}";
-    if (span.inDays > twiceMonthDays) return CustomDatetimeFormat.monthShort(currTime.month);
+    if (span.inDays > twiceMonthDays) {
+      return "${CustomDatetimeFormat.monthShort(currTime.month)}'${CustomDatetimeFormat.shortYear(currTime.year)}";
+    }
     if (span.inDays > twiceWeekDays) {
       return "${CustomDatetimeFormat.monthShort(currTime.month)}/${currTime.day}";
     }
@@ -26,9 +30,25 @@ class CustomDatetimeFormat {
 
   static String monthShort(int m) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[m];
+  }
+
+  static String shortYear(int y) {
+    final twoDigitYear = (y % 100).toString().padLeft(2, '0');
+    return twoDigitYear;
   }
 }
