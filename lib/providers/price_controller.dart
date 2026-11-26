@@ -39,6 +39,15 @@ class PriceControllerState {
 
   List<IndexPriceItem> getItems() => cache;
   List<RemoteRequest> getRemoteRequests() => remoteRequests;
+  List<IndexPriceItem> getFilterBy(DateTime beginDate, DateTime endDate) {
+    final actualBegin = beginDate.isBefore(endDate) ? beginDate : endDate;
+    final actualEnd = beginDate.isBefore(endDate) ? endDate : beginDate;
+    return cache.where((item) {
+      final t = item.dateTime;
+      return (t.isAfter(actualBegin) || t.isAtSameMomentAs(actualBegin)) &&
+          (t.isBefore(actualEnd) || t.isAtSameMomentAs(actualEnd));
+    }).toList();
+  }
 }
 
 @riverpod
@@ -192,7 +201,11 @@ class PriceController extends _$PriceController {
     final actualEnd = begin.isBefore(end) ? end : begin;
     return _fetchAndSet(
       () async => schema.readDateRange(asset, actualBegin, actualEnd),
-    );
+    ).whenComplete(() {
+      if (ref.mounted) {
+        state.getFilterBy(actualBegin, actualEnd);
+      }
+    });
   }
 
   Future<void> save(IndexPriceSchema schema, IndexPriceItem item) async {

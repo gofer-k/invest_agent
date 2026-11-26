@@ -75,6 +75,5 @@ protoc --dart_out=grpc:lib/model/proto/generated -I lib/model/proto lib/model/pr
 ### BUGS:
 
 - the date with vertical line is not match to a chart data
-- portfolio asset prices data isn't filter out from the one configuration timestamp period.
 - Incorrect Bollinger bands' results or chart's drawing ?!
 - Test indicator config dialog: Volume
