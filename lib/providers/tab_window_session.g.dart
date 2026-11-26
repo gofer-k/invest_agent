@@ -58,7 +58,7 @@ final class TabWindowSessionProvider
   }
 }
 
-String _$tabWindowSessionHash() => r'f057e5155053d477962ed02b187bbb8b7ab8234c';
+String _$tabWindowSessionHash() => r'd699302ab01e95f4baa8b15aba77269e599eb778';
 
 final class TabWindowSessionFamily extends $Family
     with

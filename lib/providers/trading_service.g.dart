@@ -88,7 +88,7 @@ final class TradingServiceProvider
   }
 }
 
-String _$tradingServiceHash() => r'8ffb5acca3b283d3ae9fdb9436eeb788fe3cd9ca';
+String _$tradingServiceHash() => r'ea72c5b59015f859ab1c40ee9c7c51c678a9b2a4';
 
 abstract class _$TradingService extends $Notifier<TradingServiceState> {
   TradingServiceState build();
@@ -184,7 +184,7 @@ final class IndicatorResultProvider
   }
 }
 
-String _$indicatorResultHash() => r'ce408276a3dedbe9a099e700fd5aadc402295c4b';
+String _$indicatorResultHash() => r'c8d0a5a403eea2d0c983f0bfaf347321c84570f7';
 
 final class IndicatorResultFamily extends $Family
     with

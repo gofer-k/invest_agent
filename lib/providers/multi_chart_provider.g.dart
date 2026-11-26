@@ -281,7 +281,7 @@ final class MultiChartsByProvider
   }
 }
 
-String _$multiChartsByHash() => r'65301f51c953123b3f39b429fc7dcb5aade22622';
+String _$multiChartsByHash() => r'323ed8047ac53cf3fa37e254be7f9052d35ca7bc';
 
 final class MultiChartsByFamily extends $Family
     with
@@ -362,7 +362,7 @@ final class RemoveMultiChartByProvider
 }
 
 String _$removeMultiChartByHash() =>
-    r'e15ae6b001db11a442c3bdca23c0b104bd64598d';
+    r'd2415ce62a2770f1ed25f70b9c5e6110444e7f7f';
 
 final class RemoveMultiChartByFamily extends $Family
     with

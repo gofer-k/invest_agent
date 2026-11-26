@@ -9,6 +9,7 @@ import 'package:invest_agent/providers/price_controller.dart';
 import 'package:invest_agent/providers/tab_window_session.dart';
 import 'package:invest_agent/themes/app_themes.dart';
 import 'package:invest_agent/widgets/charts/multi_chart.dart';
+import 'package:invest_agent/widgets/charts/multi_chart_v2.dart';
 import 'package:invest_agent/widgets/utils/tabbed_window_type.dart';
 
 class BrowserTabsView extends ConsumerWidget {
@@ -118,39 +119,52 @@ class BrowserTabsView extends ConsumerWidget {
   }
 
   Widget _buildTabContent(WidgetRef ref, TabWindow tab) {
-    if (tab.type == TabbedWindowType.asset) {
-      final asset = tab.cache as AssetConfig;
-      final assetPriceAsync = ref.watch(assetPricesProvider(asset.id));
-      return assetPriceAsync.when(
-        data: (priceData) {
-          if (priceData.isEmpty) {
-            return const Center(child: Text("No data available"));
-          }
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final priceResult = IndexPrice(
-                priceData: priceData,
-                config: Indicator.priceIndicator(),
-                style: ChartStyle.line,
-              );
-              return MultiChartView(
-                priceData: priceResult,
-                assetConfig: asset,
-                chartHeight: constraints.maxHeight,
-                prefixDomain: 0,
-              );
-            },
-          );
-        },
-        error: (error, stackTrace) => Center(child: Text("Error: $error")),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      );
-    } else {
-      return Center(
-        child: Text(
-          'Portfolio Tab: ${(tab.cache as PortfolioConfig).portfolioName}',
-        ),
-      );
-    }
+    return switch (tab.type) {
+      TabbedWindowType.asset => _buildAssetChartTab(ref, tab),
+      TabbedWindowType.portfolio => _buildPortfolioTab(ref, tab),
+      _ => Center(child: Text('No supported tab type')),
+    };
+  }
+
+  Widget _buildAssetChartTab(WidgetRef ref, TabWindow tab) {
+    final asset = tab.cache as AssetConfig;
+    final assetPriceAsync = ref.watch(assetPricesProvider(asset.id));
+    return assetPriceAsync.when(
+      data: (priceData) {
+        if (priceData.isEmpty) {
+          return const Center(child: Text("No asset data available"));
+        }
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final priceResult = IndexPrice(
+              priceData: priceData,
+              config: Indicator.priceIndicator(),
+              style: ChartStyle.line,
+            );
+            return MultiChartView(
+              priceData: priceResult,
+              assetConfig: asset,
+              chartHeight: constraints.maxHeight,
+              prefixDomain: 0,
+            );
+          },
+        );
+      },
+      error: (error, stackTrace) => Center(child: Text("Error: $error")),
+      loading: () => const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildPortfolioTab(WidgetRef ref, TabWindow tab) {
+    final portfolio = tab.cache as PortfolioConfig;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return MultiChartView2(
+          featureConfig: portfolio,
+          chartHeight: constraints.maxHeight,
+          prefixDomain: 0,
+        );
+      },
+    );
   }
 }

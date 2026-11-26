@@ -1,15 +1,16 @@
 import 'dart:developer' as dev;
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:invest_agent/model/results/indicator/price_result.dart';
 import 'package:invest_agent/model/trading_request.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'load_database_provider.dart';
-import '../utils/database_helper.dart';
 import '../model/asset_config.dart';
+import '../utils/database_helper.dart';
 import 'investing_data_client.dart';
+import 'load_database_provider.dart';
 
 part 'price_controller.g.dart';
 
@@ -21,25 +22,27 @@ class PriceControllerState {
   const PriceControllerState({
     this.cache = const [],
     this.assetDetails = const {},
-    this.remoteRequests = const []});
-  
+    this.remoteRequests = const [],
+  });
+
   PriceControllerState copyWith({
     List<IndexPriceItem>? cache,
     Map<int, String>? assetDetails,
-    List<RemoteRequest>? remoteRequests}) {
+    List<RemoteRequest>? remoteRequests,
+  }) {
     return PriceControllerState(
       cache: cache ?? this.cache,
       assetDetails: assetDetails ?? this.assetDetails,
       remoteRequests: remoteRequests ?? this.remoteRequests,
     );
   }
+
   List<IndexPriceItem> getItems() => cache;
   List<RemoteRequest> getRemoteRequests() => remoteRequests;
 }
 
 @riverpod
 class PriceController extends _$PriceController {
-  
   @override
   PriceControllerState build([CacheKeyType? type, bool? keepAlive]) {
     ref.listen(loadPriceProvider(type, keepAlive ?? false), (previous, next) {
@@ -63,7 +66,8 @@ class PriceController extends _$PriceController {
   }
 
   Future<List<IndexPriceItem>> _fetchAndSet(
-      Future<String> Function() queryBuilder) async {
+    Future<String> Function() queryBuilder,
+  ) async {
     try {
       final db = await _getDb();
       final items = await db.useConnection<List<IndexPriceItem>>((con) async {
@@ -85,8 +89,11 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<void> _updateAndSet(Future<String> Function() execBuilder,
-      {IndexPriceItem? item, bool isDelete = false}) async {
+  Future<void> _updateAndSet(
+    Future<String> Function() execBuilder, {
+    IndexPriceItem? item,
+    bool isDelete = false,
+  }) async {
     try {
       final db = await _getDb();
       await db.transaction<void>((con) async {
@@ -99,7 +106,9 @@ class PriceController extends _$PriceController {
         if (isDelete) {
           currentCache.removeWhere((e) => e.id == item.id);
         } else {
-          final index = currentCache.indexWhere((e) => e.id == item.id && item.id != 0);
+          final index = currentCache.indexWhere(
+            (e) => e.id == item.id && item.id != 0,
+          );
           if (index != -1) {
             currentCache[index] = item;
           } else {
@@ -113,8 +122,10 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<T> _queryValue<T>(Future<String> Function() queryBuilder,
-      T defaultValue) async {
+  Future<T> _queryValue<T>(
+    Future<String> Function() queryBuilder,
+    T defaultValue,
+  ) async {
     try {
       final db = await _getDb();
       return await db.useConnection<T>((con) async {
@@ -142,10 +153,15 @@ class PriceController extends _$PriceController {
           final newest = row[2];
           final count = row[3];
 
-          final oldestStr = oldest is DateTime ? oldest.toIso8601String().split('T')[0] : oldest.toString().split(' ')[0];
-          final newestStr = newest is DateTime ? newest.toIso8601String().split('T')[0] : newest.toString().split(' ')[0];
+          final oldestStr = oldest is DateTime
+              ? oldest.toIso8601String().split('T')[0]
+              : oldest.toString().split(' ')[0];
+          final newestStr = newest is DateTime
+              ? newest.toIso8601String().split('T')[0]
+              : newest.toString().split(' ')[0];
 
-          map[assetId] = 'Oldest: $oldestStr, Newest: $newestStr, Count: $count';
+          map[assetId] =
+              'Oldest: $oldestStr, Newest: $newestStr, Count: $count';
         }
         return map;
       });
@@ -158,18 +174,25 @@ class PriceController extends _$PriceController {
     }
   }
 
-  Future<List<IndexPriceItem>> fetchOne(IndexPriceSchema schema,
-      IndexPriceItem price) =>
-      _fetchAndSet(() async => schema.readOne(price));
+  Future<List<IndexPriceItem>> fetchOne(
+    IndexPriceSchema schema,
+    IndexPriceItem price,
+  ) => _fetchAndSet(() async => schema.readOne(price));
 
   Future<List<IndexPriceItem>> fetchAll(IndexPriceSchema schema) =>
       _fetchAndSet(() async => schema.readAll);
 
-  Future<List<IndexPriceItem>> fetchDateRange(IndexPriceSchema schema,
-      AssetConfig asset, DateTime begin, DateTime end) {
+  Future<List<IndexPriceItem>> fetchDateRange(
+    IndexPriceSchema schema,
+    AssetConfig asset,
+    DateTime begin,
+    DateTime end,
+  ) {
     final actualBegin = begin.isBefore(end) ? begin : end;
     final actualEnd = begin.isBefore(end) ? end : begin;
-    return _fetchAndSet(() async => schema.readDateRange(asset, actualBegin, actualEnd));
+    return _fetchAndSet(
+      () async => schema.readDateRange(asset, actualBegin, actualEnd),
+    );
   }
 
   Future<void> save(IndexPriceSchema schema, IndexPriceItem item) async {
@@ -181,50 +204,75 @@ class PriceController extends _$PriceController {
   }
 
   Future<void> delete(IndexPriceSchema schema, IndexPriceItem item) async {
-    await _updateAndSet(() async => schema.deleteOne(item), item: item, isDelete: true);
+    await _updateAndSet(
+      () async => schema.deleteOne(item),
+      item: item,
+      isDelete: true,
+    );
   }
 
-  Future<void> deleteAssetAll(IndexPriceSchema schema,
-      AssetConfig asset) async {
+  Future<void> deleteAssetAll(
+    IndexPriceSchema schema,
+    AssetConfig asset,
+  ) async {
     await _updateAndSet(() async => schema.deleteAssetAll(asset));
   }
 
-  Future<DateTime> oldestDate(IndexPriceSchema schema, AssetConfig asset) async {
+  Future<DateTime> oldestDate(
+    IndexPriceSchema schema,
+    AssetConfig asset,
+  ) async {
     final oldest = DateTime(2019, 1, 1);
-    final val = await _queryValue<Object?>(() async => schema.oldestDate(asset), null);
+    final val = await _queryValue<Object?>(
+      () async => schema.oldestDate(asset),
+      null,
+    );
     if (val == null) return oldest;
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? oldest;
   }
 
-  Future<DateTime> newestDate(IndexPriceSchema schema, AssetConfig asset) async {
+  Future<DateTime> newestDate(
+    IndexPriceSchema schema,
+    AssetConfig asset,
+  ) async {
     final newest = DateTime.now();
-    final val = await _queryValue<Object?>(() async => schema.newestDate(asset), null);
+    final val = await _queryValue<Object?>(
+      () async => schema.newestDate(asset),
+      null,
+    );
     if (val == null) return newest;
     if (val is DateTime) return val;
     return DateTime.tryParse(val.toString()) ?? newest;
   }
 
-  Future<void> refreshAssetPrices(List<AssetConfig> assets, RemoteRequest request) async {
+  Future<void> refreshAssetPrices(
+    List<AssetConfig> assets,
+    RemoteRequest request,
+  ) async {
     final link = ref.keepAlive();
     if (!state.remoteRequests.contains(request)) {
-      state = state.copyWith(remoteRequests: [...state.remoteRequests, request]);
+      state = state.copyWith(
+        remoteRequests: [...state.remoteRequests, request],
+      );
     }
 
     int currentResultsOffset = 0; // Returns your pagination offset value.
     int totalCountResults = 9223372036854775807; // Max 64-bit signed integer
-    
+
     try {
       while (currentResultsOffset < totalCountResults) {
         final client = ref.read(investingDataClientProvider(request).notifier);
         final responseMap = await client.getRequest();
-        
+
         if (!ref.mounted || responseMap == null) break;
 
         final respond = MarketStackManagerRespond.fromEod(responseMap);
         currentResultsOffset = respond.offset + respond.count;
         totalCountResults = math.min(respond.total, totalCountResults);
-        dev.log('currentResultsOffset: $currentResultsOffset, totalCountResults: $totalCountResults');
+        dev.log(
+          'currentResultsOffset: $currentResultsOffset, totalCountResults: $totalCountResults',
+        );
 
         final db = await _getDb();
         final schema = IndexPriceSchema();
@@ -235,7 +283,10 @@ class PriceController extends _$PriceController {
             if (!ref.mounted) break;
             final respond = MarketStackRespond.fromEod(item);
 
-            final asset = assets.firstWhere((a) => a.symbol == respond.symbol, orElse: () => AssetConfig.defaultAsset());
+            final asset = assets.firstWhere(
+              (a) => a.symbol == respond.symbol,
+              orElse: () => AssetConfig.defaultAsset(),
+            );
             if (asset.isDefault()) {
               continue;
             }
@@ -258,7 +309,7 @@ class PriceController extends _$PriceController {
         });
 
         // Update offset or break loop based on your API's pagination logic
-        // currentResultsOffset += data.length; 
+        // currentResultsOffset += data.length;
         if (data.isEmpty) {
           break;
         }
@@ -268,13 +319,20 @@ class PriceController extends _$PriceController {
       if (ref.mounted) await refreshAllDetails();
     } finally {
       if (ref.mounted) {
-        state = state.copyWith(remoteRequests: state.remoteRequests.where((r) => r != request).toList());
+        state = state.copyWith(
+          remoteRequests: state.remoteRequests
+              .where((r) => r != request)
+              .toList(),
+        );
       }
       link.close();
     }
   }
 
-  Future<void> importAssetPrices(AssetConfig asset, List<IndexPriceItem> prices) async {
+  Future<void> importAssetPrices(
+    AssetConfig asset,
+    List<IndexPriceItem> prices,
+  ) async {
     final link = ref.keepAlive();
     try {
       final db = await _getDb();
@@ -309,16 +367,45 @@ class PriceController extends _$PriceController {
 }
 
 @riverpod
-Map<int, String> assetPriceDetails(Ref ref, [CacheKeyType? type, bool? keepAlive]) {
-  return ref.watch(priceControllerProvider(type, keepAlive).select((s) => s.assetDetails));
+Map<int, String> assetPriceDetails(
+  Ref ref, [
+  CacheKeyType? type,
+  bool? keepAlive,
+]) {
+  return ref.watch(
+    priceControllerProvider(type, keepAlive).select((s) => s.assetDetails),
+  );
 }
 
 @riverpod
-Future<List<IndexPriceItem>> assetPrices(Ref ref, int assetId, [DateTime? endTime]) async {
+Future<List<IndexPriceItem>> assetPrices(
+  Ref ref,
+  int assetId, [
+  DateTime? endTime,
+]) async {
   final notifier = ref.watch(priceControllerProvider().notifier);
 
   final schema = IndexPriceSchema();
   final asset = AssetConfig.of(id: assetId);
   final beginDate = await notifier.oldestDate(schema, asset);
-  return  await notifier.fetchDateRange(schema, asset, beginDate, endTime ?? DateTime.now());
+  return await notifier.fetchDateRange(
+    schema,
+    asset,
+    beginDate,
+    endTime ?? DateTime.now(),
+  );
+}
+
+@riverpod
+Future<List<IndexPriceItem>> assetPricesPeriod(
+  Ref ref,
+  int assetId,
+  DateTime beginTime,
+  DateTime endTime,
+) async {
+  final notifier = ref.watch(priceControllerProvider().notifier);
+
+  final schema = IndexPriceSchema();
+  final asset = AssetConfig.of(id: assetId);
+  return await notifier.fetchDateRange(schema, asset, beginTime, endTime);
 }

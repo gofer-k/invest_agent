@@ -58,7 +58,7 @@ final class StrategySessionProvider
   }
 }
 
-String _$strategySessionHash() => r'e10a23673757dc5eb58592437bae28d36dc45c23';
+String _$strategySessionHash() => r'b8f973fbabd169ad180ce1e58228867001a7b873';
 
 final class StrategySessionFamily extends $Family
     with

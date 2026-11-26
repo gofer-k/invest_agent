@@ -193,7 +193,7 @@ final class TradingAnalyticsServiceProvider
 }
 
 String _$tradingAnalyticsServiceHash() =>
-    r'c2babb0b033eb8d733aa4d8d84b67510b74fa0a4';
+    r'461b1a93b3070812702d484d8d1c181683ff4199';
 
 abstract class _$TradingAnalyticsService
     extends $Notifier<TradingAnalyticsServiceState> {

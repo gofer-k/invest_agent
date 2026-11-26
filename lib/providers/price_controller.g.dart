@@ -269,3 +269,90 @@ final class AssetPricesFamily extends $Family
   @override
   String toString() => r'assetPricesProvider';
 }
+
+@ProviderFor(assetPricesPeriod)
+final assetPricesPeriodProvider = AssetPricesPeriodFamily._();
+
+final class AssetPricesPeriodProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<IndexPriceItem>>,
+          List<IndexPriceItem>,
+          FutureOr<List<IndexPriceItem>>
+        >
+    with
+        $FutureModifier<List<IndexPriceItem>>,
+        $FutureProvider<List<IndexPriceItem>> {
+  AssetPricesPeriodProvider._({
+    required AssetPricesPeriodFamily super.from,
+    required (int, DateTime, DateTime) super.argument,
+  }) : super(
+         retry: null,
+         name: r'assetPricesPeriodProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$assetPricesPeriodHash();
+
+  @override
+  String toString() {
+    return r'assetPricesPeriodProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<IndexPriceItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<IndexPriceItem>> create(Ref ref) {
+    final argument = this.argument as (int, DateTime, DateTime);
+    return assetPricesPeriod(ref, argument.$1, argument.$2, argument.$3);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AssetPricesPeriodProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$assetPricesPeriodHash() => r'e6d7521be73a7ea15b2783c658de20a1dd27f3ce';
+
+final class AssetPricesPeriodFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<List<IndexPriceItem>>,
+          (int, DateTime, DateTime)
+        > {
+  AssetPricesPeriodFamily._()
+    : super(
+        retry: null,
+        name: r'assetPricesPeriodProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  AssetPricesPeriodProvider call(
+    int assetId,
+    DateTime beginTime,
+    DateTime endTime,
+  ) => AssetPricesPeriodProvider._(
+    argument: (assetId, beginTime, endTime),
+    from: this,
+  );
+
+  @override
+  String toString() => r'assetPricesPeriodProvider';
+}
