@@ -8,7 +8,11 @@ class TooltipOverlay extends StatelessWidget {
   final CrosshairController tooltipController;
   final Size viewport;
 
-  const TooltipOverlay({super.key, required this.tooltipController, required this.viewport});
+  const TooltipOverlay({
+    super.key,
+    required this.tooltipController,
+    required this.viewport,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,40 +20,55 @@ class TooltipOverlay extends StatelessWidget {
     final maxHeightPos = viewport.height;
 
     return AnimatedBuilder(
-        animation: tooltipController,
-        builder: (context, _) {
-          final data = tooltipController.data;
-          if (data == null) return const SizedBox.shrink();
-          final posLeft = data.position.dx.clamp(0.0, maxWidthPos);
-          final posTop = data.position.dy.clamp(0.0, maxHeightPos);
+      animation: tooltipController,
+      builder: (context, _) {
+        final data = tooltipController.data;
+        if (data == null) return const SizedBox.shrink();
+        final posLeft = data.position.dx.clamp(0.0, maxWidthPos);
+        final posTop = data.position.dy.clamp(0.0, maxHeightPos);
 
-          return Positioned(left: posLeft, top: posTop,
-            child: Container(margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(intl.DateFormat.yMd().format(data.time),
-                      style: const TextStyle(color: Colors.white)),
-                  for (final entry in data.data) ...[
-                    Text(formatValue(entry), style: const TextStyle(color: Colors.white)),
-                    if (data.data.isNotEmpty)
-                      ...entry.extras.entries.map((e) => Text("${e.key}: ${e.value}", style: const TextStyle(color: Colors.white))),
-                  ],
-                ]
-              ),
+        return Positioned(
+          left: posLeft,
+          top: posTop,
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(6),
             ),
-          );
-        }
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  intl.DateFormat.yMd().format(data.time),
+                  style: const TextStyle(color: Colors.white),
+                ),
+                for (final entry in data.data) ...[
+                  Text(
+                    formatValue(entry),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  if (data.data.isNotEmpty)
+                    ...entry.extras.entries.map(
+                      (e) => Text(
+                        "${e.key}: ${e.value}",
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   String formatValue(TooltipItem item) {
     final String? text = switch (item.overlayType) {
       OverlayType.bollingerBands => "BB price:",
+      OverlayType.ema => "EMA",
       OverlayType.kst => "KST: ",
       OverlayType.macd => "MACD:",
       OverlayType.movingAverage => "SMA:",

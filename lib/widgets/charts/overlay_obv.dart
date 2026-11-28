@@ -2,40 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../model/results/indicator/price_result.dart';
 
 class OverlayOBV extends OverlayChart {
-  final List<IndexPriceItem> data;
+  final List<IndexPriceItem> _data;
   final Color lineColor;
   final double lineWidth;
 
   OverlayOBV({
     super.overlayType = OverlayType.obv,
     super.chartStyle = ChartStyle.line,
-    required this.data,
+    required List<IndexPriceItem> data,
     this.lineColor = Colors.purple,
     this.lineWidth = 1.2,
-  });
+  }) : _data = data;
+
+  @override
+  List<BaseIndicatorValue> get data => _data;
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (data.isEmpty) return;
-    final int firstVisibleIndex = data.indexWhere(
+    final int firstVisibleIndex = _data.indexWhere(
       (elem) => elem.dateTime.isAfter(ctx.startDate),
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final minValue = data
+    final minValue = _data
         .skip(firstVisibleIndex)
         .reduce((curr, next) => curr.volume <= next.volume ? curr : next)
         .volume;
-    final maxValue = data
+    final maxValue = _data
         .skip(firstVisibleIndex)
         .reduce((curr, next) => curr.volume > next.volume ? curr : next)
         .volume;
 
     final path = Path();
-    for (final price in data.skip(firstVisibleIndex)) {
+    for (final price in _data.skip(firstVisibleIndex)) {
       if (price.dateTime.isBefore(ctx.startDate) ||
           price.dateTime.isAfter(ctx.endDate)) {
         continue;

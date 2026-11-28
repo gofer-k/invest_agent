@@ -81,7 +81,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     super.initState();
     _initializeControllers();
     _selectedChartStyle = widget.priceData.style;
-    // TODO: Support MultiChartType values
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final availableCharts = await ref
           .read(
@@ -322,7 +322,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     if (currentConfig.charts.length <= 1) {
       notifier.deleteEntry(currentConfig);
     } else {
-      // Use the cascade operator (..) to create and modify the list in one expression
       final updatedCharts = List<ChartConfig>.from(currentConfig.charts)
         ..removeAt(index);
       notifier.updateMultiChart(
@@ -332,7 +331,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     _selectedIndicator = __defaultIndicator;
   }
 
-  // TODO: Support MultiChartType values
   void _handleIndicatorChange(int index, MultiChartConfig currentConfig) {
     showIndicator(context, currentConfig.charts[index].indicatorConfig, (
       Indicator? updateIndicator,
@@ -400,7 +398,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
                   currentConfig.copyWith(
                     newId: MultiChartConfig.defaultId,
                     newTitle: MultiChartConfig.generateTitleBy(
-                      // TODO: Support MultiChartType values
                       currentConfig.feature as AssetConfig,
                       updateIndicator,
                       currentConfig.periodType,
@@ -534,7 +531,7 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
             final kstResult = result as KstResult;
             final kstColors = kstResult.config.visibleIndicatorColors();
             return OverlayKnowSureThing(
-              points: kstResult.getPoints(),
+              data: kstResult.getPoints(),
               kstColors: kstColors,
             );
           case IndicatorType.macd:
@@ -665,7 +662,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     }
 
     final activeChartTitle = MultiChartConfig.generateTitleBy(
-      // TODO: Support MultiChartType values
       (activeConfig.feature is AssetConfig) as AssetConfig?,
       newIndicator,
       newPeriodType,
@@ -673,7 +669,6 @@ class _MultiChartViewState extends ConsumerState<MultiChartView> {
     );
 
     final newChartConfig = activeConfig.copyWith(
-      // TODO: Support MultiChartType values
       newFeature: widget.assetConfig,
       newPeriodType: targetPeriod,
       newActiveChart: newActiveChart,

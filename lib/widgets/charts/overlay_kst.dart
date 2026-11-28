@@ -4,28 +4,46 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../model/results/indicator/kst_result.dart';
 
 class OverlayKnowSureThing extends OverlayChart {
-  final List<Kst> points;
+  final List<Kst> _data;
   final Map<String, Color> kstColors;
   final double lineWidth;
 
   OverlayKnowSureThing({
     super.overlayType = OverlayType.kst,
     super.chartStyle = ChartStyle.line,
-    required this.points,
+    required List<Kst> data,
     required this.kstColors,
-    this.lineWidth = 1.5});
+    this.lineWidth = 1.5,
+  }) : _data = data;
 
-  void _paintCurve(OverlayContext ctx, Canvas canvas, Size size,
-      Color lineColor, {required bool isKst, required double maxValue, required double minValue}) {
+  @override
+  List<BaseIndicatorValue> get data => _data;
+
+  void _paintCurve(
+    OverlayContext ctx,
+    Canvas canvas,
+    Size size,
+    Color lineColor, {
+    required bool isKst,
+    required double maxValue,
+    required double minValue,
+  }) {
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    final visibleData = points.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = _data
+        .where(
+          (e) =>
+              !e.dateTime.isBefore(ctx.startDate) &&
+              !e.dateTime.isAfter(ctx.endDate),
+        )
+        .toList();
     if (visibleData.isEmpty) return;
 
     final path = Path();
@@ -48,18 +66,26 @@ class OverlayKnowSureThing extends OverlayChart {
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0 || points.isEmpty) return;
+    if (size.width <= 0 || data.isEmpty) return;
 
-    final visibleData = points.where((e) => !e.dateTime.isBefore(ctx.startDate) && !e.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = _data
+        .where(
+          (e) =>
+              !e.dateTime.isBefore(ctx.startDate) &&
+              !e.dateTime.isAfter(ctx.endDate),
+        )
+        .toList();
     if (visibleData.isEmpty) return;
 
-    final (minKst, minSignal) =
-      (visibleData.map((p) => p.kst ?? double.infinity).reduce(min),
-      visibleData.map((p) => p.signal ?? double.infinity).reduce(min));
+    final (minKst, minSignal) = (
+      visibleData.map((p) => p.kst ?? double.infinity).reduce(min),
+      visibleData.map((p) => p.signal ?? double.infinity).reduce(min),
+    );
 
-    final (maxKst, maxSignal) =
-      (visibleData.map((p) => p.kst ?? double.infinity).reduce(max),
-      visibleData.map((p) => p.signal ?? double.infinity).reduce(max));
+    final (maxKst, maxSignal) = (
+      visibleData.map((p) => p.kst ?? double.infinity).reduce(max),
+      visibleData.map((p) => p.signal ?? double.infinity).reduce(max),
+    );
 
     final maxValue = min(maxKst, maxSignal);
     final minValue = max(minKst, minSignal);
@@ -67,22 +93,38 @@ class OverlayKnowSureThing extends OverlayChart {
     if (minValue == maxValue) return;
 
     if (kstColors.containsKey(KstParam.kstChart.name)) {
-      _paintCurve(ctx, canvas, size,
-         kstColors[KstParam.kstChart.name] ?? Colors.blue,
-         isKst: true,
-         maxValue: maxValue, minValue: minValue);
+      _paintCurve(
+        ctx,
+        canvas,
+        size,
+        kstColors[KstParam.kstChart.name] ?? Colors.blue,
+        isKst: true,
+        maxValue: maxValue,
+        minValue: minValue,
+      );
     }
     if (kstColors.containsKey(KstParam.signalChart.name)) {
-      _paintCurve(ctx, canvas, size,
+      _paintCurve(
+        ctx,
+        canvas,
+        size,
         kstColors[KstParam.signalChart.name] ?? Colors.orange,
         isKst: false,
-        maxValue: maxValue, minValue: minValue);
+        maxValue: maxValue,
+        minValue: minValue,
+      );
     }
     if (kstColors.containsKey(KstParam.zeroLevel.name)) {
-      OverlayChart.drawLevelLine(canvas, size, ctx,
+      OverlayChart.drawLevelLine(
+        canvas,
+        size,
+        ctx,
         lineColor: kstColors[KstParam.zeroLevel.name] ?? Colors.grey,
         lineWidth: lineWidth,
-        level: 0.0, maxBound: maxValue, minBound: minValue);
+        level: 0.0,
+        maxBound: maxValue,
+        minBound: minValue,
+      );
     }
   }
 }

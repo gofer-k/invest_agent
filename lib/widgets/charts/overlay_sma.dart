@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../model/results/indicator/sma_result.dart';
 
 class OverlaySimpleMovingAverage extends OverlayChart {
-  final List<SimpleMovingAverage> data;
+  final List<SimpleMovingAverage> _data;
   final Map<String, Color> smaColors;
   final double strokeWidth;
 
   OverlaySimpleMovingAverage({
     super.overlayType = OverlayType.movingAverage,
     super.chartStyle = ChartStyle.line,
-    required this.data,
+    required List<SimpleMovingAverage> data,
     this.strokeWidth = 1.5,
-    required this.smaColors});
+    required this.smaColors,
+  }) : _data = data;
+
+  @override
+  List<BaseIndicatorValue> get data => _data;
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
@@ -25,16 +30,34 @@ class OverlaySimpleMovingAverage extends OverlayChart {
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke;
 
-    final int firstVisibleIndex = data.indexWhere(
-            (ma) => ma.dateTime.isAfter(ctx.startDate)
+    final int firstVisibleIndex = _data.indexWhere(
+      (ma) => ma.dateTime.isAfter(ctx.startDate),
     );
-    if (firstVisibleIndex == -1) return; 
+    if (firstVisibleIndex == -1) return;
 
-    final visibleData = data.skip(firstVisibleIndex).toList();
+    final visibleData = _data.skip(firstVisibleIndex).toList();
     if (visibleData.isEmpty) return;
 
-    final minValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) < (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
-    final maxValue = visibleData.reduce((curr, next) => (curr.rollingMean ?? 0.0) > (next.rollingMean ?? 0.0) ? curr : next).rollingMean ?? 0.0;
+    final minValue =
+        visibleData
+            .reduce(
+              (curr, next) =>
+                  (curr.rollingMean ?? 0.0) < (next.rollingMean ?? 0.0)
+                  ? curr
+                  : next,
+            )
+            .rollingMean ??
+        0.0;
+    final maxValue =
+        visibleData
+            .reduce(
+              (curr, next) =>
+                  (curr.rollingMean ?? 0.0) > (next.rollingMean ?? 0.0)
+                  ? curr
+                  : next,
+            )
+            .rollingMean ??
+        0.0;
 
     if (minValue == maxValue) return;
 
@@ -43,10 +66,15 @@ class OverlaySimpleMovingAverage extends OverlayChart {
 
     for (var ma in visibleData) {
       if (ma.dateTime.isAfter(ctx.endDate)) break;
-      
+
       final x = ctx.dateToPos(ma.dateTime, size);
-      final y = ctx.indicatorToPos(ma.rollingMean ?? 0.0, size.height, minValue, maxValue);
-      
+      final y = ctx.indicatorToPos(
+        ma.rollingMean ?? 0.0,
+        size.height,
+        minValue,
+        maxValue,
+      );
+
       if (!started) {
         path.moveTo(x, y);
         started = true;

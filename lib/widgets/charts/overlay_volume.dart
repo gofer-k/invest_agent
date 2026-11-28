@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../model/results/indicator/price_result.dart';
 
 class OverlayVolume extends OverlayChart {
-  final List<IndexPriceItem> data;
+  final List<IndexPriceItem> _data;
   final Color upVolumeColor;
   final Color downVolumeColor;
   final double barWidth;
@@ -13,17 +14,26 @@ class OverlayVolume extends OverlayChart {
   OverlayVolume({
     super.overlayType = OverlayType.volume,
     super.chartStyle = ChartStyle.bars,
-    required this.data,
+    required List<IndexPriceItem> data,
     this.upVolumeColor = Colors.green,
     this.downVolumeColor = Colors.redAccent,
-    this.barWidth = 3.0
-  });
+    this.barWidth = 3.0,
+  }) : _data = data;
+
+  @override
+  List<BaseIndicatorValue> get data => _data;
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
     if (data.isEmpty) return;
 
-    final visibleData = data.where((p) => !p.dateTime.isBefore(ctx.startDate) && !p.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = _data
+        .where(
+          (p) =>
+              !p.dateTime.isBefore(ctx.startDate) &&
+              !p.dateTime.isAfter(ctx.endDate),
+        )
+        .toList();
     if (visibleData.isEmpty) return;
 
     double maxVolume = visibleData

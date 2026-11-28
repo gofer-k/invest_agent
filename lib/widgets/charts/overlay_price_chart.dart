@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:invest_agent/model/chart_style.dart';
+import 'package:invest_agent/model/results/indicator/indicator_result.dart';
 import 'package:invest_agent/widgets/charts/overlay_chart.dart';
 
 import '../../model/results/indicator/price_result.dart';
 
 class OverlayPriceChart extends OverlayChart {
-  final IndexPrice data;
+  final IndexPrice _data;
   final Color lineColor;
   final double strokeWidth;
+
+  @override
+  List<BaseIndicatorValue> get data => _data.priceData;
 
   OverlayPriceChart({
     super.overlayType = OverlayType.price,
     required super.chartStyle,
-    required this.data,
+    required IndexPrice data,
     this.lineColor = Colors.white54,
     this.strokeWidth = 1.2,
-  });
+  }) : _data = data;
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
@@ -29,66 +33,104 @@ class OverlayPriceChart extends OverlayChart {
     }
   }
 
-void _drawPriceLine(Canvas canvas, Size size, OverlayContext ctx) {
-  final paint = Paint()
-    ..color = lineColor
-    ..strokeWidth = strokeWidth;
+  void _drawPriceLine(Canvas canvas, Size size, OverlayContext ctx) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = strokeWidth;
 
-  final int firstVisibleIndex = data.priceData.indexWhere(
-        (price) => !price.dateTime.isBefore(ctx.startDate),
-  );
-  if (firstVisibleIndex == -1) return; // Nothing to draw
-  final int startIndex = (firstVisibleIndex > 0) ? firstVisibleIndex - 1 : 0;
+    final int firstVisibleIndex = _data.priceData.indexWhere(
+      (price) => !price.dateTime.isBefore(ctx.startDate),
+    );
+    if (firstVisibleIndex == -1) return; // Nothing to draw
+    final int startIndex = (firstVisibleIndex > 0) ? firstVisibleIndex - 1 : 0;
 
-  // Suggestion 1: Iterate over pairs for clarity
-  for (int i = startIndex + 1; i < data.priceData.length; ++i) {
-    final prevPrice = data.priceData[i - 1];
-    final currentPrice = data.priceData[i];
+    // Suggestion 1: Iterate over pairs for clarity
+    for (int i = startIndex + 1; i < _data.priceData.length; ++i) {
+      final prevPrice = _data.priceData[i - 1];
+      final currentPrice = _data.priceData[i];
 
-    // Stop drawing once we move past the visible area
-    if (prevPrice.dateTime.isAfter(ctx.endDate)) {
-      break;
+      // Stop drawing once we move past the visible area
+      if (prevPrice.dateTime.isAfter(ctx.endDate)) {
+        break;
+      }
+
+      final Offset prevOffset = Offset(
+        ctx.dateToPos(prevPrice.dateTime, size),
+        ctx.indicatorToPos(
+          prevPrice.closePrice,
+          size.height,
+          _data.getMin(ctx.startDate, ctx.endDate),
+          _data.getMax(ctx.startDate, ctx.endDate),
+        ),
+      );
+      final Offset currOffset = Offset(
+        ctx.dateToPos(currentPrice.dateTime, size),
+        ctx.indicatorToPos(
+          currentPrice.closePrice,
+          size.height,
+          _data.getMin(ctx.startDate, ctx.endDate),
+          _data.getMax(ctx.startDate, ctx.endDate),
+        ),
+      );
+      canvas.drawLine(prevOffset, currOffset, paint);
     }
-
-    final Offset prevOffset = Offset(
-      ctx.dateToPos(prevPrice.dateTime, size),
-      ctx.indicatorToPos(prevPrice.closePrice, size.height,
-          data.getMin(ctx.startDate, ctx.endDate),
-          data.getMax(ctx.startDate, ctx.endDate)
-      ),
-    );
-    final Offset currOffset = Offset(
-      ctx.dateToPos(currentPrice.dateTime, size),
-      ctx.indicatorToPos(
-          currentPrice.closePrice, size.height,
-          data.getMin(ctx.startDate, ctx.endDate),
-          data.getMax(ctx.startDate, ctx.endDate)),
-    );
-    canvas.drawLine(prevOffset, currOffset, paint);
   }
-}
 
   void _drawCandleSticks(Canvas canvas, Size size, OverlayContext ctx) {
-    if (data.priceData.isEmpty) return;
+    if (_data.priceData.isEmpty) return;
 
-    final visibleData = data.priceData.where((p) => !p.dateTime.isBefore(ctx.startDate) && !p.dateTime.isAfter(ctx.endDate)).toList();
+    final visibleData = _data.priceData
+        .where(
+          (p) =>
+              !p.dateTime.isBefore(ctx.startDate) &&
+              !p.dateTime.isAfter(ctx.endDate),
+        )
+        .toList();
     if (visibleData.isEmpty) return;
 
-    double minPrice = visibleData.reduce((current, next) => current.lowPrice < next.lowPrice ? current : next).lowPrice;
-    double maxPrice = visibleData.reduce((current, next) => current.highPrice > next.highPrice ? current : next).highPrice;
+    double minPrice = visibleData
+        .reduce(
+          (current, next) => current.lowPrice < next.lowPrice ? current : next,
+        )
+        .lowPrice;
+    double maxPrice = visibleData
+        .reduce(
+          (current, next) =>
+              current.highPrice > next.highPrice ? current : next,
+        )
+        .highPrice;
 
     // Calculate width of one candle based on total visible space and data points
     final double candleWidth = (size.width / (visibleData.length)) * 0.8;
 
     for (final price in visibleData) {
-
       final double x = ctx.dateToPos(price.dateTime, size);
 
       // Map prices to Y coordinates
-      final double openY = ctx.indicatorToPos(price.openPrice, size.height, minPrice, maxPrice);
-      final double closeY = ctx.indicatorToPos(price.closePrice, size.height, minPrice, maxPrice);
-      final double highY = ctx.indicatorToPos(price.highPrice, size.height, minPrice, maxPrice);
-      final double lowY = ctx.indicatorToPos(price.lowPrice, size.height, minPrice, maxPrice);
+      final double openY = ctx.indicatorToPos(
+        price.openPrice,
+        size.height,
+        minPrice,
+        maxPrice,
+      );
+      final double closeY = ctx.indicatorToPos(
+        price.closePrice,
+        size.height,
+        minPrice,
+        maxPrice,
+      );
+      final double highY = ctx.indicatorToPos(
+        price.highPrice,
+        size.height,
+        minPrice,
+        maxPrice,
+      );
+      final double lowY = ctx.indicatorToPos(
+        price.lowPrice,
+        size.height,
+        minPrice,
+        maxPrice,
+      );
 
       final isBullish = price.closePrice >= price.openPrice;
       final color = isBullish ? Colors.green : Colors.red;

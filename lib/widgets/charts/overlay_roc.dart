@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../model/results/indicator/roc_result.dart';
 import '../../utils/chart_utils.dart';
 import 'overlay_chart.dart';
 
 class OverlayRoc extends OverlayChart {
-  final List<Roc> data;
+  final List<Roc> _data;
   final double? upperBound;
   final double? lowerBound;
   final double? baseLevel;
@@ -16,12 +17,25 @@ class OverlayRoc extends OverlayChart {
   OverlayRoc({
     super.overlayType = OverlayType.roc,
     super.chartStyle = ChartStyle.line,
-    required this.data,
+    required List<Roc> data,
     required this.rocColors,
-    this.lineWidth = 1.0, this.upperBound, this.lowerBound, this.baseLevel,
-  });
+    this.lineWidth = 1.0,
+    this.upperBound,
+    this.lowerBound,
+    this.baseLevel,
+  }) : _data = data;
 
-  void _drawDashedLine(Canvas canvas, Offset start, double width, double dashWidth, double dashSpace, Paint paint) {
+  @override
+  List<BaseIndicatorValue> get data => _data;
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    double width,
+    double dashWidth,
+    double dashSpace,
+    Paint paint,
+  ) {
     double startX = start.dx;
     final endX = start.dx + width;
 
@@ -35,8 +49,15 @@ class OverlayRoc extends OverlayChart {
     }
   }
 
-  void _drawLimitLine(Canvas canvas, Size size, OverlayContext ctx,
-      {required Color lineColor, required double minBound, required double maxBound, required double level}) {
+  void _drawLimitLine(
+    Canvas canvas,
+    Size size,
+    OverlayContext ctx, {
+    required Color lineColor,
+    required double minBound,
+    required double maxBound,
+    required double level,
+  }) {
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = lineWidth
@@ -45,31 +66,50 @@ class OverlayRoc extends OverlayChart {
 
     // Guard against equal min/max or no data
     if (minBound == maxBound) return;
-    final value =  level;
-    final y = valueToPos(currValue: value, min: minBound, max: maxBound, height: size.height);
+    final value = level;
+    final y = valueToPos(
+      currValue: value,
+      min: minBound,
+      max: maxBound,
+      height: size.height,
+    );
 
     _drawDashedLine(canvas, Offset(0, y), size.width, 5, 3, paint);
   }
 
   @override
   void draw(Canvas canvas, Size size, OverlayContext ctx) {
-    if (size.width <= 0 || data.isEmpty) return;
+    if (size.width <= 0 || _data.isEmpty) return;
 
     final paint = Paint()
       ..color = rocColors[RocParam.roc.name] ?? Colors.blue
       ..strokeWidth = lineWidth
       ..style = PaintingStyle.stroke;
 
-    final int firstVisibleIndex = data.indexWhere(
-          (rsi) => rsi.dateTime.isAfter(ctx.startDate),
+    final int firstVisibleIndex = _data.indexWhere(
+      (rsi) => rsi.dateTime.isAfter(ctx.startDate),
     );
     if (firstVisibleIndex == -1) return; // Nothing to draw
 
-    final visibleData = data.skip(firstVisibleIndex).toList();
+    final visibleData = _data.skip(firstVisibleIndex).toList();
     if (visibleData.isEmpty) return;
 
-    final minValue = visibleData.reduce((curr, next) => (curr.roc ?? 0.0) < (next.roc ?? 0.0) ? curr : next).roc ?? 0.0;
-    final maxValue = visibleData.reduce((curr, next) => (curr.roc ?? 0.0) > (next.roc ?? 0.0) ? curr : next).roc ?? 0.0;
+    final minValue =
+        visibleData
+            .reduce(
+              (curr, next) =>
+                  (curr.roc ?? 0.0) < (next.roc ?? 0.0) ? curr : next,
+            )
+            .roc ??
+        0.0;
+    final maxValue =
+        visibleData
+            .reduce(
+              (curr, next) =>
+                  (curr.roc ?? 0.0) > (next.roc ?? 0.0) ? curr : next,
+            )
+            .roc ??
+        0.0;
 
     if (minValue == maxValue) return;
 
@@ -80,7 +120,12 @@ class OverlayRoc extends OverlayChart {
       if (value.dateTime.isAfter(ctx.endDate)) break;
 
       final x = ctx.dateToPos(value.dateTime, size);
-      final y = ctx.indicatorToPos(value.roc ?? 0.0, size.height, minValue, maxValue);
+      final y = ctx.indicatorToPos(
+        value.roc ?? 0.0,
+        size.height,
+        minValue,
+        maxValue,
+      );
 
       if (!started) {
         path.moveTo(x, y);
@@ -92,11 +137,35 @@ class OverlayRoc extends OverlayChart {
     canvas.drawPath(path, paint);
 
     if (lowerBound != null && rocColors.containsKey(RocParam.lowerLevel.name)) {
-      _drawLimitLine(canvas, size, ctx, lineColor: rocColors[RocParam.lowerLevel.name]!, level: lowerBound!, maxBound: maxValue, minBound: minValue);
+      _drawLimitLine(
+        canvas,
+        size,
+        ctx,
+        lineColor: rocColors[RocParam.lowerLevel.name]!,
+        level: lowerBound!,
+        maxBound: maxValue,
+        minBound: minValue,
+      );
     }
     if (upperBound != null && rocColors.containsKey(RocParam.upperLevel.name)) {
-      _drawLimitLine(canvas, size, ctx, lineColor: rocColors[RocParam.upperLevel.name]!, level: upperBound!, maxBound: maxValue, minBound: minValue);
+      _drawLimitLine(
+        canvas,
+        size,
+        ctx,
+        lineColor: rocColors[RocParam.upperLevel.name]!,
+        level: upperBound!,
+        maxBound: maxValue,
+        minBound: minValue,
+      );
     }
-    _drawLimitLine(canvas, size, ctx, lineColor: rocColors[RocParam.zeroLevel.name]!, level: 0.0, maxBound: maxValue, minBound: minValue);
+    _drawLimitLine(
+      canvas,
+      size,
+      ctx,
+      lineColor: rocColors[RocParam.zeroLevel.name]!,
+      level: 0.0,
+      maxBound: maxValue,
+      minBound: minValue,
+    );
   }
 }

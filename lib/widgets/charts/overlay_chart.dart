@@ -1,10 +1,13 @@
 import 'dart:ui';
 
 import '../../model/chart_style.dart';
+import '../../model/results/indicator/indicator_result.dart';
 import '../../utils/chart_utils.dart';
 
 enum OverlayType {
   bollingerBands,
+  ema,
+  kst,
   macd,
   movingAverage,
   obv,
@@ -15,18 +18,26 @@ enum OverlayType {
   signal,
   tooltipMarker,
   volume,
-  empty, kst
+  empty,
 }
 
 abstract class OverlayChart {
   final OverlayType overlayType;
   final ChartStyle chartStyle;
+
+  List<BaseIndicatorValue> get data => const [];
+
   OverlayChart({required this.overlayType, required this.chartStyle});
   void draw(Canvas canvas, Size size, OverlayContext ctx);
 
   static void drawDashedLine(
-      Canvas canvas, Offset start, double width, double dashWidth,
-      double dashSpace, Paint paint) {
+    Canvas canvas,
+    Offset start,
+    double width,
+    double dashWidth,
+    double dashSpace,
+    Paint paint,
+  ) {
     double startX = start.dx;
     final endX = start.dx + width;
 
@@ -40,10 +51,16 @@ abstract class OverlayChart {
     }
   }
 
-  static void drawLevelLine(Canvas canvas, Size size, OverlayContext ctx,
-    { required Color lineColor, required lineWidth,
-      required double minBound,
-      required double maxBound, required double level}) {
+  static void drawLevelLine(
+    Canvas canvas,
+    Size size,
+    OverlayContext ctx, {
+    required Color lineColor,
+    required lineWidth,
+    required double minBound,
+    required double maxBound,
+    required double level,
+  }) {
     final paint = Paint()
       ..color = lineColor
       ..strokeWidth = lineWidth
@@ -52,8 +69,13 @@ abstract class OverlayChart {
 
     // Guard against equal min/max or no data
     if (minBound == maxBound) return;
-    final value =  level;
-    final y = valueToPos(currValue: value, min: minBound, max: maxBound, height: size.height);
+    final value = level;
+    final y = valueToPos(
+      currValue: value,
+      min: minBound,
+      max: maxBound,
+      height: size.height,
+    );
 
     OverlayChart.drawDashedLine(canvas, Offset(0, y), size.width, 5, 3, paint);
   }
@@ -69,6 +91,9 @@ class EmptyOverlayChart implements OverlayChart {
   @override
   // TODO: implement chartStyle
   ChartStyle get chartStyle => ChartStyle.undefined;
+
+  @override
+  List<BaseIndicatorValue> get data => const [];
 }
 
 class OverlayContext {
